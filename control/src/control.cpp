@@ -6,5 +6,5 @@ libtrainsim::control::control(void){
 }
 
 void libtrainsim::control::hello_impl(){
-    std::cout<<"Hello from the video singleton"<<std::endl;
+    std::cout<<"Hello from the control singleton"<<std::endl;
 }

@@ -10,7 +10,7 @@ namespace libtrainsim {
                 return instance;
             };
 
-            void hello_impl();
+            void hello_impl() const;
 
         public:
             static void hello(){
