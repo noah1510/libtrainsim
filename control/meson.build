@@ -1,0 +1,32 @@
+cc = meson.get_compiler('cpp')
+
+sources = [
+    'src/control.cpp',
+]
+
+incdir = include_directories('include')
+
+control_deps = [
+    dependency('threads'),
+]
+
+libtrainsim_control = library(
+    'libtrainsim-control', 
+    sources, 
+    version : meson.project_version(), 
+    soversion : '0',
+    include_directories : incdir,
+    dependencies: control_deps,
+)
+
+libtrainsim_control_dep = declare_dependency(
+    include_directories : incdir,
+    link_with : libtrainsim_control,
+    dependencies : control_deps,
+    version: meson.project_version()
+)
+
+install_subdir('include', install_dir : 'include')
+
+pkg = import('pkgconfig')
+pkg.generate(libtrainsim_control)
