@@ -1,0 +1,27 @@
+image: gcc:latest
+
+build:
+  stage: build
+  script:
+    - echo 'echo $K8S_SECRET_GITLAB_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
+    - export GIT_ASKPASS=$HOME/.git-askpass
+    - git config --global url."https://api@git.thm.de/".insteadOf "https://git.thm.de/"
+    - git config --global url."https://ssh@git.thm.de/".insteadOf "ssh://git@git.thm.de/"
+    - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
+    - apt-get update
+    - apt-get install --yes python3-pip libglfw3-dev libvips-dev libopenal-dev libavformat-dev libavcodec-dev libavutil-dev libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev
+    - python3 -m pip install meson
+    - python3 -m pip install glad
+    - mkdir build && cd build
+    - meson setup ..
+    - meson compile
+    - meson test
+    - cd ..
+  after_script:
+    - |
+      if [ -e success ]; then
+        echo success
+      else
+        echo failure
+        cat /builds/bahn-simulator/simulator/build/meson-logs/meson-log.txt
+      fi
