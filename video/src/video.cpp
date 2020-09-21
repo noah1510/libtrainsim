@@ -57,6 +57,10 @@ bool libtrainsim::video::load_impl(const std::filesystem::path& uri){
         return false;
     }
 
+    if(!init_decoding()){
+        return false;
+    }
+
     return true;
 }
 
@@ -100,7 +104,41 @@ bool libtrainsim::video::setVideoStream(){
 
     if (vst.isNull()) {
         std::cerr << "Video stream not found\n";
+        reset();
         return false;
+    }
+
+    if (vst.isValid()){
+        return true;
+    }
+
+    reset();
+
+    return false;
+}
+
+bool libtrainsim::video::init_decoding(){
+    while(auto pkt = ictx.readPacket(ec)){
+
+        if (ec) {
+            std::cerr << "Packet reading error: " << ec << ", " << ec.message() << std::endl;
+            return false;
+        }
+
+        if (pkt.streamIndex() != videoStream) {
+            continue;
+        }
+
+        av::VideoFrame frame = vdec.decode(pkt, ec);
+
+        count++;
+
+        if (ec) {
+            std::cerr << "Error: " << ec << ", " << ec.message() << std::endl;
+            return false;
+        } else if (!frame) {
+            std::cerr << "Empty frame\n";
+        }
     }
 
     return true;
@@ -116,26 +154,13 @@ av::Stream& libtrainsim::video::getVideoStream_impl(){
     return vst;
 }
 
-/*av::Packet libtrainsim::video::getPacket_impl(){
-    auto pkt = ictx.readPacket(ec);
+av::VideoFrame&& libtrainsim::video::getNextFrame_impl(){
+    auto frame = vdec.decode(av::Packet(), ec);
     if (ec) {
-        std::clog << "Packet reading error: " << ec << ", " << ec.message() << std::endl;
-        return pkt;
+        std::cerr << "Error: " << ec << ", " << ec.message() << std::endl;
+        return std::move(av::VideoFrame());
     }
-
-    bool flushDecoder = false;
-    // !EOF
-    if (pkt) {
-        if (pkt.streamIndex() != videoStream) {
-            return pkt;
-        }
-
-        std::clog << "Read packet: pts=" << pkt.pts() << ", dts=" << pkt.dts() << " / " << pkt.pts().seconds() << " / " << pkt.timeBase() << " / st: " << pkt.streamIndex() << std::endl;
-    } else {
-        flushDecoder = true;
-    }
-
-    count++;
-
-    return pkt;
-}*/
+    if (!frame)
+        return std::move(av::VideoFrame());
+    return std::move(frame);
+}

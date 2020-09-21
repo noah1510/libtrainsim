@@ -64,6 +64,8 @@ namespace libtrainsim {
             av::VideoDecoderContext& getDecoder_impl();
             bool setVideoDecoderContext();
             bool setVideoStream();
+            bool init_decoding();
+            av::VideoFrame&& getNextFrame_impl();
 
         public:
             /**
@@ -85,13 +87,18 @@ namespace libtrainsim {
                 return getInstance().load_impl(uri);
             }
 
-            /*static av::Packet getPacket(){
-                return getInstance().getPacket_impl();
-            }*/
-
             static av::Stream& getVideoStream(){
                 return getInstance().getVideoStream_impl();
             }
+
+            static av::VideoFrame&& getNextFrame(){
+                return getInstance().getNextFrame_impl();
+            }
+
+            static av::VideoDecoderContext& getDecoder(){
+                return getInstance().getDecoder_impl();
+            }
+
     };
 }
 
