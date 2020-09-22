@@ -17,7 +17,7 @@ void libtrainsim::video::reset(){
 bool libtrainsim::video::load_impl(const std::filesystem::path& uri){
     loadedFile = uri;
 
-    videoCap = std::make_unique<cv::VideoCapture>(loadedFile);
+    videoCap = std::make_unique<cv::VideoCapture>(static_cast<std::string>(loadedFile));
     if(!videoCap->isOpened()){
         return false;
     }
