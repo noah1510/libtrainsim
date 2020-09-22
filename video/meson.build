@@ -8,7 +8,6 @@ incdir = include_directories('include')
 
 video_deps = [
     dependency('threads', required: true),
-    #dependency('avcpp', required: true, fallback: 'avcpp'),
     dependency('opencv4', required: true)
 ]
 

@@ -1,3 +1,5 @@
+#include <memory>
+#include <opencv4/opencv2/videoio.hpp>
 #include <string>
 #include <filesystem>
 
@@ -51,7 +53,11 @@ namespace libtrainsim {
              * @brief This is that path to the currently loaded file.
              * 
              */
-            std::filesystem::path loadedFile;   
+            std::filesystem::path loadedFile;
+
+            std::unique_ptr<cv::VideoCapture> videoCap;
+
+            double getFPS_impl();
 
         public:
             /**
@@ -71,6 +77,10 @@ namespace libtrainsim {
              */
             static bool load(const std::filesystem::path& uri){
                 return getInstance().load_impl(uri);
+            }
+
+            static double getFPS(){
+                return getInstance().getFPS_impl();
             }
 
     };
