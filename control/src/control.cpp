@@ -5,6 +5,6 @@ libtrainsim::control::control(void){
 
 }
 
-void libtrainsim::control::hello_impl() const{
-    std::cout<<"Hello from the control singleton"<<std::endl;
+std::string libtrainsim::control::hello_impl() const{
+    return "Hello from the control singleton";
 }

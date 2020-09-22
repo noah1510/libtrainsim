@@ -1,3 +1,4 @@
+#include <string>
 
 namespace libtrainsim {
     
@@ -10,10 +11,10 @@ namespace libtrainsim {
                 return instance;
             };
 
-            void hello_impl() const;
+            std::string hello_impl() const;
 
         public:
-            static void hello(){
+            static std::string hello(){
                 return getInstance().hello_impl();
             }
     };
