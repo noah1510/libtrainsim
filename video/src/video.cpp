@@ -19,7 +19,7 @@ bool libtrainsim::video::load_impl(const std::filesystem::path& uri){
     loadedFile = uri;
 
     videoCap = std::make_unique<cv::VideoCapture>(loadedFile);
-    if(!videoCap->isOpen()){
+    if(!videoCap->isOpened()){
         return false;
     }
 
@@ -27,7 +27,7 @@ bool libtrainsim::video::load_impl(const std::filesystem::path& uri){
 }
 
 double libtrainsim::video::getFPS_impl(){
-    if(videoCap->isOpen()){
+    if(videoCap->isOpened()){
         return videoCap->get(cv::CAP_PROP_FPS);
     }
 
