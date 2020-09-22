@@ -35,15 +35,15 @@ double libtrainsim::video::getFPS_impl(){
     return 0.0f;
 }
 
-cv::Mat libtrainsim::video::getNextFrame_impl(){
+const cv::Mat libtrainsim::video::getNextFrame_impl(){
     cv::Mat frame;
     auto status = videoCap->read(frame);
 
     if (!status){
         return cv::Mat();
     }
-
-    return frame;
+    
+    return frame.clone();
 }
 
   

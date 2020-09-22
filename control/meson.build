@@ -8,6 +8,7 @@ incdir = include_directories('include')
 
 control_deps = [
     dependency('threads'),
+    dependency('libtrainsim-core', required: true),
 ]
 
 libtrainsim_control = library(

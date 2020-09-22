@@ -60,7 +60,7 @@ namespace libtrainsim {
 
             double getFPS_impl();
 
-            cv::Mat getNextFrame_impl(); 
+            const cv::Mat getNextFrame_impl(); 
 
         public:
             /**
@@ -86,7 +86,7 @@ namespace libtrainsim {
                 return getInstance().getFPS_impl();
             }
 
-            static cv::Mat getNextFrame(){
+            static const cv::Mat getNextFrame(){
                 return getInstance().getNextFrame_impl();
             }
 
