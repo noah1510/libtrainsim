@@ -1,11 +1,7 @@
 #include <string>
 #include <filesystem>
 
-#include "format.h"
-#include "formatcontext.h"
-#include "codec.h"
-#include "codeccontext.h"
-#include "stream.h"
+#include "opencv4/opencv2/opencv.hpp"
 
 namespace libtrainsim {
     /**
@@ -23,6 +19,12 @@ namespace libtrainsim {
             ~video(){
                 reset();
             }
+
+            /**
+             * @brief reset the singleton to the initial state
+             * 
+             */
+            void reset();
 
             /**
              * @brief Get the Instance of the singleton
@@ -49,23 +51,7 @@ namespace libtrainsim {
              * @brief This is that path to the currently loaded file.
              * 
              */
-            std::filesystem::path loadedFile;
-
-            std::error_code ec;
-            av::FormatContext ictx;
-            ssize_t videoStream = -1;
-            av::VideoDecoderContext vdec;
-            av::Stream vst;
-            int count = 0;
-            
-            //av::Packet getPacket_impl();
-            av::Stream& getVideoStream_impl();
-            void reset();
-            av::VideoDecoderContext& getDecoder_impl();
-            bool setVideoDecoderContext();
-            bool setVideoStream();
-            bool init_decoding();
-            av::VideoFrame&& getNextFrame_impl();
+            std::filesystem::path loadedFile;   
 
         public:
             /**
@@ -85,18 +71,6 @@ namespace libtrainsim {
              */
             static bool load(const std::filesystem::path& uri){
                 return getInstance().load_impl(uri);
-            }
-
-            static av::Stream& getVideoStream(){
-                return getInstance().getVideoStream_impl();
-            }
-
-            static av::VideoFrame&& getNextFrame(){
-                return getInstance().getNextFrame_impl();
-            }
-
-            static av::VideoDecoderContext& getDecoder(){
-                return getInstance().getDecoder_impl();
             }
 
     };
