@@ -14,7 +14,10 @@ opencv_dep = dependency('opencv4', required : false)
 if not opencv_dep.found()
     opencv_dep = dependency('opencv3', required : false)
     if not opencv_dep.found()
-        opencv_dep = dependency('opencv2', required : true, version: '>=2.4.0')
+        opencv_dep = dependency('opencv2', required : false, version: '>=2.4.0')
+        if not opencv_dep.found()
+            opencv_dep = dependency('opencv', required : true, version: '>=2.4.0')
+        endif
     endif
 endif
 
