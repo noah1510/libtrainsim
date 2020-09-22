@@ -10,7 +10,7 @@ build:
     - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
     - apt-get update
     - apt-get install --yes gfortran-8
-    - apt-get install --yes python3-pip libopencv-dev libavdevice-dev libavformat-dev libavcodec-dev libavutil-dev libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev
+    - apt-get install --yes python3-pip libopencv-dev
     - python3 -m pip install meson ninja
     - python3 -m pip install glad
     - mkdir build && cd build
