@@ -8,8 +8,17 @@ incdir = include_directories('include')
 
 video_deps = [
     dependency('threads', required: true),
-    dependency('opencv4', required: true),
 ]
+
+opencv_dep = dependency('opencv4', required : false)
+if not opencv_dep.found()
+    opencv_dep = dependency('opencv3', required : false)
+    if not opencv_dep.found()
+        opencv_dep = dependency('opencv2', required : true, version: '>=2.4.0')
+    endif
+endif
+
+video_deps += opencv_dep
 
 libtrainsim_video = library(
     'libtrainsim-video', 

@@ -1,10 +1,8 @@
 #include <memory>
-#include <opencv4/opencv2/core/mat.hpp>
-#include <opencv4/opencv2/videoio.hpp>
 #include <string>
 #include <filesystem>
 
-#include "opencv4/opencv2/opencv.hpp"
+#include "opencv2/opencv.hpp"
 
 namespace libtrainsim {
     /**

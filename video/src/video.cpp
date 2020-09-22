@@ -1,8 +1,6 @@
 #include "video.hpp"
 #include <iostream>
 #include <memory>
-#include <opencv4/opencv2/core/mat.hpp>
-#include <opencv4/opencv2/videoio.hpp>
 
 libtrainsim::video::video(void){
 
