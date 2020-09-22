@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 #include <string>
 #include <filesystem>
@@ -68,26 +70,29 @@ namespace libtrainsim {
              */
             std::unique_ptr<cv::VideoCapture> videoCap;
 
-            ///The implementation for the getFPS method
-            double getFPS_impl();
-
             ///The implementation for the getNextFrame method
-            const cv::Mat getNextFrame_impl(); 
+            const cv::Mat getNextFrame_impl();
+
+            ///The implementation for the getFilePath method
+            std::filesystem::path getFilePath_impl() const;
+            
+            ///The implementation for the getFPS method
+            double getFPS_impl() const;
 
             ///The implementation for the getPosMsec method
-            double getPosMsec_impl();
+            double getPosMsec_impl() const;
 
             ///The implementation for the getPosFrames method
-            double getPosFrames_impl();
+            double getPosFrames_impl() const;
 
             ///The implementation for the getWidth method
-            double getWidth_impl();
+            double getWidth_impl() const;
 
             ///The implementation for the getHight method
-            double getHight_impl();
+            double getHight_impl() const;
 
             ///The implementation for the getFrameCount method
-            double getFrameCount_impl();
+            double getFrameCount_impl() const;
 
         public:
             /**
@@ -107,6 +112,15 @@ namespace libtrainsim {
              */
             static bool load(const std::filesystem::path& uri){
                 return getInstance().load_impl(uri);
+            }
+
+            /**
+             * @brief Get the File Path of the loaded video file
+             * 
+             * @return std::filesystem::path the filepath to the current video file
+             */
+            static std::filesystem::path getFilePath(){
+                return getInstance().getFilePath_impl();
             }
 
             /**

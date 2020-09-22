@@ -36,8 +36,12 @@ const cv::Mat libtrainsim::video::getNextFrame_impl(){
     return frame.clone();
 }
 
+std::filesystem::path libtrainsim::video::getFilePath_impl() const{
+    return loadedFile;
+}
 
-double libtrainsim::video::getFPS_impl(){
+
+double libtrainsim::video::getFPS_impl() const{
     if(videoCap->isOpened()){
         return videoCap->get(cv::CAP_PROP_FPS);
     }
@@ -45,7 +49,7 @@ double libtrainsim::video::getFPS_impl(){
     return 0.0f;
 }
 
-double libtrainsim::video::getPosMsec_impl(){
+double libtrainsim::video::getPosMsec_impl() const{
     if(videoCap->isOpened()){
         return videoCap->get(cv::CAP_PROP_POS_MSEC);
     }
@@ -53,7 +57,7 @@ double libtrainsim::video::getPosMsec_impl(){
     return 0.0f;
 }
 
-double libtrainsim::video::getPosFrames_impl(){
+double libtrainsim::video::getPosFrames_impl() const{
     if(videoCap->isOpened()){
         return videoCap->get(cv::CAP_PROP_POS_FRAMES);
     }
@@ -61,7 +65,7 @@ double libtrainsim::video::getPosFrames_impl(){
     return 0.0f;
 }
 
-double libtrainsim::video::getWidth_impl(){
+double libtrainsim::video::getWidth_impl() const{
     if(videoCap->isOpened()){
         return videoCap->get(cv::CAP_PROP_FRAME_WIDTH);
     }
@@ -69,7 +73,7 @@ double libtrainsim::video::getWidth_impl(){
     return 0.0f;
 }
 
-double libtrainsim::video::getHight_impl(){
+double libtrainsim::video::getHight_impl() const{
     if(videoCap->isOpened()){
         return videoCap->get(cv::CAP_PROP_FRAME_HEIGHT);
     }
@@ -77,7 +81,7 @@ double libtrainsim::video::getHight_impl(){
     return 0.0f;
  }
 
- double libtrainsim::video::getFrameCount_impl(){
+ double libtrainsim::video::getFrameCount_impl() const{
     if(videoCap->isOpened()){
         return videoCap->get(cv::CAP_PROP_FRAME_COUNT);
     }
