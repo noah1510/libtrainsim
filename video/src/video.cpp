@@ -1,6 +1,7 @@
 #include "video.hpp"
 #include <iostream>
 #include <memory>
+#include <opencv4/opencv2/core/mat.hpp>
 #include <opencv4/opencv2/videoio.hpp>
 
 libtrainsim::video::video(void){
@@ -32,6 +33,17 @@ double libtrainsim::video::getFPS_impl(){
     }
 
     return 0.0f;
+}
+
+cv::Mat libtrainsim::video::getNextFrame_impl(){
+    cv::Mat frame;
+    auto status = videoCap->read(frame);
+
+    if (!status){
+        return cv::Mat();
+    }
+
+    return frame;
 }
 
   

@@ -8,7 +8,7 @@ incdir = include_directories('include')
 
 video_deps = [
     dependency('threads', required: true),
-    dependency('opencv4', required: true)
+    dependency('opencv4', required: true),
 ]
 
 libtrainsim_video = library(

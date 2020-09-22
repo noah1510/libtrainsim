@@ -1,4 +1,5 @@
 #include <memory>
+#include <opencv4/opencv2/core/mat.hpp>
 #include <opencv4/opencv2/videoio.hpp>
 #include <string>
 #include <filesystem>
@@ -59,6 +60,8 @@ namespace libtrainsim {
 
             double getFPS_impl();
 
+            cv::Mat getNextFrame_impl(); 
+
         public:
             /**
              * @brief This function is used to test if libtrainsim::video was correctly linked and just prints hello world
@@ -82,6 +85,11 @@ namespace libtrainsim {
             static double getFPS(){
                 return getInstance().getFPS_impl();
             }
+
+            static cv::Mat getNextFrame(){
+                return getInstance().getNextFrame_impl();
+            }
+
 
     };
 }
