@@ -49,7 +49,7 @@ namespace libtrainsim {
              * @brief The implementation of hello()
              * 
              */
-            void hello_impl() const;
+            std::string hello_impl() const;
 
             /**
              * @brief The implementation of load look @load for details
@@ -94,7 +94,7 @@ namespace libtrainsim {
              * @brief This function is used to test if libtrainsim::video was correctly linked and just prints hello world
              * 
              */
-            static void hello(){
+            static std::string hello(){
                 return getInstance().hello_impl();
             }
 

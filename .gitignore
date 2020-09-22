@@ -2,3 +2,5 @@ build
 .cache
 doc
 subprojects/avcpp/
+subprojects/Catch2*/
+subprojects/packagecache/

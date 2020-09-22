@@ -6,8 +6,8 @@ libtrainsim::video::video(void){
 
 }
 
-void libtrainsim::video::hello_impl() const{
-    std::cout << "Hello from the video singleton" << std::endl;
+std::string libtrainsim::video::hello_impl() const{
+    return "Hello from the video singleton";
 }
 
 void libtrainsim::video::reset(){

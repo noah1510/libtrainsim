@@ -4,7 +4,7 @@ project(
     default_options : [
         'cpp_std=c++17'
     ],
-    version: '0.2.0'
+    version: '0.2.1'
 )
 
 subdir('core')
