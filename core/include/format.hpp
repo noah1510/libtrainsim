@@ -45,6 +45,14 @@ namespace libtrainsim{
              */
             bool loadTrack_impl(const std::filesystem::path& URI);
 
+            /**
+             * @brief implements getFrame
+             * 
+             * @param location the location on the track in meters
+             * @return int64_t the nearest frame to that location
+             */
+            int64_t getFrame_impl(double location);
+
         public:
             /**
              * @brief A simple greeting to check if the singleton is working
@@ -65,6 +73,36 @@ namespace libtrainsim{
              */
             static bool loadTrack(const std::filesystem::path& URI){
                 return getInstance().loadTrack_impl(URI);
+            }
+
+            /**
+             * @brief Get the Frame to the given location.
+             * Because a binary search is used to find the frame and the location is a floating point value, the returned Frame might not be the nearest.
+             * 
+             * @param location the location on the track in meters
+             * @return int64_t the nearest frame to that location
+             */
+            static int64_t getFrame(double location){
+                return getInstance().getFrame_impl(location);
+            }
+
+            /**
+             * @brief dump the data of the json content as a return value
+             * 
+             * @param ident If indent is nonnegative, then array elements and object members will be pretty-printed with that indent level. An indent level of 0 will only insert newlines. -1 (the default) selects the most compact representation.
+             * @return std::string the data of the loaded json file
+             */
+            static std::string dump(int ident = -1){
+                return getInstance().data_json.dump(ident);
+            }
+
+            /**
+             * @brief Get the number of elements in the loaded json file
+             * 
+             * @return int64_t the number of elements
+             */
+            static int64_t getSize(){
+                return getInstance().data_json.size();
             }
 
             

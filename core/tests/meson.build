@@ -20,7 +20,8 @@ deps += main_test_dep
 
 tests = [
     'hello',
-    'load_track'
+    'load_track',
+    'getNearestFrame'
 ]
 
 #create all the tests
