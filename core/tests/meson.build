@@ -20,6 +20,7 @@ deps += main_test_dep
 
 tests = [
     'hello',
+    'load_track'
 ]
 
 #create all the tests
