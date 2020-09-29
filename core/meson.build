@@ -1,13 +1,14 @@
 cc = meson.get_compiler('cpp')
 
 sources = [
-#    'src/control.cpp',
+    'src/format.cpp',
 ]
 
 incdir = include_directories('include')
 
 core_deps = [
     dependency('threads'),
+    dependency('nlohmann_json', required: true, fallback: ['nlohmann_json','nlohmann_json_dep']),
 ]
 
 libtrainsim_core = library(
@@ -30,3 +31,7 @@ install_subdir('include', install_dir : 'include/libtrainsim')
 
 pkg = import('pkgconfig')
 pkg.generate(libtrainsim_core)
+
+if get_option('force_build_tests') or (get_option('build_tests') and not meson.is_subproject())
+    subdir('tests')
+endif

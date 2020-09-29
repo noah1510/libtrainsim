@@ -4,3 +4,4 @@ doc
 subprojects/avcpp/
 subprojects/Catch2*/
 subprojects/packagecache/
+subprojects/nlohmann_json-*/
