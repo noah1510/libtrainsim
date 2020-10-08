@@ -59,8 +59,6 @@ int64_t libtrainsim::Format::getFrame_impl(double location){
             break;
         }
 
-        
- 
     }
 
     return index;
