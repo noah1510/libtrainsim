@@ -75,24 +75,12 @@ namespace libtrainsim {
 
             ///The implementation for the getFilePath method
             std::filesystem::path getFilePath_impl() const;
-            
-            ///The implementation for the getFPS method
-            double getFPS_impl() const;
 
-            ///The implementation for the getPosMsec method
-            double getPosMsec_impl() const;
+            ///The implementation of getVideoProperty
+            double getVideoProperty_impl(const cv::VideoCaptureProperties& prop) const;
 
-            ///The implementation for the getPosFrames method
-            double getPosFrames_impl() const;
-
-            ///The implementation for the getWidth method
-            double getWidth_impl() const;
-
-            ///The implementation for the getHight method
-            double getHight_impl() const;
-
-            ///The implementation for the getFrameCount method
-            double getFrameCount_impl() const;
+            ///the implementation of setVideoProperty
+            bool setVideoProperty_impl(const cv::VideoCaptureProperties& prop, double value);
 
         public:
             /**
@@ -124,30 +112,24 @@ namespace libtrainsim {
             }
 
             /**
-             * @brief get the framerate of the video file
-             * 
-             * @return double 
+             * @brief Get a property of the internal videoCapture object.
+             * @note Reading / writing properties involves many layers. Some unexpected result might happens along this chain. See cv::VideoCapture::get() for more information.
+             * @param prop the wanted property
+             * @return double the value of that property or 0 if it is nor supported
              */
-            static double getFPS(){
-                return getInstance().getFPS_impl();
+            static double getVideoProperty(const cv::VideoCaptureProperties& prop){
+                return getInstance().getVideoProperty_impl(prop);
             }
 
             /**
-             * @brief Get the current Position in the file in milliseconds
-             * 
-             * @return double 
+             * @brief Set a property of the internal videoCapture object.
+             * @note Even if it returns true this doesn't ensure that the property value has been accepted by the capture device. See note in cv::VideoCapture::get()
+             * @param prop the wanted property
+             * @param value the value the property should have 
+             * @return true if the property is supported by backend used by the VideoCapture instance and the videoCapture is opened.
              */
-            static double getPosMsec(){
-                return getInstance().getPosMsec_impl();
-            }
-
-            /**
-             * @brief Get the current Position in the file in frames
-             * 
-             * @return double 
-             */
-            static double getPosFrames(){
-                return getInstance().getPosFrames_impl();
+            static bool setVideoProperty(const cv::VideoCaptureProperties& prop, double value){
+                return getInstance().setVideoProperty_impl(prop, value);
             }
 
             /**
@@ -156,7 +138,7 @@ namespace libtrainsim {
              * @return double 
              */
             static double getWidth(){
-                return getInstance().getWidth_impl();
+                return getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
             }
 
             /**
@@ -165,16 +147,7 @@ namespace libtrainsim {
              * @return double 
              */
             static double getHight(){
-                return getInstance().getHight_impl();
-            }
-
-            /**
-             * @brief Get the total number of frame the video has.
-             * 
-             * @return double 
-             */
-            static double getFrameCount(){
-                return getInstance().getFrameCount_impl();
+                return getVideoProperty(cv::CAP_PROP_FRAME_HEIGHT);
             }
 
             /**
@@ -187,7 +160,6 @@ namespace libtrainsim {
             static const cv::Mat getNextFrame(){
                 return getInstance().getNextFrame_impl();
             }
-
 
     };
 }

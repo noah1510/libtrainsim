@@ -40,52 +40,19 @@ std::filesystem::path libtrainsim::video::getFilePath_impl() const{
     return loadedFile;
 }
 
-
-double libtrainsim::video::getFPS_impl() const{
+ double libtrainsim::video::getVideoProperty_impl(const cv::VideoCaptureProperties& prop)const{
     if(videoCap->isOpened()){
-        return videoCap->get(cv::CAP_PROP_FPS);
-    }
-
-    return 0.0f;
-}
-
-double libtrainsim::video::getPosMsec_impl() const{
-    if(videoCap->isOpened()){
-        return videoCap->get(cv::CAP_PROP_POS_MSEC);
-    }
-
-    return 0.0f;
-}
-
-double libtrainsim::video::getPosFrames_impl() const{
-    if(videoCap->isOpened()){
-        return videoCap->get(cv::CAP_PROP_POS_FRAMES);
-    }
-
-    return 0.0f;
-}
-
-double libtrainsim::video::getWidth_impl() const{
-    if(videoCap->isOpened()){
-        return videoCap->get(cv::CAP_PROP_FRAME_WIDTH);
-    }
-
-    return 0.0f;
-}
-
-double libtrainsim::video::getHight_impl() const{
-    if(videoCap->isOpened()){
-        return videoCap->get(cv::CAP_PROP_FRAME_HEIGHT);
+        return videoCap->get(prop);
     }
 
     return 0.0f;
  }
 
- double libtrainsim::video::getFrameCount_impl() const{
-    if(videoCap->isOpened()){
-        return videoCap->get(cv::CAP_PROP_FRAME_COUNT);
+ bool libtrainsim::video::setVideoProperty_impl(const cv::VideoCaptureProperties& prop, double value){
+     if(videoCap->isOpened()){
+        return videoCap->set(prop,value);
     }
 
-    return 0.0f;
+    return false;
  }
   
