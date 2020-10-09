@@ -23,7 +23,7 @@ build:
 pages:
   script:
   - apt-get update
-  - apt-get install doxygen graphviz
+  - apt-get install --yes doxygen graphviz
   - doxygen
   - mkdir -p public
   - cp -rf doc/html/* public/
