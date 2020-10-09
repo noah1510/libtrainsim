@@ -21,6 +21,7 @@ build:
     - cd ..
 
 pages:
+  stage: deploy
   script:
   - apt-get update
   - apt-get install --yes doxygen graphviz
