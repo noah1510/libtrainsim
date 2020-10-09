@@ -19,3 +19,14 @@ build:
     - meson compile
     - meson test
     - cd ..
+
+pages:
+  script:
+  - apt-get install doxygen graphviz
+  - doxygen
+  - mkdir -p public
+  - cp -rf doc/html/* public/
+  artifacts:
+    paths:
+    - public
+
