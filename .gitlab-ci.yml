@@ -22,6 +22,7 @@ build:
 
 pages:
   script:
+  - apt-get update
   - apt-get install doxygen graphviz
   - doxygen
   - mkdir -p public
@@ -29,4 +30,7 @@ pages:
   artifacts:
     paths:
     - public
+  only:
+  - main
+
 
