@@ -1,3 +1,6 @@
+#include "track_data.hpp"
+#include "train_properties.hpp"
+
 #pragma once
 
 #include <filesystem>
@@ -5,13 +8,13 @@
 using json = nlohmann::json;
 
 namespace libtrainsim{
-    class Format{
+    class Track{
         private:
             /**
              * @brief The constructor is private to prevent others from creating thier own object.
              * 
              */
-            Format();
+            Track();
 
             /**
              * @brief This object contains the json data of the current track.
@@ -24,8 +27,8 @@ namespace libtrainsim{
              * 
              * @return Format& a reference to the instance.
              */
-            static Format& getInstance(){
-                static Format instance;
+            static Track& getInstance(){
+                static Track instance;
                 return instance;
             }
 

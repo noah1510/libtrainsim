@@ -19,7 +19,6 @@ deps = [libtrainsim_core_dep]
 deps += main_test_dep
 
 tests = [
-    'hello',
     'load_track',
     'getNearestFrame'
 ]

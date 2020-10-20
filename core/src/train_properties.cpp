@@ -24,7 +24,7 @@ libtrainsim::train_properties::train_properties(const std::filesystem::path& URI
 
     try{
         //todo read the json into members
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         std::cerr << e.what() << std::endl;
         return;
     }

@@ -1,17 +1,18 @@
-#include "format.hpp"
+#include "track_configuration.hpp"
+
 #include <cmath>
 #include <iostream>
 #include <fstream>
 
-libtrainsim::Format::Format(){
+libtrainsim::Track::Track(){
 
 }
 
-std::string libtrainsim::Format::hello_impl() const{
-    return "Hello from the Format Singleton!";
+std::string libtrainsim::Track::hello_impl() const{
+    return "Hello from the Track Singleton!";
 }
 
-bool libtrainsim::Format::loadTrack_impl(const std::filesystem::path& URI){
+bool libtrainsim::Track::loadTrack_impl(const std::filesystem::path& URI){
     if(URI.empty()){
         std::cerr << "The file location is empty" << std::endl;
         return true;
@@ -30,7 +31,7 @@ bool libtrainsim::Format::loadTrack_impl(const std::filesystem::path& URI){
 
 }
 
-int64_t libtrainsim::Format::getFrame_impl(double location){
+int64_t libtrainsim::Track::getFrame_impl(double location){
     int64_t lower = 0;
     int64_t higher = data_json.size();
 
