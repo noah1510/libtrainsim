@@ -1,12 +1,24 @@
+/**
+ * @file train_properties.hpp
+ * @author Noah Kirschmann (noah.kirschmann@mnd.thm.de)
+ * @brief This file contains the definition of the train_properties to manage train models.
+ * @version 0.4.0
+ * @date 2020-10-20
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
+
 #pragma once
 
 #include <filesystem>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-namespace libtrainsim {
+namespace libtrainsim::core{
     /**
      * @brief This class loads all the relevant properties of a train from a json file and provides an interface to get them.
+     * Look [here](@ref train_properties_format) for more details on the json format.
      * 
      */
     class train_properties{
@@ -21,6 +33,11 @@ namespace libtrainsim {
              * @brief True if an error has happened causing the props to be invalid.
              */
             bool hasError = true;
+            
+            /**
+             * @brief The name of the train model
+             */
+            std::string name;
 
             /**
              * @brief The maximum velocity the train can have in m/s.
@@ -42,20 +59,48 @@ namespace libtrainsim {
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
              */
-            double air_drag;
+            double air_drag = 0.0;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
              * The default value is 0.002.
              */
             double track_drag = 0.002;
+            
+            /**
+             * @brief Loads the data_json into the other menbers;
+             */
+            void loadJsonData();
 
         public:
             /**
              * @brief Construct a new train properties object from a given json file.
+             * @note The data needs the correct [format](@ref train_properties_format).
              * @param URI The location of the json file.
              */
             train_properties(const std::filesystem::path& URI);
+
+            /**
+             * @brief Construct a new train properties object from a given json file.
+             * @note The data needs the correct [format](@ref train_properties_format).
+             * @param URI The location of the json file.
+             */
+            train_properties(const std::string& URI);
+            
+            /**
+             * @brief Construct a new train properties object from a given json file.
+             * @note The data needs the correct [format](@ref train_properties_format).
+             * @param URI The location of the json file.
+             */
+            train_properties(const char* URI);
+            
+            /**
+             * @brief Construct a new train properties object from json data
+             * @note The data needs the correct [format](@ref train_properties_format).
+             * 
+             * @param data The json data.
+             */
+            explicit train_properties(const json& data);
 
             /**
              * @brief checks if the object contains valid data.

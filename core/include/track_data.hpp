@@ -1,11 +1,26 @@
+/**
+ * @file track_data.hpp
+ * @author Noah Kirschmann (noah.kirschmann@mnd.thm.de)
+ * @brief This file contains the definition of the Track data to manage tracks data.
+ * @version 0.4.0
+ * @date 2020-10-20
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
+ 
 #pragma once
 
-#include <bits/stdint-intn.h>
 #include <filesystem>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-namespace libtrainsim{
+namespace libtrainsim::core{
+    /**
+     * @brief This class stores the data of a given track.
+     * For the format of the json files look [here](@ref track_data_format).
+     * @todo check if the correct format is actually used to prevent crashes.
+     */
     class Track_data{
         private:
 
@@ -44,12 +59,40 @@ namespace libtrainsim{
 
             /**
              * @brief This constructor loads a track file into its data storage while creating a new Track_data object.
-             * The file needs to be a json file with the format, specified in the [format converter](https://git.thm.de/bahn-simulator/format-converter).
+             * The file needs to be a json file with the [format](@ref track_data_format), also specified in the [format converter](https://git.thm.de/bahn-simulator/format-converter).
              * 
              * @param URI The location of the File  
              */
             Track_data(const std::filesystem::path& URI);
             
+            /**
+             * @brief This constructor loads a track file into its data storage while creating a new Track_data object.
+             * The file needs to be a json file with the [format](@ref track_data_format), also specified in the [format converter](https://git.thm.de/bahn-simulator/format-converter).
+             * 
+             * @param URI The location of the File  
+             */
+            Track_data(const std::string& URI);
+            
+            /**
+             * @brief This constructor loads a track file into its data storage while creating a new Track_data object.
+             * The file needs to be a json file with the [format](@ref track_data_format), also specified in the [format converter](https://git.thm.de/bahn-simulator/format-converter).
+             * 
+             * @param URI The location of the File  
+             */
+            Track_data(const char* URI);
+            
+            /**
+             * @brief This constructor uses given json data to create a new Track_data object.
+             * The data needs to be in the correct [format](@ref track_data_format).
+             * 
+             * @param data 
+             */
+            explicit Track_data(const json& data);
+
+            /**
+             * @brief Destroy the Track_data object
+             * 
+             */
             ~Track_data();
 
             /**

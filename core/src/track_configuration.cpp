@@ -4,15 +4,17 @@
 #include <iostream>
 #include <fstream>
 
-libtrainsim::Track::Track(){
+using namespace libtrainsim::core;
+
+Track::Track(){
 
 }
 
-std::string libtrainsim::Track::hello_impl() const{
+std::string Track::hello_impl() const{
     return "Hello from the Track Singleton!";
 }
 
-bool libtrainsim::Track::loadTrack_impl(const std::filesystem::path& URI){
+bool Track::loadTrack_impl(const std::filesystem::path& URI){
     if(URI.empty()){
         std::cerr << "The file location is empty" << std::endl;
         return true;
@@ -31,14 +33,14 @@ bool libtrainsim::Track::loadTrack_impl(const std::filesystem::path& URI){
 
 }
 
-int64_t libtrainsim::Track::getFrame_impl(double location){
+int64_t Track::getFrame_impl(double location){
     int64_t lower = 0;
     int64_t higher = data_json.size();
 
     int64_t index = (higher+lower)/2;
 
     while(true){
-        double loc = data_json.at(index)["location"];
+        double loc = data_json.at(index)["location"].get<double>();
 
         //if it is an exact match return the current index
         if (loc == location){

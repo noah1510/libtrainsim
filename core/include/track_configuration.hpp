@@ -1,13 +1,29 @@
-#include "track_data.hpp"
-#include "train_properties.hpp"
+/**
+ * @file track_configuration.hpp
+ * @author Noah Kirschmann (noah.kirschmann@mnd.thm.de)
+ * @brief This file contains the definition of the Track class to manage tracks.
+ * @version 0.4.0
+ * @date 2020-10-20
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
 
 #pragma once
+
+#include "track_data.hpp"
+#include "train_properties.hpp"
 
 #include <filesystem>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-namespace libtrainsim{
+namespace libtrainsim::core{
+
+    /**
+     * @brief This class is used to load a track json file containing the definition of the [track](@ref track_format).
+     * 
+     */
     class Track{
         private:
             /**
