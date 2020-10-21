@@ -1,5 +1,5 @@
 build:windows:
-  image: hermedia/chocolatey:0.10.15
+  image: gusztavvargadr/chocolatey-cli:windows
   stage: build
   script:
     - choco install --yes python pip opencv
