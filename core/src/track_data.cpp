@@ -76,21 +76,18 @@ int64_t Track_data::getFrame_c(double location, int64_t index, int64_t lower, in
     }
 
     return index;
-
 }
 
 int64_t Track_data::getFrame(double location){
     if(!isValid()){return 0;};
 
     return last_frame_index = getFrame_c(location,last_frame_index,0,getSize());
-    
 }
 
 int64_t Track_data::getFrame(double location) const{
     if(!isValid()){return 0;};
 
     return getFrame_c(location,getSize()/2,0,getSize());
-    
 }
 
 std::string Track_data::dump(int ident) const{
@@ -106,4 +103,26 @@ int64_t Track_data::getSize() const{
 
 bool Track_data::isValid() const{
     return m_isValid;
+}
+
+double Track_data::lastLocation() const{
+    if(!isValid()){return 0;};
+    
+    auto dat = data_json.at(getSize()-1)["location"];
+    if(dat.is_number_float()){
+        return dat.get<double>();
+    }
+    
+    return 0;
+}
+            
+double Track_data::firstLocation() const{
+    if(!isValid()){return 0;};
+    
+    auto dat = data_json.at(0)["location"];
+    if(dat.is_number_float()){
+        return dat.get<double>();
+    }
+    
+    return 0;
 }

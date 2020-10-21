@@ -14,6 +14,7 @@ There is a build option to disable the build of the Video and Control component.
 
 The core is what always needs to be built in oreder for the other components to work.
 libtrainsim::core contains classes needed to load information about tracks and trains and perform some simple pysics calculations.
+Look [here](@ref json_formats) for details on the formatting of the json files.
 
 ### Video
 

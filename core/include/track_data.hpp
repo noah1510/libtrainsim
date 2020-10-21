@@ -136,6 +136,20 @@ namespace libtrainsim::core{
              * @return false there was a problem loading the data
              */
             bool isValid() const;
+            
+            /**
+             * @brief returns the last location in the dataset
+             * 
+             * @return double the last location
+             */
+            double lastLocation() const;
+            
+            /**
+             * @brief returns the first location in the dataset
+             * 
+             * @return double the first location
+             */
+            double firstLocation() const;
 
             
     };

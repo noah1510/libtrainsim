@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "types.hpp"
+
 #include <filesystem>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;

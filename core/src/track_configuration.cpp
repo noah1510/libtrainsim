@@ -6,64 +6,90 @@
 
 using namespace libtrainsim::core;
 
-Track::Track(){
-
-}
-
-std::string Track::hello_impl() const{
-    return "Hello from the Track Singleton!";
-}
-
-bool Track::loadTrack_impl(const std::filesystem::path& URI){
+Track::Track(const std::filesystem::path& URI){
+        
     if(URI.empty()){
         std::cerr << "The file location is empty" << std::endl;
-        return true;
+        return;
     }
 
     if (URI.extension() != ".json" ){
         std::cerr << "the file has no json extention" << std::endl;
-        return true;
+        return;
     }
 
     auto in = std::ifstream(URI);
 
     in >> data_json;
-
-    return false;
-
+    
+    auto dat = data_json["formatVersion"];
+    if(!dat.empty() && dat.is_string()){
+        version ver = dat.get<std::string>();
+        if(version::compare(format_version,ver) < 0){
+            std::cerr << "libtrainsim format version not high enough." << std::endl;
+            std::cerr << "needs at least:" << format_version.print() << " but got:" << format_version.print() << std::endl;
+            return;
+        };
+    };
+        
+    dat = data_json["name"];
+    if(!dat.is_string()){
+        return;
+    }
+    name = dat.get<std::string>();
+    
+    dat = data_json["data"];
+    if(dat.is_string()){
+        auto p = URI.parent_path();
+        p /= dat.get<std::string>();
+        track_dat = Track_data(p);
+    }else if(dat.is_array()){
+        track_dat = Track_data(dat);
+    }else{
+        return;
+    }
+    
+    dat = data_json["train"];
+    if(dat.is_string()){
+        auto p = URI.parent_path();
+        p /= dat.get<std::string>();
+        train_dat = train_properties(p);
+    }else if(dat.is_object()){
+        train_dat = train_properties(dat);
+    }else{
+        return;
+    }
+    
+    if(!track_dat.isValid() || !train_dat.isValid()){return;};
+    
+    dat = data_json["startingPoint"];
+    if(!dat.is_number_float()){
+        return;
+    }
+    startingPoint = dat.get<double>();
+    
+    dat = data_json["endPoint"];
+    if(!dat.is_number_float()){
+        return;
+    }
+    endPoint = dat.get<double>();
+    
+    startingPoint = startingPoint < 0 ? 0 : startingPoint;
+    //check if endpoint is smaller than last point of track_data
+    if(startingPoint > endPoint){return;};
+    
+    hasError = false;
+    return;
 }
 
-int64_t Track::getFrame_impl(double location){
-    int64_t lower = 0;
-    int64_t higher = data_json.size();
+const Track_data& Track::data() const{
+    return track_dat;
+}
+            
+const train_properties& Track::train() const{
+    return train_dat;
+}
 
-    int64_t index = (higher+lower)/2;
-
-    while(true){
-        double loc = data_json.at(index)["location"].get<double>();
-
-        //if it is an exact match return the current index
-        if (loc == location){
-            return index;
-        }
-
-        //if the current location is larger adjust the upper bound, otherwise correct the lower bound.
-        if(loc > location){
-            higher = index;
-        }else{
-            lower = index;
-        }
-
-        //get the next index
-        index = (higher+lower)/2;
-
-        //if the algorithm cannot continue exit
-        if(higher == index || lower == index){
-            break;
-        }
-
-    }
-
-    return index;
-    
+bool Track::isValid() const{
+    return !hasError;
 }

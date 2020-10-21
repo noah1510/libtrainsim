@@ -37,51 +37,67 @@ train_properties::train_properties(const json& data){
 }
 
 void train_properties::loadJsonData(){
-    try{
-        //todo read the json into members
-        if(!data_json.is_object()){
-            return;
-        }
-        
-        auto _dat = data_json["name"];
-        if(!_dat.is_string()){
-            return;
-        }
-        name = _dat.get<std::string>();
-        
-        _dat = data_json["mass"];
-        if(!_dat.is_number_float()){
-            return;
-        }
-        mass = _dat.get<double>();
-        
-        _dat = data_json["maxVelocity"];
-        if(!_dat.is_number_float()){
-            return;
-        }
-        max_velocity = _dat.get<double>();
-        
-        _dat = data_json["maxAcceleration"];
-        if(!_dat.is_number_float()){
-            return;
-        }
-        max_acceleration = _dat.get<double>();
-        
-        _dat = data_json["trackDrag"];
-        if(!_dat.empty() && _dat.is_number_float()){
-            track_drag = _dat.get<double>();
-        }
-        
-        _dat = data_json["airDrag"];
-        if(!_dat.empty() && _dat.is_number_float()){
-            air_drag = _dat.get<double>();
-        }        
-        
-        hasError = false;
-    }catch(const std::exception& e){
-        std::cerr << e.what() << std::endl;
+    if(!data_json.is_object()){
         return;
     }
+    
+    auto _dat = data_json["formatVersion"];
+    if(!_dat.empty() && _dat.is_string()){
+        version ver = _dat.get<std::string>();
+        if(version::compare(format_version,ver) < 0){
+            std::cerr << "libtrainsim format version not high enough." << std::endl;
+            std::cerr << "needs at least:" << format_version.print() << " but got:" << format_version.print() << std::endl;
+            return;
+        };
+    };
+    
+    _dat = data_json["name"];
+    if(!_dat.is_string()){
+        std::cerr << "name is not a string" << std::endl;
+        return;
+    }
+    name = _dat.get<std::string>();
+    
+    _dat = data_json["mass"];
+    if(!_dat.is_number_float()){
+        std::cerr << "mass is not a float" << std::endl;
+        return;
+    }
+    mass = _dat.get<double>();
+    
+    _dat = data_json["maxVelocity"];
+    if(!_dat.is_number_float()){
+        std::cerr << "maxVelocity is not a float" << std::endl;
+        return;
+    }
+    max_velocity = _dat.get<double>();
+    
+    _dat = data_json["maxAcceleration"];
+    if(!_dat.is_number_float()){
+        std::cerr << "maxAcceleration is not a float" << std::endl;
+        return;
+    }
+    max_acceleration = _dat.get<double>();
+    
+    _dat = data_json["trackDrag"];
+    if(!_dat.empty() && _dat.is_number_float()){
+        track_drag = _dat.get<double>();
+    }
+    
+    _dat = data_json["airDrag"];
+    if(!_dat.empty() && _dat.is_number_float()){
+        air_drag = _dat.get<double>();
+    }
+    
+    _dat = data_json["velocityUnit"];
+    if(!_dat.empty() && _dat.is_string()){
+        auto unit = _dat.get<std::string>();
+        if(unit == "kmh"){
+            max_velocity /= 3.6;
+        }
+    }
+    
+    hasError = false;
 }
 
 double train_properties::calulateDrag(double currentVelocity) const{

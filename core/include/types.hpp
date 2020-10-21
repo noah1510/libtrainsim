@@ -11,11 +11,107 @@
  
 #pragma once
 
+#include <string>
+#include <vector>
+#include <sstream>
+
 /**
  * @brief This namespace contains all the core somponents of libtrainsim.
  * 
  */
 namespace libtrainsim::core{
+    
+    /**
+     * @brief splits a string into several others
+     * 
+     * @param s the string to be split
+     * @param delimiter the character that determines where to split the string
+     * @return std::vector<std::string> a vector containing with the split parts of the string.
+     */
+    std::vector<std::string> split_string(const std::string& s, char delimiter);
+    
+    /**
+     * @brief a simple class for version checking
+     * 
+     */
+    class version{
+    public:
+        /**
+         * @brief The major version number X.y.z
+         * 
+         */
+        const u_int64_t major;
+
+        /**
+         * @brief The minor version number x.Y.z
+         * 
+         */
+        const u_int64_t minor;
+
+        /**
+         * @brief The patch version number x.y.Z
+         * 
+         */
+        const u_int64_t patch;
+        
+        /**
+         * @brief Construct a new version object with given major, minor and patch version number.
+         * 
+         * @param x major
+         * @param y minor
+         * @param z patch
+         */
+        version(uint64_t x, uint64_t y, uint64_t z);
+        
+        /**
+         * @brief Construct a new version object from a given string with the format "x.y.z".
+         * 
+         * @param ver a string in the format manjor.minor.patch
+         */
+        version(const std::string& ver);
+        
+        /**
+         * @brief returns the version number as "major.minor.patch".
+         * 
+         * @return std::string The version number as string
+         */
+        std::string print() const;
+        
+        /**
+         * @brief three way comparison between two version numbers.
+         * positive if v1 > v2
+         * 0 if v1 == v2
+         * negative if v1 < v2
+         * 
+         * @param v1 the first version
+         * @param v2 the second version
+         * @return int the result of the comparison
+         */
+        static int compare(const version& v1, const version& v2){
+            if(v1.major > v2.major){return 1;}
+            if(v1.major < v2.major){return -1;}
+            
+            if(v1.minor > v2.minor){return 1;}
+            if(v1.minor < v2.minor){return -1;}
+            
+            if(v1.patch > v2.patch){return 1;}
+            if(v1.patch < v2.patch){return -1;}
+            
+            return 0;
+        };
+    };
+    
+    /**
+     * @brief the current version of the libtrainsim
+     * 
+     */
+    const version lib_version("0.4.0");
+
+    /**
+     * @brief the current version of the json formats
+     * 
+     */
+    const version format_version("0.4.0");
 
     /**
      * @brief this enum maps readable keywords to the values of the keys.

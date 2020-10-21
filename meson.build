@@ -2,7 +2,7 @@ project(
     'libtrainsim',
     'cpp',
     default_options : ['cpp_std=c++17', 'b_lto=true', 'b_pgo=generate', 'b_coverage=true'],
-    version : '0.3.1'
+    version : '0.3.2'
 )
 
 subdir('core')

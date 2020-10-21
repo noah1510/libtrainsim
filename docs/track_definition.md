@@ -12,9 +12,10 @@ The json file is an object with the following fields:
 
 **Optional:**
 
+* formatVersion (string) (since 0.4.0)
 * startingPoint (float) (since 0.4.0)
 * endPoint (float) (since 0.4.0)
-+ stops (string or object) (not implemented yet)
+* stops (string or object) (not implemented yet)
 
 ### Detailed descriptions
 
@@ -31,6 +32,12 @@ The filepath is relative to the track file.
 
 This is either the filepath of a train properties file or it is an object which contains the data in the correct [format](@ref train_properties_format).
 The filepath is relative to the track file.
+
+### formatVersion
+
+The version of the format that is used.
+The format should be x.y.z and this tells the the library how to interpret the fields.
+If the library only supports an older format it may warn the user or even declare the file as invalid.
 
 #### startingPoint
 
@@ -50,7 +57,7 @@ The default is the last position in the track data.
 
 #### stops
 
-***This field is not implemented yet***
+***This is not implemented yet and will not be implemented before version 1.0.0***
 
 This is either the filepath of a stops data file or it is an array which contains the data in the correct [format](@ref stops_data_format).
 The filepath is relative to the track file. 

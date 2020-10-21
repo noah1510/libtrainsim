@@ -1,0 +1,7 @@
+{
+    "name":"DB-Baureihe 423/433",
+    "mass":119400.0,
+    "maxVelocity":140.0,
+    "maxAcceleration":1.0,
+    "velocityUnit":"kmh"
+}

@@ -3,7 +3,7 @@ catch2 = dependency('catch2', required: true, fallback:['catch2','catch2_dep'])
 
 #create main_test as library and export the dependency
 main_test = static_library(
-    'main_test', 
+    'main_test',
     'test-main.cpp', 
     dependencies: catch2
 )
@@ -19,8 +19,9 @@ deps = [libtrainsim_core_dep]
 deps += main_test_dep
 
 tests = [
-    'load_track',
-    'getNearestFrame'
+    'track_data',
+    'train_properties',
+    'version',
 ]
 
 #create all the tests

@@ -2,6 +2,7 @@ The format of track_data {#track_data_format}
 ========================
 
 The track_data is a top level json array containing several data points.
+The format version should be specified in the track, additional fields will be ignored.
 Each data_point has the following fields:
 
 **Required:**

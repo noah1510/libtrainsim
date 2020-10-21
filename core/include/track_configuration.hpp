@@ -22,108 +22,88 @@ namespace libtrainsim::core{
 
     /**
      * @brief This class is used to load a track json file containing the definition of the [track](@ref track_format).
-     * 
+     * @todo implement the class.
+     * @warning Nothing here soes what it should at the moment so so not use this class.
      */
     class Track{
         private:
-            /**
-             * @brief The constructor is private to prevent others from creating thier own object.
-             * 
-             */
-            Track();
 
             /**
              * @brief This object contains the json data of the current track.
              * 
              */
             json data_json;
-
+            
             /**
-             * @brief Get the Instance of this singleton
+             * @brief The data points of the track.
+             * This maps locations to frames.
              * 
-             * @return Format& a reference to the instance.
              */
-            static Track& getInstance(){
-                static Track instance;
-                return instance;
-            }
-
+            Track_data track_dat = Track_data(std::filesystem::path(""));
+            
             /**
-             * @brief The implementation of the hello function
+             * @brief The train data of the track.
+             * This specifies all relevant information about the train used on this track.
              * 
-             * @return std::string the greeting
              */
-            std::string hello_impl() const;
-
+            train_properties train_dat = train_properties(std::filesystem::path(""));
+            
             /**
-             * @brief This function implements loadTrack
+             * @brief The location where the train should start in the beginning.
              * 
-             * @param URI The file location
-             * @return true there was an error
-             * @return false there was no error
              */
-            bool loadTrack_impl(const std::filesystem::path& URI);
-
+            double startingPoint;
+            
             /**
-             * @brief implements getFrame
+             * @brief The location where the train should end.
              * 
-             * @param location the location on the track in meters
-             * @return int64_t the nearest frame to that location
              */
-            int64_t getFrame_impl(double location);
+            double endPoint;
+            
+            /**
+             * @brief The name of the track
+             * 
+             */
+            std::string name;
+            
+            /**
+             * @brief true if an error has happened. 
+             */
+            bool hasError = true;
+            
+            Track() = delete;
 
         public:
+            
             /**
-             * @brief A simple greeting to check if the singleton is working
+             * @brief Create a track from a given json file.
+             * @note The json file need the correct [format](@ref track_format).
              * 
-             * @return std::string the greeting form the Fromat singleton
+             * @param URI The location of the File
              */
-            static std::string hello(){
-                return getInstance().hello_impl();
-            }
-
+            Track(const std::filesystem::path& URI);
+            
             /**
-             * @brief This function loads a track file into its data storage.
-             * The file needs to be a json file with the format, specified in the [format converter](https://git.thm.de/bahn-simulator/format-converter).
+             * @brief returning the Track_data of this track
              * 
-             * @param URI The location of the File 
-             * @return true There was an error and the file is not loaded
-             * @return false No error was encountered while loading the file 
+             * @return const Track_data& the track data
              */
-            static bool loadTrack(const std::filesystem::path& URI){
-                return getInstance().loadTrack_impl(URI);
-            }
-
+            const Track_data& data() const;
+            
             /**
-             * @brief Get the Frame to the given location.
-             * Because a binary search is used to find the frame and the location is a floating point value, the returned Frame might not be the nearest.
+             * @brief returning the train data of this track
              * 
-             * @param location the location on the track in meters
-             * @return int64_t the nearest frame to that location
+             * @return const train_properties& the train data of this track
              */
-            static int64_t getFrame(double location){
-                return getInstance().getFrame_impl(location);
-            }
-
+            const train_properties& train() const;
+            
             /**
-             * @brief dump the data of the json content as a return value
+             * @brief returns if the track was loaded correctly
              * 
-             * @param ident If indent is nonnegative, then array elements and object members will be pretty-printed with that indent level. An indent level of 0 will only insert newlines. -1 (the default) selects the most compact representation.
-             * @return std::string the data of the loaded json file
+             * @return true everything was loaded correctly
+             * @return false there was an error while loading the track or its data
              */
-            static std::string dump(int ident = -1){
-                return getInstance().data_json.dump(ident);
-            }
-
-            /**
-             * @brief Get the number of elements in the loaded json file
-             * 
-             * @return int64_t the number of elements
-             */
-            static int64_t getSize(){
-                return getInstance().data_json.size();
-            }
-
+            bool isValid() const;
             
     };
 }
