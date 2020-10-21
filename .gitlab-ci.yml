@@ -1,16 +1,3 @@
-build:windows:
-  image: shoddyguard/teamcity-agent-chocolatey
-  stage: build
-  script:
-    - choco install --yes python pip opencv
-    - python -m pip install meson ninja
-    - python -m pip install glad
-    - mkdir build && cd build
-    - meson setup ..
-    - meson compile
-    - meson test
-    - cd ..
-
 build:debian:
   image: gcc:latest
   stage: build
