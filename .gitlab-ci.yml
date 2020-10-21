@@ -1,6 +1,18 @@
-image: gcc:latest
+build:windows:
+  image: hermedia/chocolatey
+  stage: build
+  script:
+    - choco install --yes python pip opencv
+    - python -m pip install meson ninja
+    - python -m pip install glad
+    - mkdir build && cd build
+    - meson setup ..
+    - meson compile
+    - meson test
+    - cd ..
 
-build:
+build:debian:
+  image: gcc:latest
   stage: build
   script:
     - echo 'echo $K8S_SECRET_GITLAB_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
@@ -20,7 +32,8 @@ build:
     - meson test
     - cd ..
 
-pages:
+pages:debian:
+  image: gcc:latest
   stage: deploy
   script:
   - apt-get update
