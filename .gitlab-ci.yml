@@ -1,5 +1,5 @@
 build:windows:
-  image: gusztavvargadr/chocolatey-cli:windows
+  image: shoddyguard/teamcity-agent-chocolatey
   stage: build
   script:
     - choco install --yes python pip opencv
