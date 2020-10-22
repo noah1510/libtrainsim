@@ -28,6 +28,8 @@ wiki:
     - git config --global url."https://api@git.thm.de/".insteadOf "https://git.thm.de/"
     - git config --global url."https://ssh@git.thm.de/".insteadOf "ssh://git@git.thm.de/"
     - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
+    - git config --global user.email "noah.kirschmann@mnd.thm.de"
+    - git config --global user.name "Gitlab-Ci"
     - apt-get update
     - apt-get install --yes doxygen graphviz wget unzip
     - wget https://github.com/matusnovak/doxybook2/releases/download/v1.2.3/doxybook2-linux-amd64-v1.2.3.zip
