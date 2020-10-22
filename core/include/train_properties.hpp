@@ -111,7 +111,40 @@ namespace libtrainsim::core{
              * @return false there was an error while loading the data.
              */
             bool isValid() const;
+            
+            /**
+             * @brief The name of the train model
+             */
+            const std::string& getName() const;
 
+            /**
+             * @brief The maximum velocity the train can have in m/s.
+             */
+            double getMaxVelocity() const;
+
+            /**
+             * @brief The maximum acceleration the train can have in m/(s^2).
+             */
+            double getMaxAcceleration() const;
+
+            /**
+             * @brief The mass of the train in kg.
+             */
+            double getMass() const;
+
+            /**
+             * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
+             * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
+             * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
+             */
+            double getAirDrag() const;
+
+            /**
+             * @brief the rolling resistance coefficient between the train and the rails (no unit).
+             * The default value is 0.002.
+             */
+            double getTrackDrag() const;
+            
             /**
              * @brief This function calculates the drag force based on the current velocity.
              * 

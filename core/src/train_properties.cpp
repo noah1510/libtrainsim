@@ -115,3 +115,27 @@ double train_properties::clampVelocity(double currentVelocity) const{
 double train_properties::clampAcceleration(double currentAcceleration) const{
     return (currentAcceleration > max_acceleration) ? currentAcceleration : max_acceleration;
 }
+
+const std::string& train_properties::getName() const{
+    return name;
+}
+
+double train_properties::getMaxVelocity() const{
+    return max_velocity;
+}
+
+double train_properties::getMaxAcceleration() const{
+    return max_acceleration;
+}
+
+double train_properties::getMass() const{
+    return mass;
+}
+
+double train_properties::getAirDrag() const{
+    return air_drag;
+}
+
+double train_properties::getTrackDrag() const{
+    return track_drag;
+}

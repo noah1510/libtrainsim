@@ -7,3 +7,5 @@ subprojects/packagecache/
 subprojects/nlohmann_json-*/
 
 libtrainsim.kdev4
+
+doxybook/

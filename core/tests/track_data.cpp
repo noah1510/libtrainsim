@@ -23,8 +23,8 @@ void test_nearest(libtrainsim::core::Track_data* dat){
 
 TEST_CASE( "Checking if getNearestFrame works", "[vector]" ) {
     
-    auto dat = libtrainsim::core::Track_data("../core/tests/test_track_data.json");
-    const auto dat_c = libtrainsim::core::Track_data("../core/tests/test_track_data.json");
+    auto dat = libtrainsim::core::Track_data("../core/tests/data/test_track_data.json");
+    const auto dat_c = libtrainsim::core::Track_data("../core/tests/data/test_track_data.json");
 
     test_nearest_c(dat);
     test_nearest_c(dat_c);
@@ -41,7 +41,7 @@ TEST_CASE( "Checking if load track fails with invalid inputs", "[vector]" ) {
 };
 
 TEST_CASE( "Checking if load track works with valid input", "[vector]" ) {
-    const auto dat = libtrainsim::core::Track_data("../core/tests/test_track_data.json");
+    const auto dat = libtrainsim::core::Track_data("../core/tests/data/test_track_data.json");
     REQUIRE(dat.isValid());
     
     REQUIRE(dat.getSize() == 10);
