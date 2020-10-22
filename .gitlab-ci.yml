@@ -19,21 +19,16 @@ build:debian:
     - meson test
     - cd ..
 
-pages:debian:
-  image: gcc:latest
-  stage: deploy
-  needs:
-    - build:debian
+pages:
+  image: alpine
   script:
-  - apt-get update
-  - apt-get install --yes doxygen graphviz
-  - doxygen
-  - mkdir -p public
-  - cp -rf doc/html/* public/
+    - apk update && apk add doxygen
+    - doxygen Doxyfile
+    - mv doc/html/ public/
   artifacts:
     paths:
-    - public
+      - public
   only:
-  - main
+    - master
 
 
