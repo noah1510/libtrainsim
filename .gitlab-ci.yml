@@ -21,6 +21,7 @@ build:debian:
 
 pages:
   image: alpine
+  stage: deploy
   script:
     - apk update && apk add doxygen
     - doxygen Doxyfile
