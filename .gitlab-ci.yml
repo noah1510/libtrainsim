@@ -23,7 +23,7 @@ wiki:
   image: gcc:latest
   stage: deploy
   script:
-    - sudo apt-get install --yes doxygen graphviz wget unzip
+    - apt-get install --yes doxygen graphviz wget unzip
     - wget https://github.com/matusnovak/doxybook2/releases/download/v1.2.3/doxybook2-linux-amd64-v1.2.3.zip
     - unzip doxybook2-linux-amd64-v1.2.3.zip -d doxybook
     - doxygen
