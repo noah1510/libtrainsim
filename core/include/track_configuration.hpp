@@ -105,5 +105,19 @@ namespace libtrainsim::core{
              */
             bool isValid() const;
             
+            /**
+             * @brief returns the last location of the track.
+             * 
+             * @return double the last location
+             */
+            double lastLocation() const;
+            
+            /**
+             * @brief returns the first location of the track.
+             * 
+             * @return double the first location
+             */
+            double firstLocation() const;
+            
     };
 }

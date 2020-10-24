@@ -2,3 +2,5 @@ option('build_tests', type : 'boolean', value : true, description: 'set to false
 option('force_build_tests', type : 'boolean', value : false, description: 'set to true if you do not want to compile the tests even with libtrainsim as subproject.')
 option('build_video', type : 'boolean', value : true, description: 'set to false if you do not want to compile the video component.')
 option('build_control', type : 'boolean', value : true, description: 'set to false if you do not want to compile the control component.')
+option('build_physics', type : 'boolean', value : true, description: 'set to false if you do not want to compile the physics component.')
+option('build_full', type : 'boolean', value : false, description: 'set to true if you to build all components and create libtrainsim_full as dependency.')
