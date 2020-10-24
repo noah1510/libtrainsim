@@ -33,4 +33,5 @@ if get_option('build_full')
         ],
         version: meson.project_version()
     )
+    meson.override_dependency('libtrainsim-full', libtrainsim_full_dep)
 endif
