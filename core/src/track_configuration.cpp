@@ -38,11 +38,19 @@ Track::Track(const std::filesystem::path& URI){
     }
     name = dat.get<std::string>();
     
+    dat = data_json["videoFile"];
+    if(!dat.is_string()){
+        return;
+    }
+    const auto p = URI.parent_path();
+    videoFile = p / dat.get<std::string>();
+    if(videoFile.empty()){
+        return;
+    }
+    
     dat = data_json["data"];
     if(dat.is_string()){
-        auto p = URI.parent_path();
-        p /= dat.get<std::string>();
-        track_dat = Track_data(p);
+        track_dat = Track_data(p / dat.get<std::string>());
     }else if(dat.is_array()){
         track_dat = Track_data(dat);
     }else{
@@ -51,9 +59,7 @@ Track::Track(const std::filesystem::path& URI){
     
     dat = data_json["train"];
     if(dat.is_string()){
-        auto p = URI.parent_path();
-        p /= dat.get<std::string>();
-        train_dat = train_properties(p);
+        train_dat = train_properties(p / dat.get<std::string>());
     }else if(dat.is_object()){
         train_dat = train_properties(dat);
     }else{
@@ -102,4 +108,8 @@ double Track::lastLocation() const{
 double Track::firstLocation() const{
     auto loc = data().firstLocation();
     return (startingPoint > loc) ? startingPoint : loc;
+}
+
+std::filesystem::path Track::getVideoFilePath() const{
+    return isValid() ? videoFile : "";
 }

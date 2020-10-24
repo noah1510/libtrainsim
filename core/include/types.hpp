@@ -111,7 +111,7 @@ namespace libtrainsim::core{
      * @brief the current version of the json formats
      * 
      */
-    const version format_version("0.4.0");
+    const version format_version("0.5.0");
 
     /**
      * @brief this enum maps readable keywords to the values of the keys.

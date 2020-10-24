@@ -71,6 +71,12 @@ namespace libtrainsim::core{
              */
             bool hasError = true;
             
+            /**
+             * @brief The location of the video file for this track
+             * 
+             */
+            std::filesystem::path videoFile;
+            
             Track() = delete;
 
         public:
@@ -118,6 +124,13 @@ namespace libtrainsim::core{
              * @return double the first location
              */
             double firstLocation() const;
+            
+            /**
+             * @brief Get the path to the video file.
+             * 
+             * @return std::filesystem::path the path to the video file
+             */
+            std::filesystem::path getVideoFilePath() const;
             
     };
 }

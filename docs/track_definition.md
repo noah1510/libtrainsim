@@ -9,6 +9,7 @@ The json file is an object with the following fields:
 * name (string) (since 0.4.0)
 * data (string or [array](@ref track_data_format)) (since 0.4.0)
 * train (string or [object](@ref train_properties_format)) (since 0.4.0)
+* videoFile (string) (since 0.5.0)
 
 **Optional:**
 
@@ -32,6 +33,10 @@ The filepath is relative to the track file.
 
 This is either the filepath of a train properties file or it is an object which contains the data in the correct [format](@ref train_properties_format).
 The filepath is relative to the track file.
+
+#### videoFile
+
+This is the filepath to the video relative to the track file.
 
 ### formatVersion
 
