@@ -25,12 +25,12 @@ bool libtrainsim::video::load_impl(const std::filesystem::path& uri){
     return true;
 }
 
-const cv::Mat libtrainsim::video::getNextFrame_impl(){
-    cv::Mat frame;
+const cv::UMat libtrainsim::video::getNextFrame_impl(){
+    cv::UMat frame;
     auto status = videoCap->read(frame);
 
     if (!status){
-        return cv::Mat();
+        return cv::UMat();
     }
     
     return frame.clone();

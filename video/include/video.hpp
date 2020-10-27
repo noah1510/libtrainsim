@@ -71,7 +71,7 @@ namespace libtrainsim {
             std::unique_ptr<cv::VideoCapture> videoCap;
 
             ///The implementation for the getNextFrame method
-            const cv::Mat getNextFrame_impl();
+            const cv::UMat getNextFrame_impl();
 
             ///The implementation for the getFilePath method
             std::filesystem::path getFilePath_impl() const;
@@ -158,9 +158,9 @@ namespace libtrainsim {
              * If no video is loaded or there is no new frame, an empty frame will be returned.
              * You should check the returned frame with the method .empty(), which will return true if the frame is empty.
              * 
-             * @return const cv::Mat The next frame of the video
+             * @return const cv::UMat The next frame of the video
              */
-            static const cv::Mat getNextFrame(){
+            static const cv::UMat getNextFrame(){
                 return getInstance().getNextFrame_impl();
             }
 
