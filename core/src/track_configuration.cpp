@@ -74,11 +74,15 @@ Track::Track(const std::filesystem::path& URI){
     dat = data_json["startingPoint"];
     if(dat.is_number_float()){
         startingPoint = dat.get<double>();
+    }else{
+        startingPoint = track_dat.firstLocation();
     }
     
     dat = data_json["endPoint"];
     if(dat.is_number_float()){
         endPoint = dat.get<double>();
+    }else{
+        endPoint = track_dat.lastLocation();
     }
     
     startingPoint = clamp<double>(startingPoint,track_dat.firstLocation(),track_dat.lastLocation());
