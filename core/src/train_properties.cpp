@@ -109,11 +109,11 @@ bool train_properties::isValid() const{
 }
 
 double train_properties::clampVelocity(double currentVelocity) const{
-    return (currentVelocity < max_velocity) ? max_velocity : (currentVelocity < 0.0) ? 0.0 : currentVelocity;
+    return clamp<double>(currentVelocity,0.0,max_velocity);
 }
 
 double train_properties::clampAcceleration(double currentAcceleration) const{
-    return (currentAcceleration < max_acceleration) ? max_acceleration : (currentAcceleration < -max_acceleration) ? -max_acceleration : currentAcceleration;
+    return clamp<double>(currentAcceleration,-max_acceleration,max_acceleration);
 }
 
 const std::string& train_properties::getName() const{
