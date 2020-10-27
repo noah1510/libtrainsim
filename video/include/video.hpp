@@ -82,6 +82,9 @@ namespace libtrainsim {
             ///the implementation of setVideoProperty
             bool setVideoProperty_impl(const cv::VideoCaptureProperties& prop, double value);
 
+            ///the backend for the video capture class.
+            cv::VideoCaptureAPIs backend = cv::CAP_ANY;
+
         public:
             /**
              * @brief This function is used to test if libtrainsim::video was correctly linked and just prints hello world
@@ -159,6 +162,25 @@ namespace libtrainsim {
              */
             static const cv::Mat getNextFrame(){
                 return getInstance().getNextFrame_impl();
+            }
+
+            /**
+             * @brief Set the Backend of the opencv video capture
+             * @warning this is useless if called after load 
+             * 
+             * @param newBackend 
+             */
+            static void setBackend(cv::VideoCaptureAPIs newBackend){
+                getInstance().backend = newBackend;
+            }
+
+            /**
+             * @brief Get the Backend of the video capture
+             * 
+             * @return cv::VideoCaptureAPIs the video capture backend
+             */
+            static cv::VideoCaptureAPIs getBackend(){
+                return getInstance().backend;
             }
 
     };
