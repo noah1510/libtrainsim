@@ -9,8 +9,8 @@ Track_data::Track_data(const std::string& URI):libtrainsim::core::Track_data::Tr
 Track_data::Track_data(const char* URI):libtrainsim::core::Track_data::Track_data (std::filesystem::path(URI)) {};
 
 Track_data::Track_data(const std::filesystem::path& URI){
-    if(URI.empty()){
-        std::cerr << "The file location is empty" << std::endl;
+    if(!std::filesystem::exists(URI)){
+        std::cerr << "The Data file location is empty:" << URI.string() << std::endl;
         return;
     }
 

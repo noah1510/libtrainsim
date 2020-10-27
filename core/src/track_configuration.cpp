@@ -8,8 +8,8 @@ using namespace libtrainsim::core;
 
 Track::Track(const std::filesystem::path& URI){
         
-    if(URI.empty()){
-        std::cerr << "The file location is empty" << std::endl;
+    if(!std::filesystem::exists(URI)){
+        std::cerr << "The Track file location is empty:" << URI.string() << std::endl;
         return;
     }
 
@@ -42,15 +42,17 @@ Track::Track(const std::filesystem::path& URI){
     if(!dat.is_string()){
         return;
     }
-    const auto p = URI.parent_path();
+    const auto p = std::filesystem::absolute(URI.parent_path());
     videoFile = p / dat.get<std::string>();
     if(videoFile.empty()){
+        std::cerr << "The Video file location is empty:" << videoFile.string() << std::endl;
         return;
     }
     
     dat = data_json["data"];
     if(dat.is_string()){
-        track_dat = Track_data(p / dat.get<std::string>());
+        auto da = p / dat.get<std::string>();
+        track_dat = Track_data(da);
     }else if(dat.is_array()){
         track_dat = Track_data(dat);
     }else{
@@ -59,7 +61,8 @@ Track::Track(const std::filesystem::path& URI){
     
     dat = data_json["train"];
     if(dat.is_string()){
-        train_dat = train_properties(p / dat.get<std::string>());
+        const auto tr = p / dat.get<std::string>();
+        train_dat = train_properties(tr);
     }else if(dat.is_object()){
         train_dat = train_properties(dat);
     }else{
@@ -69,19 +72,17 @@ Track::Track(const std::filesystem::path& URI){
     if(!track_dat.isValid() || !train_dat.isValid()){return;};
     
     dat = data_json["startingPoint"];
-    if(!dat.is_number_float()){
-        return;
+    if(dat.is_number_float()){
+        startingPoint = dat.get<double>();
     }
-    startingPoint = dat.get<double>();
     
     dat = data_json["endPoint"];
-    if(!dat.is_number_float()){
-        return;
+    if(dat.is_number_float()){
+        endPoint = dat.get<double>();
     }
-    endPoint = dat.get<double>();
     
     startingPoint = startingPoint < 0 ? 0 : startingPoint;
-    //check if endpoint is smaller than last point of track_data
+    endPoint = endPoint < track_dat.lastLocation() ? endPoint : track_dat.lastLocation();
     if(startingPoint > endPoint){return;};
     
     hasError = false;

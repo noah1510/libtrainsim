@@ -13,8 +13,8 @@ train_properties::train_properties(const std::string& URI):train_properties(std:
 train_properties::train_properties(const char* URI):train_properties(std::filesystem::path(URI)){};
 
 train_properties::train_properties(const std::filesystem::path& URI){
-    if(URI.empty()){
-        std::cerr << "The file location is empty" << std::endl;
+    if(!std::filesystem::exists(URI)){
+        std::cerr << "The Train file location is empty:" << URI.string() << std::endl;
         return;
     }
 
