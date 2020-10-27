@@ -63,10 +63,9 @@ void physics::tick(){
     location += velocity * dt + 0.5 * acelleration * dt * dt;
     velocity += acelleration * dt;
     
-    location = location > config.lastLocation() ? config.lastLocation() : location;
-    velocity = config.train().clampVelocity(velocity);
-    velocity = velocity < 0.0 ? 0.0 : velocity;
-    
+    location = clamp<double>(location, config.firstLocation(),config.lastLocation());
+    velocity = clamp<double>(velocity,0.0,config.train().getMaxVelocity());
+
     last_update = new_time;
     
     return;

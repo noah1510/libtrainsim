@@ -52,13 +52,13 @@ namespace libtrainsim::core{
              * @brief The location where the train should start in the beginning.
              * 
              */
-            double startingPoint;
+            double startingPoint = 0.0f;
             
             /**
              * @brief The location where the train should end.
              * 
              */
-            double endPoint;
+            double endPoint = 0.0f;
             
             /**
              * @brief The name of the track

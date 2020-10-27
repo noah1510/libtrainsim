@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include "track_configuration.hpp"
+#include "types.hpp"
 
 namespace libtrainsim{
     class physics{

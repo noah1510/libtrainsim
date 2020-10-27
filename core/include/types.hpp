@@ -131,4 +131,25 @@ namespace libtrainsim::core{
         ACTION_BREAK = 2,
     };
 
+    /**
+     * @brief clamps the value between two bounds (upper and lower will siwthced if they are in the wrong order).
+     * 
+     * @tparam T the type of the parameters
+     * @param val the value that will be clamped
+     * @param min the lower bound for the value
+     * @param max the upper bound for the value
+     * @return T the clamped value
+     */
+    template <typename T>
+    T clamp(T val, T min, T max){
+        if(min > max){
+            T temp = max;
+            max = min;
+            min = temp;
+        };
+
+        if(val < min){return min;};
+        if(val > max){return max;};
+        return val;
+    }
 }
