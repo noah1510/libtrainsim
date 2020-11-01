@@ -4,13 +4,15 @@
 #include <string>
 #include <filesystem>
 
-#if __has_include("opencv2/opencv.hpp")
-    #include "opencv2/opencv.hpp"
-#elif __has_include("opencv4/opencv2/opencv.hpp")
-    #include "opencv4/opencv2/opencv.hpp"
+#include "frame.hpp"
+
+#ifdef HAS_OPENCV_SUPPORT
+#include "backends/opencv.hpp"
 #endif
 
-namespace libtrainsim {
+
+namespace libtrainsim {    
+
     /**
      * @brief This class is resposiblie for managing all the video material.
      * 
@@ -21,7 +23,7 @@ namespace libtrainsim {
              * @brief Construct a new video object (must only be called by getInstance when necessary)
              * 
              */
-            video(void);
+            video(VideoBackends backend = getDefaultBackend());
 
             /**
              * @brief Destroy the video object, on destruction everything will be reset.
@@ -64,26 +66,31 @@ namespace libtrainsim {
              */
             std::filesystem::path loadedFile;
 
-            /**
-             * @brief This variable saves the state of the video capture device aka the video that is rendered.
-             * 
-             */
-            std::unique_ptr<cv::VideoCapture> videoCap;
-
-            ///The implementation for the getNextFrame method
-            const cv::UMat getNextFrame_impl();
-
             ///The implementation for the getFilePath method
             std::filesystem::path getFilePath_impl() const;
 
-            ///The implementation of getVideoProperty
-            double getVideoProperty_impl(const cv::VideoCaptureProperties& prop) const;
+            /**
+             * @brief the used video backend
+             * 
+             */
+            VideoBackends currentBackend;
 
-            ///the implementation of setVideoProperty
-            bool setVideoProperty_impl(const cv::VideoCaptureProperties& prop, double value);
+            /**
+             * @brief the name of the window for the simulator
+             * 
+             */
+            std::string windowName = "trainsim";
 
-            ///the backend for the video capture class.
-            cv::VideoCaptureAPIs backend = cv::CAP_ANY;
+            #ifdef HAS_OPENCV_SUPPORT
+            /**
+             * @brief the backend of the video singleton if opencv is used as backend.
+             * 
+             */
+            std::unique_ptr<backend::videoOpenCV> backendCV;
+
+            #define GETCV() getInstance().backendCV
+
+            #endif
 
         public:
             /**
@@ -115,24 +122,33 @@ namespace libtrainsim {
             }
 
             /**
-             * @brief Get a property of the internal videoCapture object.
-             * @note Reading / writing properties involves many layers. Some unexpected result might happens along this chain. See cv::VideoCapture::get() for more information.
-             * @param prop the wanted property
-             * @return double the value of that property or 0 if it is nor supported
+             * @brief jumps to a given frame in the video
+             * 
+             * @param frame_num the number of the frame that should be displayed next
              */
-            static double getVideoProperty(const cv::VideoCaptureProperties& prop){
-                return getInstance().getVideoProperty_impl(prop);
+            static void gotoFrame(double frame_num){
+                #ifdef HAS_OPENCV_SUPPORT
+                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                GETCV()->setVideoProperty(cv::CAP_PROP_POS_FRAMES, frame_num);
+                #endif
             }
 
             /**
-             * @brief Set a property of the internal videoCapture object.
-             * @note Even if it returns true this doesn't ensure that the property value has been accepted by the capture device. See note in cv::VideoCapture::get()
-             * @param prop the wanted property
-             * @param value the value the property should have 
-             * @return true if the property is supported by backend used by the VideoCapture instance and the videoCapture is opened.
+             * @brief Get the Backend used at the moment.
+             * 
+             * @return VideoBackends the currently used backend
              */
-            static bool setVideoProperty(const cv::VideoCaptureProperties& prop, double value){
-                return getInstance().setVideoProperty_impl(prop, value);
+            static VideoBackends getBackend(){
+                return getInstance().currentBackend;
+            }
+
+            /**
+             * @brief Set the video backend of the video singleton
+             * 
+             * @param backend the new backend to be used
+             */
+            static void setBackend(VideoBackends backend){
+                getInstance().currentBackend = backend;
             }
 
             /**
@@ -141,7 +157,12 @@ namespace libtrainsim {
              * @return double 
              */
             static double getWidth(){
-                return getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
+                #ifdef HAS_OPENCV_SUPPORT
+                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                return GETCV()->getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
+                #endif
+
+                return 0.0;
             }
 
             /**
@@ -150,19 +171,41 @@ namespace libtrainsim {
              * @return double 
              */
             static double getHight(){
-                return getVideoProperty(cv::CAP_PROP_FRAME_HEIGHT);
+                #ifdef HAS_OPENCV_SUPPORT
+                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                return GETCV()->getVideoProperty(cv::CAP_PROP_FRAME_HEIGHT);
+                #endif
+
+                return 0.0;
             }
 
             /**
-             * @brief Retrieve the next frame to display it. 
-             * If no video is loaded or there is no new frame, an empty frame will be returned.
-             * You should check the returned frame with the method .empty(), which will return true if the frame is empty.
+             * @brief Get backend that will be used by default
              * 
-             * @return const cv::UMat The next frame of the video
+             * @return VideoBackends the backend to be used by default
              */
-            static const cv::UMat getNextFrame(){
-                return getInstance().getNextFrame_impl();
+            static VideoBackends getDefaultBackend(){
+                #ifdef HAS_OPENCV_SUPPORT
+                return opencv;
+                #endif
+
+                return none;
             }
+
+            /**
+             * @brief Create a new window with a given name
+             * 
+             * @param windowName 
+             */
+            static void createWindow(const std::string& windowName){
+                #ifdef HAS_OPENCV_SUPPORT
+                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                GETCV()->createWindow(windowName);
+                #endif
+            }
+
+            //opencv backend specifc opetions
+            #ifdef HAS_OPENCV_SUPPORT
 
             /**
              * @brief Set the Backend of the opencv video capture
@@ -170,8 +213,9 @@ namespace libtrainsim {
              * 
              * @param newBackend 
              */
-            static void setBackend(cv::VideoCaptureAPIs newBackend){
-                getInstance().backend = newBackend;
+            static void setCVBackend(cv::VideoCaptureAPIs newBackend){
+                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                GETCV()->setBackend(newBackend);
             }
 
             /**
@@ -179,9 +223,12 @@ namespace libtrainsim {
              * 
              * @return cv::VideoCaptureAPIs the video capture backend
              */
-            static cv::VideoCaptureAPIs getBackend(){
-                return getInstance().backend;
+            static cv::VideoCaptureAPIs getCVBackend(){
+                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                return GETCV()->getBackend();
             }
+
+            #endif
 
     };
 }

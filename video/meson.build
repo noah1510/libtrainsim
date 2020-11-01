@@ -2,6 +2,7 @@ cc = meson.get_compiler('cpp')
 
 sources = [
     'src/video.cpp',
+    'src/frame.cpp',
 ]
 
 incdir = include_directories('include')
@@ -10,19 +11,29 @@ video_deps = [
     dependency('threads', required: true),
 ]
 
-opencv_dep = dependency('opencv4', required : false)
-if not opencv_dep.found()
-    opencv_dep = dependency('opencv3', required : false)
+#find and include opencv backend if it is not disabled
+if get_option('video_backend_opencv')
+
+    opencv_dep = dependency('opencv4', required : false)
     if not opencv_dep.found()
-        opencv_dep = dependency('opencv2', required : false, version: '>=2.4.0')
+        opencv_dep = dependency('opencv3', required : false)
         if not opencv_dep.found()
-            opencv_dep = dependency('opencv', required : true, version: '>=2.4.0')
+            opencv_dep = dependency('opencv2', required : false, version: '>=2.4.0')
+            if not opencv_dep.found()
+                opencv_dep = dependency('opencv', required : false, version: '>=2.4.0')
+            endif
         endif
     endif
+
+    if opencv_dep.found()
+        video_deps += opencv_dep
+        sources += 'src/opencv/frame.cpp'
+        sources += 'src/opencv/video.cpp'
+    endif
+
 endif
 
-video_deps += opencv_dep
-
+#define the video component
 libtrainsim_video = library(
     'libtrainsim-video', 
     sources, 

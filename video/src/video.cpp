@@ -2,8 +2,8 @@
 #include <iostream>
 #include <memory>
 
-libtrainsim::video::video(void){
-
+libtrainsim::video::video(VideoBackends backend){
+    currentBackend = backend;
 }
 
 std::string libtrainsim::video::hello_impl() const{
@@ -11,48 +11,31 @@ std::string libtrainsim::video::hello_impl() const{
 }
 
 void libtrainsim::video::reset(){
+    #ifdef HAS_OPENCV_SUPPORT
+    backendCV = nullptr;
+    if (currentBackend == opencv){
+        cv::destroyAllWindows();
+    }
+    #endif
+
     std::cout << "libtrainsim::video was reset" << std::endl;
 }
 
 bool libtrainsim::video::load_impl(const std::filesystem::path& uri){
     loadedFile = uri;
 
-    videoCap = std::make_unique<cv::VideoCapture>(loadedFile.string(),backend);
-    if(!videoCap->isOpened()){
-        return false;
-    }
+    #ifdef HAS_OPENCV_SUPPORT
+    if (currentBackend == opencv){
+        if(backendCV == nullptr){backendCV = std::make_unique<libtrainsim::backend::videoOpenCV>();};
+        return backendCV->load(uri);
+    };
+    #endif
 
     return true;
-}
-
-const cv::UMat libtrainsim::video::getNextFrame_impl(){
-    cv::UMat frame;
-    auto status = videoCap->read(frame);
-
-    if (!status){
-        return cv::UMat();
-    }
-    
-    return frame.clone();
 }
 
 std::filesystem::path libtrainsim::video::getFilePath_impl() const{
     return loadedFile;
 }
 
- double libtrainsim::video::getVideoProperty_impl(const cv::VideoCaptureProperties& prop)const{
-    if(videoCap->isOpened()){
-        return videoCap->get(prop);
-    }
-
-    return 0.0f;
- }
-
- bool libtrainsim::video::setVideoProperty_impl(const cv::VideoCaptureProperties& prop, double value){
-     if(videoCap->isOpened()){
-        return videoCap->set(prop,value);
-    }
-
-    return false;
- }
   

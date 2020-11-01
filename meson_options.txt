@@ -4,3 +4,5 @@ option('build_video', type : 'boolean', value : true, description: 'set to false
 option('build_control', type : 'boolean', value : true, description: 'set to false if you do not want to compile the control component.')
 option('build_physics', type : 'boolean', value : true, description: 'set to false if you do not want to compile the physics component.')
 option('build_full', type : 'boolean', value : false, description: 'set to true if you to build all components and create libtrainsim_full as dependency.')
+
+option('video_backend_opencv', type : 'boolean', value : true, description: 'set to false if you do not want to use opencv as backend for the video component.')
