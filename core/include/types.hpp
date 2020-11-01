@@ -117,8 +117,12 @@ namespace libtrainsim::core{
      * @brief this enum maps readable keywords to the values of the keys.
      * 
      */
-    enum keyboard_keys{
-        KEY_ESCAPE = 27,
+    enum keyboard_keys : char{
+        KEY_ESCAPE = static_cast<char>(27),
+        KEY_CLOSE = static_cast<char>(27),
+        KEY_ACCELERATE = 'w',
+        KEY_BREAK = 's',
+        KEY_OTHER = '\0',
     };
 
     /**
@@ -126,6 +130,8 @@ namespace libtrainsim::core{
      * 
      */
     enum actions{
+        ACTION_OTHER = -2,
+        ACTION_NONE = -1,
         ACTION_CLOSE = 0,
         ACTION_ACCELERATE = 1,
         ACTION_BREAK = 2,

@@ -11,6 +11,11 @@ control_deps = [
     dependency('libtrainsim-core', required: true),
 ]
 
+video_dep = dependency('libtrainsim-video', required: false)
+if video_dep.found()
+    control_deps += video_dep
+endif
+
 libtrainsim_control = library(
     'libtrainsim-control', 
     sources, 
