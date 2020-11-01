@@ -88,7 +88,7 @@ namespace libtrainsim {
                         return core::ACTION_CLOSE;
                     case(core::KEY_ACCELERATE):
                         return core::ACTION_ACCELERATE;
-                    case(core::ACTION_BREAK):
+                    case(core::KEY_BREAK):
                         return core::ACTION_BREAK;
                     case('\0'):
                         return core::ACTION_NONE;
