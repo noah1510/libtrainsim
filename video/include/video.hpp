@@ -128,8 +128,10 @@ namespace libtrainsim {
              */
             static void gotoFrame(double frame_num){
                 #ifdef HAS_OPENCV_SUPPORT
-                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                GETCV()->setVideoProperty(cv::CAP_PROP_POS_FRAMES, frame_num);
+                if(getInstance().currentBackend == opencv){
+                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                    GETCV()->setVideoProperty(cv::CAP_PROP_POS_FRAMES, frame_num);
+                }
                 #endif
             }
 
@@ -158,8 +160,10 @@ namespace libtrainsim {
              */
             static double getWidth(){
                 #ifdef HAS_OPENCV_SUPPORT
-                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                return GETCV()->getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
+                if(getInstance().currentBackend == opencv){
+                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                    return GETCV()->getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
+                }
                 #endif
 
                 return 0.0;
@@ -172,8 +176,10 @@ namespace libtrainsim {
              */
             static double getHight(){
                 #ifdef HAS_OPENCV_SUPPORT
-                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                return GETCV()->getVideoProperty(cv::CAP_PROP_FRAME_HEIGHT);
+                if(getInstance().currentBackend == opencv){
+                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                    return GETCV()->getVideoProperty(cv::CAP_PROP_FRAME_HEIGHT);
+                }
                 #endif
 
                 return 0.0;
@@ -199,8 +205,36 @@ namespace libtrainsim {
              */
             static void createWindow(const std::string& windowName){
                 #ifdef HAS_OPENCV_SUPPORT
-                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                GETCV()->createWindow(windowName);
+                if(getInstance().currentBackend == opencv){
+                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                    GETCV()->createWindow(windowName);
+                }
+                #endif
+            }
+
+            /**
+             * @brief just refresh the window contents without changing the displayed content
+             * 
+             */
+            static void refreshWindow(){
+                #ifdef HAS_OPENCV_SUPPORT
+                if(getInstance().currentBackend == opencv){
+                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                    GETCV()->refreshWindow();
+                }
+                #endif
+            }
+
+            /**
+             * @brief update the contents of the window and then refreshes the the window
+             * 
+             */
+            static void updateWindow(){
+                #ifdef HAS_OPENCV_SUPPORT
+                if(getInstance().currentBackend == opencv){
+                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
+                    GETCV()->updateWindow();    
+                }
                 #endif
             }
 
