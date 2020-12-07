@@ -1,11 +1,14 @@
 #pragma once
 
-#if __has_include("opencv2/opencv.hpp")
-    #include "opencv2/opencv.hpp"
-    #define HAS_OPENCV_SUPPORT
-#elif __has_include("opencv4/opencv2/opencv.hpp")
-    #include "opencv4/opencv2/opencv.hpp"
-    #define HAS_OPENCV_SUPPORT
+#include "video_config.hpp"
+
+#ifdef HAS_OPENCV_SUPPORT
+    #if __has_include("opencv2/opencv.hpp")
+        #include "opencv2/opencv.hpp"
+    #elif __has_include("opencv4/opencv2/opencv.hpp")
+        #include "opencv4/opencv2/opencv.hpp"
+        #define HAS_OPENCV_SUPPORT
+    #endif
 #endif
 
 namespace libtrainsim {
