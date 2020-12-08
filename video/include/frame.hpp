@@ -7,7 +7,28 @@
         #include "opencv2/opencv.hpp"
     #elif __has_include("opencv4/opencv2/opencv.hpp")
         #include "opencv4/opencv2/opencv.hpp"
-        #define HAS_OPENCV_SUPPORT
+    #else
+        #undef HAS_OPENCV_SUPPORT
+    #endif
+#endif
+
+#ifdef HAS_SDL_SUPPORT
+    #if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
+        #include <SDL2/SDL.h>
+        #include <SDL2/SDL_thread.h>
+    #else
+        #undef HAS_SDL_SUPPORT
+    #endif
+#endif
+
+#ifdef HAS_FFMPEG_SUPPORT
+    #if defined(HAS_SDL_SUPPORT) && __has_include("libavcodec/avcodec.h") && __has_include("libavutil/imgutils.h") && __has_include("libavformat/avformat.h") && __has_include("libswscale/swscale.h")
+        #include <libavcodec/avcodec.h>
+        #include <libavutil/imgutils.h>
+        #include <libavformat/avformat.h>
+        #include <libswscale/swscale.h>
+    #else 
+        #undef HAS_FFMPEG_SUPPORT
     #endif
 #endif
 
@@ -24,6 +45,16 @@ namespace libtrainsim {
         #ifdef HAS_OPENCV_SUPPORT
         /// use opencv as video backend
         opencv = 1,
+        #endif
+        
+        #ifdef HAS_FFMPEG_SUPPORT
+        ///use ffmpeg with any found windowing system
+        ffmpeg = 2,
+        #endif
+        
+        #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
+        ///use ffmpeg with an sdl window as backend
+        ffmpeg_sdl = 3,
         #endif
     };
 

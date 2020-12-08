@@ -51,7 +51,7 @@ foreach lib : av_libs
         dependency(
             'lib@0@'.format(lib[0]),
             required: false,
-            fallback : ['ffmpeg', 'lib@0@_dep'.format(lib[0])],
+            #fallback : ['ffmpeg', 'lib@0@_dep'.format(lib[0])],
             version : '>=@0@'.format(lib[1]))
     ]
 endforeach
@@ -76,8 +76,8 @@ endif
 #enable ffmpeg if needed
 if enable_ffmpeg
     video_deps += ffmpeg_dep
-    #sources += 'src/opencv/frame.cpp'
-    #sources += 'src/opencv/video.cpp'
+    #sources += 'src/ffmpeg/frame.cpp'
+    #sources += 'src/ffmpeg/video.cpp'
     message('compiling with ffmpeg enabled')
 endif
 
