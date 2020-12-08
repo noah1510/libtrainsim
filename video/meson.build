@@ -27,7 +27,7 @@ enable_opencv = get_option('video_backend_opencv') and opencv_dep.found()
 #try to find sdl2 dependnecies and enable sources
 enable_sdl = get_option('video_backend_sdl')
 if enable_sdl
-    video_deps += dependency('sdl2', required : true, fallback: 'sdl2')
+    video_deps += dependency('sdl2', required : true, fallback: ['sdl2','sdl2_dep'])
     
     message('compiling with sdl2 enabled')
 endif

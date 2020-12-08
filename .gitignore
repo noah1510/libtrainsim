@@ -9,3 +9,5 @@ subprojects/nlohmann_json-*/
 libtrainsim.kdev4
 
 doxybook/
+
+subprojects/SDL2-2.0.12/
