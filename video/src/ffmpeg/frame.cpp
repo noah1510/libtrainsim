@@ -9,7 +9,7 @@ Frame::Frame(AVFrame* dat){
     frameDataFF = dat;
 }
 
-AVFrame* Frame::dataFF(){
+AVFrame* Frame::dataFF() const{
     if(currentBackend < 2 || currentBackend > 3){return nullptr;};
 
     return frameDataFF;

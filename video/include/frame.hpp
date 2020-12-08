@@ -132,7 +132,7 @@ namespace libtrainsim {
              * @brief retrieve a pointer to the internal data for the FFmpeg backend
              * 
              */
-            AVFrame* dataFF();
+            AVFrame* dataFF() const;
             
             #endif
 

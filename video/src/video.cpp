@@ -4,6 +4,9 @@
 
 libtrainsim::video::video(VideoBackends backend){
     currentBackend = backend;
+    #ifdef HAS_SDL_SUPPORT
+        SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+    #endif
 }
 
 std::string libtrainsim::video::hello_impl() const{

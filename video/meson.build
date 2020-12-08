@@ -70,7 +70,7 @@ enable_ffmpeg = get_option('video_backend_ffmpeg') and ffmpeg_found and (enable_
 if enable_opencv
     video_deps += opencv_dep
     sources += 'src/opencv/frame.cpp'
-    sources += 'src/opencv/video.cpp'
+    sources += 'src/opencv/backend.cpp'
     message('compiling with opencv enabled')
 endif
 
@@ -78,7 +78,7 @@ endif
 if enable_ffmpeg
     video_deps += ffmpeg_dep
     sources += 'src/ffmpeg/frame.cpp'
-    #sources += 'src/ffmpeg/video.cpp'
+    sources += 'src/ffmpeg/backend.cpp'
     message('compiling with ffmpeg enabled')
 endif
 

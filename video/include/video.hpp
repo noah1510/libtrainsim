@@ -122,7 +122,7 @@ namespace libtrainsim {
             }
 
             /**
-             * @brief jumps to a given frame in the video
+             * @brief jumps to a given frame in the video and display it
              * 
              * @param frame_num the number of the frame that should be displayed next
              */
@@ -131,6 +131,7 @@ namespace libtrainsim {
                 if(getInstance().currentBackend == opencv){
                     if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
                     GETCV()->setVideoProperty(cv::CAP_PROP_POS_FRAMES, frame_num);
+                    GETCV()->refreshWindow();
                 }
                 #endif
             }

@@ -1,4 +1,4 @@
-#include "video.hpp"
+#include "backends/opencv.hpp"
 #include "frame.hpp"
 
 using namespace libtrainsim;
