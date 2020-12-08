@@ -23,10 +23,12 @@
 
 #ifdef HAS_FFMPEG_SUPPORT
     #if defined(HAS_SDL_SUPPORT) && __has_include("libavcodec/avcodec.h") && __has_include("libavutil/imgutils.h") && __has_include("libavformat/avformat.h") && __has_include("libswscale/swscale.h")
-        #include <libavcodec/avcodec.h>
-        #include <libavutil/imgutils.h>
-        #include <libavformat/avformat.h>
-        #include <libswscale/swscale.h>
+        extern "C"{
+            #include <libavcodec/avcodec.h>
+            #include <libavutil/imgutils.h>
+            #include <libavformat/avformat.h>
+            #include <libswscale/swscale.h>
+        }
     #else 
         #undef HAS_FFMPEG_SUPPORT
     #endif
@@ -77,6 +79,29 @@ namespace libtrainsim {
              * 
              */
             cv::UMat frameDataCV;
+            
+            /**
+             * delete the contents of the opencv frame container
+             */
+            void clearCV();
+            #endif
+            
+            #ifdef HAS_FFMPEG_SUPPORT
+            
+            /**
+             *  @brief the actual data of the frame for the ffmpeg backend
+             */
+            AVFrame* frameDataFF = nullptr;
+            
+            /**
+             * delete the contents of the ffmpeg frame container
+             */
+            void clearFF();
+            
+            /**
+             * create an empty ffmpeg frame
+             */
+            void createEmptyFF();
             #endif
         public:
             #ifdef HAS_OPENCV_SUPPORT
@@ -94,6 +119,22 @@ namespace libtrainsim {
              */
             cv::UMat dataCV() const;
             #endif
+            
+            #ifdef HAS_FFMPEG_SUPPORT
+            /**
+             * @brief Construct a new frame from given data
+             * 
+             * @param dat the data this frame will contain
+             */
+            Frame(AVFrame* dat);
+            
+            /**
+             * @brief retrieve a pointer to the internal data for the FFmpeg backend
+             * 
+             */
+            AVFrame* dataFF();
+            
+            #endif
 
             /**
              * @brief Get the Backend used for this frame
@@ -107,6 +148,17 @@ namespace libtrainsim {
              * 
              */
             Frame();
+            
+            /**
+             * clear the data of the frame when it is destroyed
+             */
+            ~Frame();
+            
+            /**
+             * @brief set the video backend of an empty frame to the given backend
+             * @param newBackend the new backend this frame should have
+             */
+            void setBackend(VideoBackends newBackend);
     };
 
 }

@@ -3,6 +3,7 @@ cc = meson.get_compiler('cpp')
 sources = [
     'src/video.cpp',
     'src/frame.cpp',
+    'src/generic.cpp',
 ]
 
 video_deps = [
@@ -36,7 +37,7 @@ endif
 #try to find ffmpeg dependencies
 ffmpeg_dep = []
 av_libs = [
-    ['avcodec', '54.0.0'],
+    ['avcodec', '55.28.1'],
     ['avformat',  '54.0.0'],
     ['avutil', '51.0.0'],
     ['avdevice', '54.0.0'],
@@ -76,7 +77,7 @@ endif
 #enable ffmpeg if needed
 if enable_ffmpeg
     video_deps += ffmpeg_dep
-    #sources += 'src/ffmpeg/frame.cpp'
+    sources += 'src/ffmpeg/frame.cpp'
     #sources += 'src/ffmpeg/video.cpp'
     message('compiling with ffmpeg enabled')
 endif

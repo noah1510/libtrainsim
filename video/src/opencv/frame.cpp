@@ -17,4 +17,8 @@ cv::UMat Frame::dataCV() const{
     return frameDataCV.clone();
 }
 
+void Frame::clearCV(){
+    frameDataCV.release();
+}
+
 #endif
