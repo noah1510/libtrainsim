@@ -41,3 +41,11 @@ void videoGeneric::displayFrame(const Frame& newFrame){
 void videoGeneric::updateWindow(){
     displayFrame(getNextFrame());
 }
+
+uint64_t videoGeneric::getFrameCount(){
+    return 0;
+}
+
+void videoGeneric::gotoFrame(uint64_t frameNum){
+    return;
+}

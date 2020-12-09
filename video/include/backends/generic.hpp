@@ -82,6 +82,19 @@ namespace libtrainsim::backend{
              * 
              */
             virtual void updateWindow();
+            
+            /**
+             * @brief jump to the given frame number and refresh the window
+             * @param frameNum the frame that will be displayed
+             */
+            virtual void gotoFrame(uint64_t frameNum);
+            
+            /**
+             * @brief get the total number of frames for the loaded video file
+             * @return the total number of frames
+             * 
+             */
+            virtual uint64_t getFrameCount();
 
     };
 

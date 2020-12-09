@@ -87,3 +87,12 @@ void videoOpenCV::displayFrame(const Frame& newFrame){
 void videoOpenCV::updateWindow(){
     displayFrame(getNextFrame());
 }
+
+void videoOpenCV::gotoFrame(uint64_t frameNum){
+    setVideoProperty(cv::CAP_PROP_POS_FRAMES, frameNum);
+    updateWindow();
+}
+
+uint64_t videoOpenCV::getFrameCount(){
+    return getVideoProperty(cv::CAP_PROP_FRAME_COUNT);
+}

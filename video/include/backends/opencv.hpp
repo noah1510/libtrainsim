@@ -64,6 +64,8 @@ namespace libtrainsim::backend{
             void refreshWindow();
             void displayFrame(const Frame& newFrame);
             void updateWindow();
+            void gotoFrame(uint64_t frameNum);
+            uint64_t getFrameCount();
 
     };
 

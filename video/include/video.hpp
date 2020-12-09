@@ -130,8 +130,7 @@ namespace libtrainsim {
                 #ifdef HAS_OPENCV_SUPPORT
                 if(getInstance().currentBackend == opencv){
                     if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                    GETCV()->setVideoProperty(cv::CAP_PROP_POS_FRAMES, frame_num);
-                    GETCV()->refreshWindow();
+                    GETCV()->gotoFrame(frame_num);
                 }
                 #endif
             }

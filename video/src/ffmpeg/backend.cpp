@@ -31,7 +31,7 @@ bool videoOpenFF_SDL::load(const std::filesystem::path& uri){
 
     av_dump_format(pFormatCtx, 0, loadedFile.string().c_str(), 0);
     
-    for (int i = 0; i < pFormatCtx->nb_streams; i++)
+    for (unsigned int i = 0; i < pFormatCtx->nb_streams; i++)
     {
         if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         {
@@ -160,4 +160,17 @@ void videoOpenFF_SDL::displayFrame(const Frame& newFrame){
 
 void videoOpenFF_SDL::updateWindow(){
     displayFrame(getNextFrame());
+}
+
+void videoOpenFF_SDL::gotoFrame(uint64_t frameNum){
+    if(!videoFullyLoaded){return;};
+    uint64_t timebase = static_cast<uint64_t> ( (pFormatCtx->streams[videoStream]->time_base.den * pFormatCtx->streams[videoStream]->r_frame_rate.den) / (pFormatCtx->streams[videoStream]->time_base.num * pFormatCtx->streams[videoStream]->r_frame_rate.num) );
+    auto _currentTimestamp = frameNum *  timebase;
+    av_seek_frame(pFormatCtx,videoStream,_currentTimestamp, AVSEEK_FLAG_ANY);
+    updateWindow();
+}
+
+uint64_t videoOpenFF_SDL::getFrameCount(){
+    if(!videoFullyLoaded){return 0;};
+    return pFormatCtx->streams[videoStream]->nb_frames;
 }
