@@ -25,4 +25,19 @@ void Frame::createEmptyFF(){
     frameDataFF = av_frame_alloc();
 }
 
+Frame::operator AVFrame*(){
+    if(currentBackend < 2 || currentBackend > 3){return nullptr;};
+    return frameDataFF;
+}
+
+Frame& Frame::operator=(AVFrame* x){
+    currentBackend = ffmpeg;
+    if(frameDataFF != nullptr){
+        av_frame_free(&frameDataFF);
+        av_free(frameDataFF);
+    }
+    frameDataFF = x;
+    return *this;
+}
+
 #endif

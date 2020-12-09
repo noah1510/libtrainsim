@@ -22,10 +22,11 @@ namespace libtrainsim::backend{
             struct SwsContext* sws_ctx = nullptr;
             AVPacket* pPacket = nullptr;
             uint8_t * buffer = nullptr;
-            AVFrame * pict = nullptr;
             
             bool videoFullyLoaded = false;
             bool windowFullyCreated = false;
+            
+            Frame pict;
 
         public:
 

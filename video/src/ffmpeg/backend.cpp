@@ -6,6 +6,8 @@ using namespace libtrainsim::backend;
 
 videoOpenFF_SDL::~videoOpenFF_SDL(){
     lastFrame = Frame();
+    pict = Frame();
+    av_packet_unref(pPacket);
     avcodec_close(pCodecCtx);
     avformat_close_input(&pFormatCtx);
 
@@ -74,9 +76,30 @@ bool videoOpenFF_SDL::load(const std::filesystem::path& uri){
 }
 
 const libtrainsim::Frame videoOpenFF_SDL::getNextFrame(){
-    //TODO implement function to retrieve next frame
+    if(!videoFullyLoaded){return Frame();};
     
-    return Frame();
+    av_packet_unref(pPacket);
+    
+    Frame pFrame = Frame();
+    pFrame.setBackend(ffmpeg_sdl);
+    
+    auto ret = av_read_frame(pFormatCtx, pPacket);
+    if(ret < 0 || pPacket->stream_index != videoStream){
+        return Frame();
+    };
+    
+    ret = avcodec_send_packet(pCodecCtx, pPacket);
+    if (ret < 0){
+        std::cerr << "Error sending packet for decoding." << std::endl;
+        return Frame();
+    }
+    
+    ret = avcodec_receive_frame(pCodecCtx, pFrame);
+    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0){
+        return Frame();
+    }
+    
+    return pFrame;
 }
 
 
@@ -138,13 +161,57 @@ void videoOpenFF_SDL::createWindow(const std::string& windowName){
             );
     buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
     
+    pict = av_frame_alloc();
+    av_image_fill_arrays(
+        pict.dataFF()->data,
+        pict.dataFF()->linesize,
+        buffer,
+        AV_PIX_FMT_YUV420P,
+        pCodecCtx->width,
+        pCodecCtx->height,
+        32
+    );
+    
+    lastFrame = getNextFrame();
+    
     windowFullyCreated = true;
 }
 
 void videoOpenFF_SDL::refreshWindow(){
-    if(windowFullyCreated){
-        //TODO display the frame
+    if(!windowFullyCreated){
+        return;
     }
+    
+    sws_scale(
+        sws_ctx,
+        (uint8_t const * const *)lastFrame.dataFF()->data,
+        lastFrame.dataFF()->linesize,
+        0,
+        pCodecCtx->height,
+        pict.dataFF()->data,
+        pict.dataFF()->linesize
+    );
+
+    SDL_Rect rect;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = pCodecCtx->width;
+    rect.h = pCodecCtx->height;
+    
+    SDL_UpdateYUVTexture(
+        texture,
+        &rect,
+        pict.dataFF()->data[0],
+        pict.dataFF()->linesize[0],
+        pict.dataFF()->data[1],
+        pict.dataFF()->linesize[1],
+        pict.dataFF()->data[2],
+        pict.dataFF()->linesize[2]
+    );
+
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer,texture,NULL,NULL);
+    SDL_RenderPresent(renderer);
 }
 
 void videoOpenFF_SDL::displayFrame(const Frame& newFrame){

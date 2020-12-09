@@ -134,6 +134,17 @@ namespace libtrainsim {
              */
             AVFrame* dataFF() const;
             
+            /**
+             * Convert a frame to an AVFrame without needing to call dataFF
+             * 
+             */
+            operator AVFrame*();
+            
+            /**
+             * directly assign an AVFrame to the Frame to set the value
+             */
+            Frame& operator=(AVFrame* x);
+            
             #endif
 
             /**
