@@ -96,3 +96,11 @@ void videoOpenCV::gotoFrame(uint64_t frameNum){
 uint64_t videoOpenCV::getFrameCount(){
     return getVideoProperty(cv::CAP_PROP_FRAME_COUNT);
 }
+
+double videoOpenCV::getHight(){
+    return getVideoProperty(cv::CAP_PROP_FRAME_HEIGHT);
+}
+
+double videoOpenCV::getWidth(){
+    return getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
+}

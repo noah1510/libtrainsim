@@ -241,3 +241,13 @@ uint64_t videoOpenFF_SDL::getFrameCount(){
     if(!videoFullyLoaded){return 0;};
     return pFormatCtx->streams[videoStream]->nb_frames;
 }
+
+double videoOpenFF_SDL::getHight(){
+    if(pCodecCtx == nullptr || !videoFullyLoaded){return 0.0;};
+    return pCodecCtx->height;
+}
+
+double videoOpenFF_SDL::getWidth(){
+    if(pCodecCtx == nullptr || !videoFullyLoaded){return 0.0;};
+    return pCodecCtx->width;
+}

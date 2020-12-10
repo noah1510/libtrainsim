@@ -14,8 +14,9 @@ std::string libtrainsim::video::hello_impl() const{
 }
 
 void libtrainsim::video::reset(){
+    currentBackend_impl = nullptr;
+    
     #ifdef HAS_OPENCV_SUPPORT
-    backendCV = nullptr;
     if (currentBackend == opencv){
         cv::destroyAllWindows();
     }
@@ -26,13 +27,8 @@ void libtrainsim::video::reset(){
 
 bool libtrainsim::video::load_impl(const std::filesystem::path& uri){
     loadedFile = uri;
-
-    #ifdef HAS_OPENCV_SUPPORT
-    if (currentBackend == opencv){
-        if(backendCV == nullptr){backendCV = std::make_unique<libtrainsim::backend::videoOpenCV>();};
-        return backendCV->load(uri);
-    };
-    #endif
+    checkBackend_impl();
+    currentBackend_impl->load(uri);
 
     return true;
 }

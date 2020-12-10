@@ -49,3 +49,11 @@ uint64_t videoGeneric::getFrameCount(){
 void videoGeneric::gotoFrame(uint64_t frameNum){
     return;
 }
+
+double videoGeneric::getHight(){
+    return 0.0;
+}
+
+double videoGeneric::getWidth(){
+    return 0.0;
+}

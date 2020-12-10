@@ -5,6 +5,7 @@
 #include <filesystem>
 
 #include "frame.hpp"
+#include "backends/generic.hpp"
 
 #ifdef HAS_OPENCV_SUPPORT
 #include "backends/opencv.hpp"
@@ -74,23 +75,34 @@ namespace libtrainsim {
              * 
              */
             VideoBackends currentBackend;
+            
+            /**
+             * @brief the implementation of the current backend
+             */
+            std::unique_ptr<backend::videoGeneric> currentBackend_impl;
 
             /**
              * @brief the name of the window for the simulator
              * 
              */
             std::string windowName = "trainsim";
-
-            #ifdef HAS_OPENCV_SUPPORT
-            /**
-             * @brief the backend of the video singleton if opencv is used as backend.
-             * 
-             */
-            std::unique_ptr<backend::videoOpenCV> backendCV;
-
-            #define GETCV() getInstance().backendCV
-
-            #endif
+            
+            static void checkBackend_impl(){
+                if(getInstance().currentBackend_impl == nullptr){
+                    switch(getInstance().currentBackend){
+                        case(none):
+                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::backend::videoGeneric>();
+                            break;
+                        #ifdef HAS_OPENCV_SUPPORT
+                        case(opencv):
+                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::backend::videoOpenCV>();
+                            break;
+                        #endif
+                        default:
+                            return;
+                    }
+                }
+            }
 
         public:
             /**
@@ -127,12 +139,8 @@ namespace libtrainsim {
              * @param frame_num the number of the frame that should be displayed next
              */
             static void gotoFrame(double frame_num){
-                #ifdef HAS_OPENCV_SUPPORT
-                if(getInstance().currentBackend == opencv){
-                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                    GETCV()->gotoFrame(frame_num);
-                }
-                #endif
+                checkBackend_impl();
+                getInstance().currentBackend_impl->gotoFrame(frame_num);
             }
 
             /**
@@ -159,14 +167,8 @@ namespace libtrainsim {
              * @return double 
              */
             static double getWidth(){
-                #ifdef HAS_OPENCV_SUPPORT
-                if(getInstance().currentBackend == opencv){
-                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                    return GETCV()->getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
-                }
-                #endif
-
-                return 0.0;
+                checkBackend_impl();
+                return getInstance().currentBackend_impl->getWidth();
             }
 
             /**
@@ -175,14 +177,8 @@ namespace libtrainsim {
              * @return double 
              */
             static double getHight(){
-                #ifdef HAS_OPENCV_SUPPORT
-                if(getInstance().currentBackend == opencv){
-                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                    return GETCV()->getVideoProperty(cv::CAP_PROP_FRAME_HEIGHT);
-                }
-                #endif
-
-                return 0.0;
+                checkBackend_impl();
+                return getInstance().currentBackend_impl->getHight();
             }
 
             /**
@@ -204,12 +200,8 @@ namespace libtrainsim {
              * @param windowName 
              */
             static void createWindow(const std::string& windowName){
-                #ifdef HAS_OPENCV_SUPPORT
-                if(getInstance().currentBackend == opencv){
-                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                    GETCV()->createWindow(windowName);
-                }
-                #endif
+                checkBackend_impl();
+                getInstance().currentBackend_impl->createWindow(windowName);
             }
 
             /**
@@ -217,12 +209,8 @@ namespace libtrainsim {
              * 
              */
             static void refreshWindow(){
-                #ifdef HAS_OPENCV_SUPPORT
-                if(getInstance().currentBackend == opencv){
-                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                    GETCV()->refreshWindow();
-                }
-                #endif
+                checkBackend_impl();
+                getInstance().currentBackend_impl->refreshWindow();
             }
 
             /**
@@ -230,12 +218,8 @@ namespace libtrainsim {
              * 
              */
             static void updateWindow(){
-                #ifdef HAS_OPENCV_SUPPORT
-                if(getInstance().currentBackend == opencv){
-                    if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                    GETCV()->updateWindow();    
-                }
-                #endif
+                checkBackend_impl();
+                getInstance().currentBackend_impl->updateWindow();
             }
 
             //opencv backend specifc opetions
@@ -248,8 +232,10 @@ namespace libtrainsim {
              * @param newBackend 
              */
             static void setCVBackend(cv::VideoCaptureAPIs newBackend){
-                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                GETCV()->setBackend(newBackend);
+                checkBackend_impl();
+                if(getInstance().currentBackend == opencv){
+                    ((backend::videoOpenCV*)getInstance().currentBackend_impl.get())->setBackend(newBackend);
+                }
             }
 
             /**
@@ -258,8 +244,11 @@ namespace libtrainsim {
              * @return cv::VideoCaptureAPIs the video capture backend
              */
             static cv::VideoCaptureAPIs getCVBackend(){
-                if(GETCV() == nullptr){GETCV() = std::make_unique<libtrainsim::backend::videoOpenCV>(); };
-                return GETCV()->getBackend();
+                checkBackend_impl();
+                if(getInstance().currentBackend == opencv){
+                    return ((backend::videoOpenCV*)getInstance().currentBackend_impl.get())->getBackend();
+                }
+                return cv::CAP_ANY;
             }
 
             #endif

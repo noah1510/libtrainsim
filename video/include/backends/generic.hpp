@@ -95,6 +95,20 @@ namespace libtrainsim::backend{
              * 
              */
             virtual uint64_t getFrameCount();
+            
+            /**
+             * @brief Get the Height of the video in pixels
+             * 
+             * @return double 
+             */
+            virtual double getHight();
+            
+            /**
+             * @brief Get the Width of the video in pixels
+             * 
+             * @return double 
+             */
+            virtual double getWidth();
 
     };
 
