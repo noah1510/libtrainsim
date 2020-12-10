@@ -30,15 +30,15 @@ namespace libtrainsim::backend{
              * 
              */
             Frame lastFrame;
-
-        public:
-
+            
             /**
-             * @brief Destroy the video OpenCV object
+             * @brief display a new frame on the window
              * 
+             * @param newFrame the new frame to be displayed
              */
-            virtual ~videoGeneric();
-
+            virtual void displayFrame(const Frame& newFrame);
+            
+            
             /**
              * @brief Retrieve the next frame to display it. 
              * If no video is loaded or there is no new frame, an empty frame will be returned.
@@ -47,6 +47,14 @@ namespace libtrainsim::backend{
              * @return const libtrainsim::Frame The next frame of the video
              */
             virtual const libtrainsim::Frame getNextFrame();
+
+        public:
+
+            /**
+             * @brief Destroy the video OpenCV object
+             * 
+             */
+            virtual ~videoGeneric();
 
             /**
              * @brief Load a video file into the video management.
@@ -69,19 +77,6 @@ namespace libtrainsim::backend{
              * 
              */
             virtual void refreshWindow();
-
-            /**
-             * @brief display a new frame on the window
-             * 
-             * @param newFrame the new frame to be displayed
-             */
-            virtual void displayFrame(const Frame& newFrame);
-
-            /**
-             * @brief update the window contents to the latest contentst of the video
-             * 
-             */
-            virtual void updateWindow();
             
             /**
              * @brief jump to the given frame number and refresh the window

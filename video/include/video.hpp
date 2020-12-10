@@ -220,21 +220,13 @@ namespace libtrainsim {
             }
 
             /**
-             * @brief just refresh the window contents without changing the displayed content
+             * @brief just refresh the window contents without changing the displayed content.
+             * This function has to be called to have working input on some backends.
              * 
              */
             static void refreshWindow(){
                 checkBackend_impl();
                 getInstance().currentBackend_impl->refreshWindow();
-            }
-
-            /**
-             * @brief update the contents of the window and then refreshes the the window
-             * 
-             */
-            static void updateWindow(){
-                checkBackend_impl();
-                getInstance().currentBackend_impl->updateWindow();
             }
 
             //opencv backend specifc opetions

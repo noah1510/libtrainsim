@@ -21,4 +21,8 @@ void Frame::clearCV(){
     frameDataCV.release();
 }
 
+Frame::operator cv::UMat(){
+    return frameDataCV;
+}
+
 #endif

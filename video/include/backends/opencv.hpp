@@ -17,7 +17,9 @@ namespace libtrainsim::backend{
 
             ///the backend for the video capture class.
             cv::VideoCaptureAPIs backend = cv::CAP_ANY;
-
+        protected:
+            void displayFrame(const Frame& newFrame);
+            const libtrainsim::Frame getNextFrame();
         public:
 
             /**
@@ -58,12 +60,9 @@ namespace libtrainsim::backend{
              */
             cv::VideoCaptureAPIs getBackend();
 
-            const libtrainsim::Frame getNextFrame();
             bool load(const std::filesystem::path& uri);
             void createWindow(const std::string& windowName);
             void refreshWindow();
-            void displayFrame(const Frame& newFrame);
-            void updateWindow();
             void gotoFrame(uint64_t frameNum);
             uint64_t getFrameCount();
             double getHight();

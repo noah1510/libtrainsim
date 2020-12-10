@@ -118,6 +118,12 @@ namespace libtrainsim {
              * @return cv::UMat* the internal frame data 
              */
             cv::UMat dataCV() const;
+            
+            /**
+             * Convert a frame to an cv::UMat without needing to call dataFF
+             * 
+             */
+            operator cv::UMat();
             #endif
             
             #ifdef HAS_FFMPEG_SUPPORT
@@ -159,6 +165,11 @@ namespace libtrainsim {
              * 
              */
             Frame();
+            
+            /**
+             * free all of the data in this Frame object.
+             */
+            void clear();
             
             /**
              * clear the data of the frame when it is destroyed

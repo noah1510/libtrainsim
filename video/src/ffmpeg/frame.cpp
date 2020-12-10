@@ -32,6 +32,7 @@ Frame::operator AVFrame*(){
 
 Frame& Frame::operator=(AVFrame* x){
     currentBackend = ffmpeg;
+    if (x == frameDataFF){return *this;};
     if(frameDataFF != nullptr){
         av_frame_free(&frameDataFF);
         av_free(frameDataFF);

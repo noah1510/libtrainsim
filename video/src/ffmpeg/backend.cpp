@@ -5,8 +5,8 @@ using namespace libtrainsim;
 using namespace libtrainsim::backend;
 
 videoFF_SDL::~videoFF_SDL(){
-    lastFrame = Frame();
-    pict = Frame();
+    lastFrame.clear();
+    pict.clear();
     av_packet_unref(pPacket);
     avcodec_close(pCodecCtx);
     avformat_close_input(&pFormatCtx);
@@ -161,7 +161,7 @@ void videoFF_SDL::createWindow(const std::string& windowName){
             );
     buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
     
-    pict = av_frame_alloc();
+    pict.setBackend(ffmpeg);
     av_image_fill_arrays(
         pict.dataFF()->data,
         pict.dataFF()->linesize,
@@ -172,6 +172,7 @@ void videoFF_SDL::createWindow(const std::string& windowName){
         32
     );
     
+    lastFrame.clear();
     lastFrame = getNextFrame();
     
     windowFullyCreated = true;
@@ -219,14 +220,11 @@ void videoFF_SDL::displayFrame(const Frame& newFrame){
         newFrame.dataFF() == nullptr
     ){
         return;
-    } 
+    }
 
+    lastFrame.clear();
     lastFrame = newFrame;
     refreshWindow();
-}
-
-void videoFF_SDL::updateWindow(){
-    displayFrame(getNextFrame());
 }
 
 void videoFF_SDL::gotoFrame(uint64_t frameNum){
@@ -234,12 +232,12 @@ void videoFF_SDL::gotoFrame(uint64_t frameNum){
     auto timeBase = (int64_t(pCodecCtx->time_base.num) * AV_TIME_BASE) / int64_t(pCodecCtx->time_base.den);
     auto _currentTimestamp = frameNum *  timeBase;
     av_seek_frame(pFormatCtx,videoStream,_currentTimestamp, AVSEEK_FLAG_ANY);
-    updateWindow();
+    displayFrame(getNextFrame());
 }
 
 uint64_t videoFF_SDL::getFrameCount(){
     if(!videoFullyLoaded){return 0;};
-    return pFormatCtx->streams[videoStream]->nb_frames;
+    return pCodecCtx->frame_number;
 }
 
 double videoFF_SDL::getHight(){

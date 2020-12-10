@@ -28,6 +28,9 @@ namespace libtrainsim::backend{
             
             Frame pict;
 
+        protected:
+            void displayFrame(const Frame& newFrame);
+            const libtrainsim::Frame getNextFrame();
         public:
 
             /**
@@ -36,12 +39,9 @@ namespace libtrainsim::backend{
              */
             ~videoFF_SDL();
 
-            const libtrainsim::Frame getNextFrame();
             bool load(const std::filesystem::path& uri);
             void createWindow(const std::string& windowName);
             void refreshWindow();
-            void displayFrame(const Frame& newFrame);
-            void updateWindow();
             void gotoFrame(uint64_t frameNum);
             uint64_t getFrameCount();
             double getHight();

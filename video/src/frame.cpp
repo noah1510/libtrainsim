@@ -24,6 +24,10 @@ void Frame::setBackend ( VideoBackends newBackend ) {
 }
 
 Frame::~Frame(){
+    //clear();
+}
+
+void Frame::clear(){
     if(currentBackend == none){return;};
     
     #ifdef HAS_OPENCV_SUPPORT
@@ -38,5 +42,11 @@ Frame::~Frame(){
         clearFF();
         return;
     }
+    #ifdef HAS_SDL_SUPPORT
+    if(currentBackend == ffmpeg_sdl){
+        clearFF();
+        return;
+    }
+    #endif
     #endif
 }
