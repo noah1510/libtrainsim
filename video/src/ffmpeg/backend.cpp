@@ -229,9 +229,13 @@ void videoFF_SDL::displayFrame(const Frame& newFrame){
 
 void videoFF_SDL::gotoFrame(uint64_t frameNum){
     if(!videoFullyLoaded){return;};
-    auto timeBase = (int64_t(pCodecCtx->time_base.num) * AV_TIME_BASE) / int64_t(pCodecCtx->time_base.den);
-    auto _currentTimestamp = frameNum *  timeBase;
-    av_seek_frame(pFormatCtx,videoStream,_currentTimestamp, AVSEEK_FLAG_ANY);
+    //double fps = static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.num) / static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.den);
+    //int64_t _time = static_cast<int64_t>( static_cast<double>(frameNum)*fps);
+    //av_seek_frame(pFormatCtx, videoStream, frameNum, AVSEEK_FLAG_ANY);
+    
+    while (static_cast<int64_t>(frameNum) > pCodecCtx->frame_number + 1){
+        getNextFrame();
+    }
     displayFrame(getNextFrame());
 }
 
