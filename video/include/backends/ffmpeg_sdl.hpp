@@ -7,7 +7,7 @@
 
 namespace libtrainsim::backend{
     #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
-    class videoOpenFF_SDL : public videoGeneric{
+    class videoFF_SDL : public videoGeneric{
         private:
             AVFormatContext* pFormatCtx = nullptr;
             AVCodecContext* pCodecCtx = nullptr;
@@ -34,7 +34,7 @@ namespace libtrainsim::backend{
              * @brief Destroy the video OpenCV object
              * 
              */
-            ~videoOpenFF_SDL();
+            ~videoFF_SDL();
 
             const libtrainsim::Frame getNextFrame();
             bool load(const std::filesystem::path& uri);

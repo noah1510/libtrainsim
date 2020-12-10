@@ -4,7 +4,7 @@ sources = [
     'src/physics.cpp',
 ]
 
-incdir = include_directories('include')
+incdir = include_directories('include','..')
 
 physics_deps = [
     dependency('libtrainsim-core', required: true),

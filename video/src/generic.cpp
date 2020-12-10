@@ -57,3 +57,7 @@ double videoGeneric::getHight(){
 double videoGeneric::getWidth(){
     return 0.0;
 }
+
+const std::filesystem::path& videoGeneric::getLoadedFile() const{
+    return loadedFile;
+}

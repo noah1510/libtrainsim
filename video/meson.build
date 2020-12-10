@@ -90,7 +90,7 @@ video_conf_data.set('HAS_SDL_SUPPORT', enable_sdl)
 configure_file(output : 'video_config.hpp', configuration : video_conf_data)
 
 #include all headers including the video configuration
-incdir = include_directories('include','.')
+incdir = include_directories('include','.','..')
 
 #define the video component
 libtrainsim_video = library(

@@ -4,7 +4,7 @@ sources = [
     'src/control.cpp',
 ]
 
-incdir = include_directories('include')
+incdir = include_directories('include','..')
 
 control_deps = [
     dependency('threads'),

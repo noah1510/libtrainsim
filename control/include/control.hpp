@@ -1,11 +1,18 @@
 #pragma once
 
 #include <string>
+#include <chrono>
+#include <thread>
+#include <memory>
 #include "types.hpp"
+#include "libtrainsim_config.hpp"
 
-#if __has_include("video.hpp")
-    #include "video.hpp"
-    #define HAS_VIDEO_SUPPORT
+#ifdef HAS_VIDEO_SUPPORT
+    #if __has_include("video.hpp")
+        #include "video.hpp"
+    #else
+        #undef HAS_VIDEO_SUPPORT
+    #endif
 #endif
 
 namespace libtrainsim {
@@ -64,16 +71,27 @@ namespace libtrainsim {
             static char getKey(){
                 #ifdef HAS_VIDEO_SUPPORT
                 
-                //handle input for opencv
-                #ifdef HAS_OPENCV_SUPPORT
-                if(libtrainsim::video::getBackend() == opencv){
-                    return cv::waitKey(1);
+                switch(libtrainsim::video::getBackend()){
+                    #ifdef HAS_OPENCV_SUPPORT
+                    case(opencv):
+                        return cv::waitKey(1);
+                    #endif
+                    #ifdef HAS_SDL_SUPPORT
+                    case(ffmpeg):
+                    case(ffmpeg_sdl):
+                        SDL_Event event;
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                        SDL_PollEvent(&event);
+                        if(event.type == SDL_QUIT){return core::KEY_ESCAPE;};
+                        if(event.type == SDL_KEYDOWN){return event.key.keysym.sym;};
+                        break;
+                    #endif
+                    case(none):
+                    default:
+                        break;
                 }
                 #endif
-
-
-                #endif
-
+                
                 return '\0';
             }
 

@@ -2,9 +2,28 @@ project(
     'libtrainsim',
     'cpp',
     default_options : ['cpp_std=c++17', 'b_lto=true', 'b_pgo=generate', 'b_coverage=true'],
-    version : '0.3.7'
+    version : '0.3.8'
 )
 
+#set the configuration
+conf_data = configuration_data()
+conf_data.set('HAS_CORE_SUPPORT', true)
+
+if get_option('build_video') or get_option('build_full')
+    conf_data.set('HAS_VIDEO_SUPPORT', true)
+endif
+
+if get_option('build_control') or get_option('build_full')
+    conf_data.set('HAS_CONTROL_SUPPORT', true)
+endif
+
+if get_option('build_physics') or get_option('build_full')
+    conf_data.set('HAS_PHYSICS_SUPPORT', true)
+endif
+
+configure_file(output : 'libtrainsim_config.hpp', configuration : conf_data)
+
+#compile modules
 subdir('core')
 meson.override_dependency('libtrainsim-core', libtrainsim_core_dep)
 
@@ -23,6 +42,7 @@ if get_option('build_physics') or get_option('build_full')
     meson.override_dependency('libtrainsim-physics', libtrainsim_physics_dep)
 endif
 
+#declare the dependency libtrainsim_full
 if get_option('build_full')
     libtrainsim_full_dep = declare_dependency(
         dependencies : [

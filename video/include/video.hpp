@@ -11,6 +11,12 @@
 #include "backends/opencv.hpp"
 #endif
 
+#ifdef HAS_FFMPEG_SUPPORT
+    #ifdef HAS_SDL_SUPPORT
+    #include "backends/ffmpeg_sdl.hpp"
+    #endif
+#endif
+
 
 namespace libtrainsim {    
 
@@ -61,14 +67,8 @@ namespace libtrainsim {
              */
             bool load_impl(const std::filesystem::path& uri);
 
-            /**
-             * @brief This is that path to the currently loaded file.
-             * 
-             */
-            std::filesystem::path loadedFile;
-
             ///The implementation for the getFilePath method
-            std::filesystem::path getFilePath_impl() const;
+            const std::filesystem::path& getFilePath_impl() const;
 
             /**
              * @brief the used video backend
@@ -96,6 +96,15 @@ namespace libtrainsim {
                         #ifdef HAS_OPENCV_SUPPORT
                         case(opencv):
                             getInstance().currentBackend_impl = std::make_unique<libtrainsim::backend::videoOpenCV>();
+                            break;
+                        #endif
+                        #ifdef HAS_FFMPEG_SUPPORT
+                        case(ffmpeg):
+                        #ifdef HAS_SDL_SUPPORT
+                        case(ffmpeg_sdl):
+                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::backend::videoFF_SDL>();
+                            break;
+                        #endif
                             break;
                         #endif
                         default:
@@ -129,7 +138,7 @@ namespace libtrainsim {
              * 
              * @return std::filesystem::path the filepath to the current video file
              */
-            static std::filesystem::path getFilePath(){
+            static const std::filesystem::path& getFilePath(){
                 return getInstance().getFilePath_impl();
             }
 
@@ -187,6 +196,12 @@ namespace libtrainsim {
              * @return VideoBackends the backend to be used by default
              */
             static VideoBackends getDefaultBackend(){
+                #ifdef HAS_FFMPEG_SUPPORT
+                #ifdef HAS_SDL_SUPPORT
+                return ffmpeg_sdl;
+                #endif
+                #endif
+                
                 #ifdef HAS_OPENCV_SUPPORT
                 return opencv;
                 #endif

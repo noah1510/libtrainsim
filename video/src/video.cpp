@@ -21,20 +21,24 @@ void libtrainsim::video::reset(){
         cv::destroyAllWindows();
     }
     #endif
+    
+    #ifdef HAS_FFMPEG_SUPPORT
+    if(currentBackend == ffmpeg_sdl){
+        SDL_Quit();
+    }
+    #endif
 
     std::cout << "libtrainsim::video was reset" << std::endl;
 }
 
 bool libtrainsim::video::load_impl(const std::filesystem::path& uri){
-    loadedFile = uri;
     checkBackend_impl();
-    currentBackend_impl->load(uri);
-
-    return true;
+    return currentBackend_impl->load(uri);
 }
 
-std::filesystem::path libtrainsim::video::getFilePath_impl() const{
-    return loadedFile;
+const std::filesystem::path& libtrainsim::video::getFilePath_impl() const{
+    checkBackend_impl();
+    return currentBackend_impl->getLoadedFile();
 }
 
   

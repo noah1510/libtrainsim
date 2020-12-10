@@ -4,7 +4,7 @@
 using namespace libtrainsim;
 using namespace libtrainsim::backend;
 
-videoOpenFF_SDL::~videoOpenFF_SDL(){
+videoFF_SDL::~videoFF_SDL(){
     lastFrame = Frame();
     pict = Frame();
     av_packet_unref(pPacket);
@@ -15,7 +15,7 @@ videoOpenFF_SDL::~videoOpenFF_SDL(){
     SDL_Quit();
 }
 
-bool videoOpenFF_SDL::load(const std::filesystem::path& uri){
+bool videoFF_SDL::load(const std::filesystem::path& uri){
     loadedFile = uri;
     videoFullyLoaded = false;
 
@@ -75,7 +75,7 @@ bool videoOpenFF_SDL::load(const std::filesystem::path& uri){
     return true; 
 }
 
-const libtrainsim::Frame videoOpenFF_SDL::getNextFrame(){
+const libtrainsim::Frame videoFF_SDL::getNextFrame(){
     if(!videoFullyLoaded){return Frame();};
     
     av_packet_unref(pPacket);
@@ -103,7 +103,7 @@ const libtrainsim::Frame videoOpenFF_SDL::getNextFrame(){
 }
 
 
-void videoOpenFF_SDL::createWindow(const std::string& windowName){
+void videoFF_SDL::createWindow(const std::string& windowName){
     if(currentWindowName != "" || windowName == "" || !videoFullyLoaded || windowFullyCreated){
         return;
     }
@@ -177,7 +177,7 @@ void videoOpenFF_SDL::createWindow(const std::string& windowName){
     windowFullyCreated = true;
 }
 
-void videoOpenFF_SDL::refreshWindow(){
+void videoFF_SDL::refreshWindow(){
     if(!windowFullyCreated){
         return;
     }
@@ -214,7 +214,7 @@ void videoOpenFF_SDL::refreshWindow(){
     SDL_RenderPresent(renderer);
 }
 
-void videoOpenFF_SDL::displayFrame(const Frame& newFrame){
+void videoFF_SDL::displayFrame(const Frame& newFrame){
     if (!(newFrame.getBackend() == libtrainsim::ffmpeg_sdl || newFrame.getBackend() == libtrainsim::ffmpeg) ||
         newFrame.dataFF() == nullptr
     ){
@@ -225,11 +225,11 @@ void videoOpenFF_SDL::displayFrame(const Frame& newFrame){
     refreshWindow();
 }
 
-void videoOpenFF_SDL::updateWindow(){
+void videoFF_SDL::updateWindow(){
     displayFrame(getNextFrame());
 }
 
-void videoOpenFF_SDL::gotoFrame(uint64_t frameNum){
+void videoFF_SDL::gotoFrame(uint64_t frameNum){
     if(!videoFullyLoaded){return;};
     uint64_t timebase = static_cast<uint64_t> ( (pFormatCtx->streams[videoStream]->time_base.den * pFormatCtx->streams[videoStream]->r_frame_rate.den) / (pFormatCtx->streams[videoStream]->time_base.num * pFormatCtx->streams[videoStream]->r_frame_rate.num) );
     auto _currentTimestamp = frameNum *  timebase;
@@ -237,17 +237,17 @@ void videoOpenFF_SDL::gotoFrame(uint64_t frameNum){
     updateWindow();
 }
 
-uint64_t videoOpenFF_SDL::getFrameCount(){
+uint64_t videoFF_SDL::getFrameCount(){
     if(!videoFullyLoaded){return 0;};
     return pFormatCtx->streams[videoStream]->nb_frames;
 }
 
-double videoOpenFF_SDL::getHight(){
+double videoFF_SDL::getHight(){
     if(pCodecCtx == nullptr || !videoFullyLoaded){return 0.0;};
     return pCodecCtx->height;
 }
 
-double videoOpenFF_SDL::getWidth(){
+double videoFF_SDL::getWidth(){
     if(pCodecCtx == nullptr || !videoFullyLoaded){return 0.0;};
     return pCodecCtx->width;
 }

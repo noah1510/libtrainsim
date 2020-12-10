@@ -109,6 +109,12 @@ namespace libtrainsim::backend{
              * @return double 
              */
             virtual double getWidth();
+            
+            /**
+             * @brief get the currently loaded File.
+             * 
+             */
+            virtual const std::filesystem::path& getLoadedFile() const;
 
     };
 

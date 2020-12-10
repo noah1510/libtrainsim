@@ -7,7 +7,7 @@ sources = [
     'src/types.cpp',
 ]
 
-incdir = include_directories('include')
+incdir = include_directories('include','..')
 
 core_deps = [
     dependency('threads'),
