@@ -8,3 +8,4 @@ option('build_full', type : 'boolean', value : false, description: 'set to true 
 option('video_backend_opencv', type : 'boolean', value : true, description: 'set to false if you do not want to compile opencv as backend for the video component.')
 option('video_backend_ffmpeg', type : 'boolean', value : true, description: 'set to false if you do not want to compile ffmpeg as backend for the video component.')
 option('video_backend_sdl', type : 'boolean', value : true, description: 'set to false if you do not want to compile sdl2 as backend for the video component (needed to have a window for ffmpeg).')
+option('video_use_vsync', type: 'boolean', value: true, description: 'set this to true to sync the framerate with the screen and lower the amount of tearing (might lower the accuracy of the simulation speed in favor of better visuals)')

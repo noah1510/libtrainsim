@@ -99,6 +99,7 @@ const libtrainsim::Frame videoFF_SDL::getNextFrame(){
         return Frame();
     }
     
+    currentFrameNumber++;
     return pFrame;
 }
 
@@ -115,7 +116,7 @@ void videoFF_SDL::createWindow(const std::string& windowName){
                             SDL_WINDOWPOS_UNDEFINED,
                             pCodecCtx->width/2,
                             pCodecCtx->height/2,
-                            SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
+                            SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE
     );
 
     if (!screen){
@@ -124,7 +125,11 @@ void videoFF_SDL::createWindow(const std::string& windowName){
     }
     
     SDL_GL_SetSwapInterval(1);
-    renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
+    auto renderFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
+    #ifdef ENDABLE_VSYNC
+    if(true){renderFlags |= SDL_RENDERER_PRESENTVSYNC;};
+    #endif
+    renderer = SDL_CreateRenderer(screen, -1, renderFlags);
     
     texture = SDL_CreateTexture(
                 renderer,
@@ -232,18 +237,16 @@ void videoFF_SDL::gotoFrame(uint64_t frameNum){
     //double fps = static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.num) / static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.den);
     //int64_t _time = static_cast<int64_t>( static_cast<double>(frameNum)*fps);
     //av_seek_frame(pFormatCtx, videoStream, frameNum, AVSEEK_FLAG_ANY);
-    
-    while (static_cast<int64_t>(frameNum) > pCodecCtx->frame_number + 1){
+    while (frameNum > currentFrameNumber + 1){
         getNextFrame();
     }
-    displayFrame(getNextFrame());
+    if(currentFrameNumber+1 == frameNum){displayFrame(getNextFrame());};
 }
 
 uint64_t videoFF_SDL::getFrameCount(){
     if(!videoFullyLoaded){return 0;};
     return pCodecCtx->frame_number;
 }
-
 double videoFF_SDL::getHight(){
     if(pCodecCtx == nullptr || !videoFullyLoaded){return 0.0;};
     return pCodecCtx->height;

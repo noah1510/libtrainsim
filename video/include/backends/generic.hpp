@@ -32,6 +32,11 @@ namespace libtrainsim::backend{
             Frame lastFrame;
             
             /**
+             * @brief The number of the frame that is currently displayed
+             */
+            uint64_t currentFrameNumber = 0;
+            
+            /**
              * @brief display a new frame on the window
              * 
              * @param newFrame the new frame to be displayed
