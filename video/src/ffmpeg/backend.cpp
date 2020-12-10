@@ -110,7 +110,7 @@ void videoFF_SDL::createWindow(const std::string& windowName){
 
     currentWindowName = windowName;
     screen = SDL_CreateWindow(
-                            "SDL Video Player",
+                            currentWindowName.c_str(),
                             SDL_WINDOWPOS_UNDEFINED,
                             SDL_WINDOWPOS_UNDEFINED,
                             pCodecCtx->width/2,
@@ -231,8 +231,8 @@ void videoFF_SDL::updateWindow(){
 
 void videoFF_SDL::gotoFrame(uint64_t frameNum){
     if(!videoFullyLoaded){return;};
-    uint64_t timebase = static_cast<uint64_t> ( (pFormatCtx->streams[videoStream]->time_base.den * pFormatCtx->streams[videoStream]->r_frame_rate.den) / (pFormatCtx->streams[videoStream]->time_base.num * pFormatCtx->streams[videoStream]->r_frame_rate.num) );
-    auto _currentTimestamp = frameNum *  timebase;
+    auto timeBase = (int64_t(pCodecCtx->time_base.num) * AV_TIME_BASE) / int64_t(pCodecCtx->time_base.den);
+    auto _currentTimestamp = frameNum *  timeBase;
     av_seek_frame(pFormatCtx,videoStream,_currentTimestamp, AVSEEK_FLAG_ANY);
     updateWindow();
 }
