@@ -30,6 +30,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: install dependencies
         run: | 
+          sudo apt-get update
           sudo apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
           sudo -H python3 -m pip install meson ninja
           mkdir build
@@ -51,7 +52,7 @@ jobs:
           mkdir build
       - name: update env
         run: refreshenv
-        shell: powershell
+        shell: pwsh
       - name: build the code
         working-directory: build
         run: meson setup .. && meson compile
