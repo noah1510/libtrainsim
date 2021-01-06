@@ -40,19 +40,19 @@ namespace libtrainsim::core{
          * @brief The major version number X.y.z
          * 
          */
-        const u_int64_t major;
+        const uint64_t major;
 
         /**
          * @brief The minor version number x.Y.z
          * 
          */
-        const u_int64_t minor;
+        const uint64_t minor;
 
         /**
          * @brief The patch version number x.y.Z
          * 
          */
-        const u_int64_t patch;
+        const uint64_t patch;
         
         /**
          * @brief Construct a new version object with given major, minor and patch version number.
