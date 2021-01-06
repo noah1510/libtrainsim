@@ -1,0 +1,56 @@
+name: "pre-release"
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  doxygen:
+    runs-on: ubuntu-20.04
+    if: "contains(github.event.head_commit.message, '--build-docs')"
+    steps:
+    - uses: actions/checkout@v1
+    - name: install dependencies
+      run: sudo apt install doxygen graphviz
+    - name: generate docs
+      run: doxygen
+    - name: Deploy
+      uses: s0/git-publish-subdir-action@master
+      env:
+        REPO: self
+        BRANCH: gh-pages
+        FOLDER: doc/html
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  pre-release:
+    name: "Pre Release latest"
+    runs-on: "ubuntu-20.04"
+    steps:
+      - uses: actions/checkout@v1
+      - name: install platform io
+        run: | 
+            apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
+            python3 -m pip install meson ninja
+            python3 -m pip install glad
+            mkdir build && cd build
+            meson setup ..
+            meson compile
+            meson test
+            cd ..
+          
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            LICENSE
+            
+      - uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: build-artifact-${{ matrix.os }}-${{ matrix.compiler }}
+          path: .
+
