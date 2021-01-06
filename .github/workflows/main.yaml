@@ -30,13 +30,15 @@ jobs:
       - uses: actions/checkout@v1
       - name: install dependencies
         run: | 
-            apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
-            python3 -m pip install meson ninja
-            mkdir build
-       - name: build the code
-         run: cd build && meson setup .. && meson compile
-       - name: test the code
-         run: cd build && meson test
+          apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
+          python3 -m pip install meson ninja
+          mkdir build
+      - name: build the code
+        working-directory: build
+        run: meson setup .. && meson compile
+      - name: test the code
+        working-directory: build
+        run: meson test
 
   windows:
     name: "windows compile and test"
@@ -45,14 +47,14 @@ jobs:
       - uses: actions/checkout@v1
       - name: install dependencies
         run: | 
-            choco install meson ninja ffmpeg 
-            apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
-            python3 -m pip install meson ninja llvm
-            mkdir build
-       - name: build the code
-         run: cd build && meson setup .. && meson compile
-       - name: test the code
-         run: cd build && meson test
+          choco install meson ninja ffmpeg
+          mkdir build
+      - name: build the code
+        working-directory: build
+        run: meson setup .. && meson compile
+      - name: test the code
+        working-directory: build
+        run: meson test
 
     pre-release:
     name: "Pre Release latest"
