@@ -51,12 +51,21 @@ jobs:
       - name: update env
         run: refreshenv
         shell: pwsh
+      - uses: BSFishy/meson-build@v1.0.1
+        name: build visual studio
+        with:
+          action: test
+          directory: build-vs
+          options: --verbose
+          setup-options: --backend vs
+          meson-version: 0.56.1
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
         with:
           version: "10.0"
           directory: ${{ runner.temp }}/llvm
       - uses: BSFishy/meson-build@v1.0.1
+        name: build llvm/clang
         env:
           CXX: clang++
           CC: clang
@@ -64,13 +73,6 @@ jobs:
           action: test
           directory: build-clang
           options: --verbose
-          meson-version: 0.56.1
-      - uses: BSFishy/meson-build@v1.0.1
-        with:
-          action: test
-          directory: build-vs
-          options: --verbose
-          setup-options: --backend vs
           meson-version: 0.56.1
 
   pre-release:
