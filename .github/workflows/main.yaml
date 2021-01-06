@@ -31,7 +31,7 @@ jobs:
       - name: install dependencies
         run: | 
           sudo apt-get update
-          sudo apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
+          sudo apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev ninja-build
           mkdir build
       - uses: BSFishy/meson-build@v1.0.1
         with:
@@ -57,6 +57,7 @@ jobs:
           action: test
           directory: build
           options: --verbose
+          setup-options: --backend vs
           meson-version: 0.56.1
 
   pre-release:
