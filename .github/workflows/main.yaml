@@ -23,22 +23,42 @@ jobs:
         FOLDER: doc/html
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  pre-release:
-    name: "Pre Release latest"
+  ubunut20:
+    name: "ubuntu compile and test"
     runs-on: "ubuntu-20.04"
     steps:
       - uses: actions/checkout@v1
-      - name: install platform io
+      - name: install dependencies
         run: | 
             apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
             python3 -m pip install meson ninja
-            python3 -m pip install glad
-            mkdir build && cd build
-            meson setup ..
-            meson compile
-            meson test
-            cd ..
-          
+            mkdir build
+       - name: build the code
+         run: cd build && meson setup .. && meson compile
+       - name: test the code
+         run: cd build && meson test
+
+  windows:
+    name: "windows compile and test"
+    runs-on: "windows-latest"
+    steps:
+      - uses: actions/checkout@v1
+      - name: install dependencies
+        run: | 
+            choco install meson ninja ffmpeg 
+            apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
+            python3 -m pip install meson ninja llvm
+            mkdir build
+       - name: build the code
+         run: cd build && meson setup .. && meson compile
+       - name: test the code
+         run: cd build && meson test
+
+    pre-release:
+    name: "Pre Release latest"
+    runs-on: "ubuntu-20.04"
+    needs: [windows, ubunut20]
+    steps:
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
