@@ -32,14 +32,13 @@ jobs:
         run: | 
           sudo apt-get update
           sudo apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
-          sudo -H python3 -m pip install meson ninja
           mkdir build
-      - name: build the code
-        working-directory: build
-        run: meson setup .. && meson compile
-      - name: test the code
-        working-directory: build
-        run: meson test
+      - uses: BSFishy/meson-build@v1.0.1
+        with:
+          action: test
+          directory: build
+          options: --verbose
+          meson-version: 0.56.1
 
   windows:
     name: "windows compile and test"
@@ -48,17 +47,17 @@ jobs:
       - uses: actions/checkout@v1
       - name: install dependencies
         run: | 
-          choco install meson ninja ffmpeg
+          choco install ffmpeg
           mkdir build
       - name: update env
         run: refreshenv
         shell: pwsh
-      - name: build the code
-        working-directory: build
-        run: meson setup .. && meson compile
-      - name: test the code
-        working-directory: build
-        run: meson test
+      - uses: BSFishy/meson-build@v1.0.1
+        with:
+          action: test
+          directory: build
+          options: --verbose
+          meson-version: 0.56.1
 
   pre-release:
     name: "Pre Release latest"
