@@ -56,7 +56,7 @@ jobs:
         working-directory: build
         run: meson test
 
-    pre-release:
+  pre-release:
     name: "Pre Release latest"
     runs-on: "ubuntu-20.04"
     needs: [windows, ubunut20]
