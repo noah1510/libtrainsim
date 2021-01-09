@@ -1,6 +1,7 @@
 #pragma once
 
 #include "video_config.hpp"
+#include <iostream>
 
 #ifdef HAS_OPENCV_SUPPORT
     #if __has_include("opencv2/opencv.hpp")
@@ -181,6 +182,8 @@ namespace libtrainsim {
              * @param newBackend the new backend this frame should have
              */
             void setBackend(VideoBackends newBackend);
+
+            bool isEmpty() const;
     };
 
 }
