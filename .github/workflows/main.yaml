@@ -42,17 +42,16 @@ jobs:
           options: --verbose
           meson-version: 0.56.1
           
-    - uses: BSFishy/meson-build@v1.0.1
+      - uses: BSFishy/meson-build@v1.0.1
         name: build witout opencv
         with:
           action: test
           setup-options: -Dvideo_backend_opencv=false
           directory: build
           options: --verbose
-          
           meson-version: 0.56.1
-          
-    - uses: BSFishy/meson-build@v1.0.1
+        
+      - uses: BSFishy/meson-build@v1.0.1
         name: build witout ffmpeg
         with:
           action: test
@@ -60,8 +59,8 @@ jobs:
           directory: build
           options: --verbose
           meson-version: 0.56.1
-          
-    - uses: BSFishy/meson-build@v1.0.1
+        
+      - uses: BSFishy/meson-build@v1.0.1
         name: build without sdl
         with:
           action: test
@@ -69,8 +68,8 @@ jobs:
           directory: build
           options: --verbose
           meson-version: 0.56.1
-          
-    - uses: BSFishy/meson-build@v1.0.1
+        
+      - uses: BSFishy/meson-build@v1.0.1
         name: build without sdl & ffmpeg
         with:
           action: test
@@ -79,7 +78,7 @@ jobs:
           options: --verbose
           meson-version: 0.56.1
           
-    - uses: BSFishy/meson-build@v1.0.1
+      - uses: BSFishy/meson-build@v1.0.1
         name: build without sdl & ffmpeg & opencv
         with:
           action: test
