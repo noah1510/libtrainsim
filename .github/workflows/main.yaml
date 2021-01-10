@@ -33,12 +33,61 @@ jobs:
         run: | 
           sudo apt-get update
           sudo apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev ninja-build
+          
       - uses: BSFishy/meson-build@v1.0.1
+        name: build full
         with:
           action: test
           directory: build
           options: --verbose
           meson-version: 0.56.1
+          
+    - uses: BSFishy/meson-build@v1.0.1
+        name: build witout opencv
+        with:
+          action: test
+          setup-options: -Dvideo_backend_opencv=false
+          directory: build
+          options: --verbose
+          
+          meson-version: 0.56.1
+          
+    - uses: BSFishy/meson-build@v1.0.1
+        name: build witout ffmpeg
+        with:
+          action: test
+          setup-options: -video_backend_ffmpeg=false
+          directory: build
+          options: --verbose
+          meson-version: 0.56.1
+          
+    - uses: BSFishy/meson-build@v1.0.1
+        name: build without sdl
+        with:
+          action: test
+          setup-options: -video_backend_sdl=false
+          directory: build
+          options: --verbose
+          meson-version: 0.56.1
+          
+    - uses: BSFishy/meson-build@v1.0.1
+        name: build without sdl & ffmpeg
+        with:
+          action: test
+          setup-options: -video_backend_sdl=false -video_backend_ffmpeg=false
+          directory: build
+          options: --verbose
+          meson-version: 0.56.1
+          
+    - uses: BSFishy/meson-build@v1.0.1
+        name: build without sdl & ffmpeg & opencv
+        with:
+          action: test
+          setup-options: -video_backend_sdl=false -video_backend_ffmpeg=false -Dvideo_backend_opencv=false
+          directory: build
+          options: --verbose
+          meson-version: 0.56.1
+
 
   windows:
     name: "windows compile and test"
@@ -51,14 +100,6 @@ jobs:
       - name: update env
         run: refreshenv
         shell: pwsh
-      - uses: BSFishy/meson-build@v1.0.1
-        name: build visual studio
-        with:
-          action: test
-          directory: build-vs
-          options: --verbose
-          setup-options: --backend vs
-          meson-version: 0.56.1
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
         with:
