@@ -59,7 +59,7 @@ jobs:
         name: build witout ffmpeg
         with:
           action: test
-          setup-options: -video_backend_ffmpeg=false
+          setup-options: -Dvideo_backend_ffmpeg=false
           directory: build
           options: --verbose
           meson-version: 0.56.1
@@ -70,7 +70,7 @@ jobs:
         name: build without sdl
         with:
           action: test
-          setup-options: -video_backend_sdl=false
+          setup-options: -Dvideo_backend_sdl=false
           directory: build
           options: --verbose
           meson-version: 0.56.1
@@ -81,7 +81,7 @@ jobs:
         name: build without sdl & ffmpeg
         with:
           action: test
-          setup-options: -video_backend_sdl=false -video_backend_ffmpeg=false
+          setup-options: -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false
           directory: build
           options: --verbose
           meson-version: 0.56.1
@@ -92,7 +92,7 @@ jobs:
         name: build without sdl & ffmpeg & opencv
         with:
           action: test
-          setup-options: -video_backend_sdl=false -video_backend_ffmpeg=false -Dvideo_backend_opencv=false
+          setup-options: -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false -Dvideo_backend_opencv=false
           directory: build
           options: --verbose
           meson-version: 0.56.1
