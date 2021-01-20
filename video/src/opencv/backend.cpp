@@ -4,6 +4,8 @@
 using namespace libtrainsim;
 using namespace libtrainsim::backend;
 
+#ifdef HAS_OPENCV_SUPPORT
+
 videoOpenCV::~videoOpenCV(){
     if(currentWindowName != ""){
         cv::destroyWindow(currentWindowName);
@@ -100,3 +102,5 @@ double videoOpenCV::getHight(){
 double videoOpenCV::getWidth(){
     return getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
 }
+
+#endif
