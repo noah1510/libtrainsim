@@ -57,7 +57,7 @@ namespace libtrainsim{
     public:
 
         /**
-         * @brief Destroy the video OpenCV object
+         * @brief Destroy the generic video object
          *
          */
         virtual ~videoGeneric();

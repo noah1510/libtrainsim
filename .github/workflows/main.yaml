@@ -107,7 +107,7 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v1
       - name: install dependencies
-        run: choco install ffmpeg
+        run: choco install ffmpeg pkg-config
       - name: update env
         run: refreshenv
         shell: pwsh
