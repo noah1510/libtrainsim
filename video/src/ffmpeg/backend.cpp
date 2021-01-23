@@ -4,6 +4,8 @@
 using namespace libtrainsim;
 using namespace libtrainsim::backend;
 
+#if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
+
 videoFF_SDL::~videoFF_SDL(){
     lastFrame.clear();
     pict.clear();
@@ -256,3 +258,5 @@ double videoFF_SDL::getWidth(){
     if(pCodecCtx == nullptr || !videoFullyLoaded){return 0.0;};
     return pCodecCtx->width;
 }
+
+#endif
