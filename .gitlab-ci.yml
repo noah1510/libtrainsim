@@ -43,6 +43,7 @@ wiki:
     - git push -f
     - cd ../latex
     - make
+    - cd ../..
     - mv doc/latex/refman.pdf doc/latex/refman_en.pdf
 
   artifacts:
