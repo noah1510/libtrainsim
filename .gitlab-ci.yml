@@ -2,6 +2,11 @@ build:debian:
   image: gcc:latest
   stage: build
   script:
+    - echo 'echo $K8S_SECRET_GITLAB_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
+    - export GIT_ASKPASS=$HOME/.git-askpass
+    - git config --global url."https://api@git.thm.de/".insteadOf "https://git.thm.de/"
+    - git config --global url."https://ssh@git.thm.de/".insteadOf "ssh://git@git.thm.de/"
+    - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
     - apt-get update
     - apt-get install --yes gfortran-8 build-essential tar curl zip unzip python3-pip doxygen graphviz
     - update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-8 1
@@ -18,6 +23,13 @@ wiki:
   image: gcc:latest
   stage: deploy
   script:
+    - echo 'echo $K8S_SECRET_GITLAB_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
+    - export GIT_ASKPASS=$HOME/.git-askpass
+    - git config --global url."https://api@git.thm.de/".insteadOf "https://git.thm.de/"
+    - git config --global url."https://ssh@git.thm.de/".insteadOf "ssh://git@git.thm.de/"
+    - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
+    - git config --global user.email "noah.kirschmann@mnd.thm.de"
+    - git config --global user.name "Gitlab-Ci"
     - apt-get update
     - apt-get install --yes doxygen graphviz wget unzip
     - wget https://github.com/matusnovak/doxybook2/releases/download/v1.2.3/doxybook2-linux-amd64-v1.2.3.zip
