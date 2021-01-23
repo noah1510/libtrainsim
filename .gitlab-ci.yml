@@ -20,7 +20,7 @@ build:debian:
     - cd ..
     
 wiki:
-  image: gcc:latest
+  image: noasakurajin/latex:latest
   stage: deploy
   script:
     - echo 'echo $K8S_SECRET_GITLAB_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
@@ -31,7 +31,7 @@ wiki:
     - git config --global user.email "noah.kirschmann@mnd.thm.de"
     - git config --global user.name "Gitlab-Ci"
     - apt-get update
-    - apt-get install --yes doxygen graphviz wget unzip
+    - apt-get install --yes doxygen graphviz wget unzip make
     - wget https://github.com/matusnovak/doxybook2/releases/download/v1.2.3/doxybook2-linux-amd64-v1.2.3.zip
     - unzip doxybook2-linux-amd64-v1.2.3.zip -d doxybook
     - doxygen
@@ -41,6 +41,13 @@ wiki:
     - git add .
     - git commit -m "updated docs"
     - git push -f
+    - cd ../latex
+    - make
+    - mv doc/latex/refman.pdf doc/latex/refman_en.pdf
+
+  artifacts:
+    paths:
+      - "doc/latex/refman_en.pdf"
 
 pages:
   image: alpine
@@ -54,3 +61,4 @@ pages:
       - public
   only:
     - main
+
