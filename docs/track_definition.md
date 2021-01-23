@@ -11,6 +11,7 @@ The json file is an object with the following fields:
 * train (string or [object](@ref train_properties_format)) (since 0.4.0)
 * videoFile (string) (since 0.5.0)
 
+
 **Optional:**
 
 * formatVersion (string) (since 0.4.0)

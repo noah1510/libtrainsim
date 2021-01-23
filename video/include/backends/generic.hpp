@@ -5,6 +5,11 @@
 #include <string>
 
 namespace libtrainsim{
+    /**
+    * @brief This namespace contains all the video_backend components of libtrainsim.
+    * @note All classes in this namespace are only intended for the use by libtrainsim.
+    * 
+    */
     namespace backend {
     /**
      * @brief This is a generic class every specific video backend can extent from.

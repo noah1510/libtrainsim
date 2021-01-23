@@ -44,11 +44,11 @@ wiki:
     - cd ../latex
     - make
     - cd ../..
-    - mv doc/latex/refman.pdf doc/latex/refman_en.pdf
+    - mv doc/latex/refman.pdf refman_en.pdf
 
   artifacts:
     paths:
-      - "doc/latex/refman_en.pdf"
+      - "reference_manual_en.pdf"
 
 pages:
   image: alpine

@@ -16,10 +16,14 @@
 #include <sstream>
 
 /**
- * @brief This namespace contains all the core somponents of libtrainsim.
+ * @brief This namespace contains all of libtrainsim.
  * 
  */
 namespace libtrainsim {
+    /**
+    * @brief This namespace contains all the core components of libtrainsim.
+    * 
+    */
     namespace core {
 
         /**
