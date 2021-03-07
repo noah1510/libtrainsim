@@ -77,6 +77,7 @@ namespace libtrainsim {
                         return cv::waitKey(1);
                     #endif
                     #ifdef HAS_SDL_SUPPORT
+                    #ifdef HAS_FFMPEG_SUPPORT
                     case(ffmpeg):
                     case(ffmpeg_sdl):
                         SDL_Event event;
@@ -85,6 +86,7 @@ namespace libtrainsim {
                         if(event.type == SDL_QUIT){return core::KEY_ESCAPE;};
                         if(event.type == SDL_KEYDOWN){return event.key.keysym.sym;};
                         break;
+                    #endif // HAS_FFMPEG_SUPPORT
                     #endif
                     case(none):
                     default:

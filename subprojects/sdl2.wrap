@@ -9,4 +9,3 @@ patch_hash = fb86758b9cc82aca7202de0ad1b8e30b1ac5459d38b15efada8fc26c2b922b83
 
 [provide]
 sdl2 = sdl2_dep
-

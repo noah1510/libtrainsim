@@ -149,7 +149,7 @@ namespace libtrainsim {
              */
             static void gotoFrame(double frame_num){
                 checkBackend_impl();
-                getInstance().currentBackend_impl->gotoFrame(frame_num);
+                getInstance().currentBackend_impl->gotoFrame(static_cast<uint64_t>(frame_num));
             }
 
             /**

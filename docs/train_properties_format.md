@@ -11,6 +11,7 @@ The following json fields exists for version 0.4.0 of libtrainsim:
 * maxVelocity (float) (since 0.4.0)
 * maxAcceleration (float) (since 0.4.0)
 
+
 **optional:**
 
 * formatVersion (string) (since 0.4.0)

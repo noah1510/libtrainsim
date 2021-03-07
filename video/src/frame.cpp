@@ -8,6 +8,24 @@ VideoBackends Frame::getBackend() const{
     return currentBackend;
 }
 
+bool Frame::isEmpty() const {
+    switch (currentBackend){
+        #ifdef HAS_FFMPEG_SUPPORT
+            case(ffmpeg):
+            case(ffmpeg_sdl):
+                return frameDataFF==nullptr;
+        #endif
+        #ifdef HAS_OPENCV_SUPPORT
+            case(opencv):
+                return frameDataCV.empty();
+        #endif // HAS_OPENCV_SUPPORT
+
+        case(none):
+        default:
+            return true;
+    }
+}
+
 void Frame::setBackend ( VideoBackends newBackend ) {
     if(currentBackend == none){
         #ifdef HAS_FFMPEG_SUPPORT

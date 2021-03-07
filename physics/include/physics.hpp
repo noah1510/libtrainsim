@@ -25,7 +25,7 @@ namespace libtrainsim{
             
             const libtrainsim::core::Track config;
             
-            std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::duration<long int, std::ratio<1, 1000000000 >>> last_update;
+            std::chrono::time_point<std::chrono::high_resolution_clock> last_update;
             
             std::shared_mutex mutex_error;
             bool hasError = true;
@@ -50,7 +50,7 @@ namespace libtrainsim{
             
             void tick();
             
-            static std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::duration<long int, std::ratio<1, 1000000000 >>> now(){
+            static std::chrono::time_point<std::chrono::high_resolution_clock> now(){
                 return std::chrono::high_resolution_clock::now();
             }
     };

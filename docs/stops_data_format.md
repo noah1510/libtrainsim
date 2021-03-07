@@ -9,6 +9,7 @@ The stops are a root array of stop objects with the following properties.
 * name (string)
 * location (float)
 
+
 **Optional:**
 
 * type (string)

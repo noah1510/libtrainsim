@@ -30,9 +30,9 @@ void videoGeneric::refreshWindow(){
 }
 
 void videoGeneric::displayFrame(const Frame& newFrame){
-    if (newFrame.getBackend() != libtrainsim::opencv || newFrame.dataCV().empty()){
+    if (newFrame.isEmpty()){
         return;
-    } 
+    }
 
     lastFrame = newFrame;
     refreshWindow();

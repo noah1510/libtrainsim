@@ -1,8 +1,8 @@
 project(
     'libtrainsim',
     'cpp',
-    default_options : ['cpp_std=c++17', 'b_lto=true', 'b_pgo=generate', 'b_coverage=true'],
-    version : '0.4.0'
+    default_options : ['cpp_std=c++17'],
+    version : '0.5.0'
 )
 
 #set the configuration
