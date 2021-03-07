@@ -101,6 +101,7 @@ libtrainsim_video = library(
     soversion : '0',
     include_directories : incdir,
     dependencies: video_deps,
+    install : true,
 )
 
 libtrainsim_video_dep = declare_dependency(

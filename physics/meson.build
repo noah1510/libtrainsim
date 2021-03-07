@@ -17,13 +17,14 @@ libtrainsim_physics = library(
     soversion : '0',
     include_directories : incdir,
     dependencies: physics_deps,
+    install : true,
 )
 
 libtrainsim_physics_dep = declare_dependency(
     include_directories : incdir,
     link_with : libtrainsim_physics,
     dependencies : physics_deps,
-    version: meson.project_version()
+    version: meson.project_version(),
 )
 
 install_subdir('include', install_dir : 'include/libtrainsim')

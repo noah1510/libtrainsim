@@ -23,13 +23,14 @@ libtrainsim_control = library(
     soversion : '0',
     include_directories : incdir,
     dependencies: control_deps,
+    install : true,
 )
 
 libtrainsim_control_dep = declare_dependency(
     include_directories : incdir,
     link_with : libtrainsim_control,
     dependencies : control_deps,
-    version: meson.project_version()
+    version: meson.project_version(),
 )
 
 install_subdir('include', install_dir : 'include/libtrainsim')
