@@ -17,7 +17,7 @@ if video_dep.found()
 endif
 
 libtrainsim_control = library(
-    'libtrainsim-control', 
+    'trainsim-control', 
     sources, 
     version : meson.project_version(), 
     soversion : '0',
@@ -33,7 +33,7 @@ libtrainsim_control_dep = declare_dependency(
     version: meson.project_version(),
 )
 
-install_subdir('include', install_dir : 'include/libtrainsim')
+install_subdir('include', install_dir : 'include/libtrainsim', strip_directory : true)
 
 pkg = import('pkgconfig')
 pkg.generate(libtrainsim_control)

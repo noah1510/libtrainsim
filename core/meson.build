@@ -15,7 +15,7 @@ core_deps = [
 ]
 
 libtrainsim_core = library(
-    'libtrainsim-core', 
+    'trainsim-core', 
     sources, 
     version : meson.project_version(), 
     soversion : '0',
@@ -31,7 +31,7 @@ libtrainsim_core_dep = declare_dependency(
     version: meson.project_version(),
 )
 
-install_subdir('include', install_dir : 'include/libtrainsim')
+install_subdir('include', install_dir : 'include/libtrainsim', strip_directory : true)
 
 pkg = import('pkgconfig')
 pkg.generate(libtrainsim_core)

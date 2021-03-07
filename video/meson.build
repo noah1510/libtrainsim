@@ -88,14 +88,14 @@ video_conf_data.set('HAS_OPENCV_SUPPORT', enable_opencv)
 video_conf_data.set('HAS_FFMPEG_SUPPORT', enable_ffmpeg)
 video_conf_data.set('HAS_SDL_SUPPORT', enable_sdl)
 video_conf_data.set('ENDABLE_VSYNC', get_option('video_use_vsync'))
-configure_file(output : 'video_config.hpp', configuration : video_conf_data)
+configure_file(output : 'video_config.hpp', configuration : video_conf_data, install: true, install_dir: 'include/libtrainsim')
 
 #include all headers including the video configuration
 incdir = include_directories('include','.','..')
 
 #define the video component
 libtrainsim_video = library(
-    'libtrainsim-video', 
+    'trainsim-video', 
     sources, 
     version : meson.project_version(), 
     soversion : '0',
@@ -111,7 +111,7 @@ libtrainsim_video_dep = declare_dependency(
     version: meson.project_version()
 )
 
-install_subdir('include', install_dir : 'include/libtrainsim')
+install_subdir('include', install_dir : 'include/libtrainsim', strip_directory : true)
 
 pkg = import('pkgconfig')
 pkg.generate(libtrainsim_video)

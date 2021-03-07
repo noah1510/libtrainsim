@@ -21,7 +21,7 @@ if get_option('build_physics') or get_option('build_full')
     conf_data.set('HAS_PHYSICS_SUPPORT', true)
 endif
 
-configure_file(output : 'libtrainsim_config.hpp', configuration : conf_data)
+configure_file(output : 'libtrainsim_config.hpp', configuration : conf_data, install: true, install_dir: 'include/libtrainsim')
 
 #compile modules
 subdir('core')
