@@ -26,7 +26,7 @@ libtrainsim_physics_dep = declare_dependency(
     version: meson.project_version()
 )
 
-install_subdir('include', install_dir : 'include')
+install_subdir('include', install_dir : 'include/libtrainsim')
 
 pkg = import('pkgconfig')
 pkg.generate(libtrainsim_physics)
