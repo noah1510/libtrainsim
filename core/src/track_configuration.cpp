@@ -85,8 +85,8 @@ Track::Track(const std::filesystem::path& URI){
         endPoint = track_dat.lastLocation();
     }
     
-    startingPoint = clamp<double>(startingPoint,track_dat.firstLocation(),track_dat.lastLocation());
-    endPoint = clamp<double>(endPoint,track_dat.firstLocation(),track_dat.lastLocation());
+    startingPoint = std::clamp(startingPoint,track_dat.firstLocation(),track_dat.lastLocation());
+    endPoint = std::clamp(endPoint,track_dat.firstLocation(),track_dat.lastLocation());
     if(startingPoint > endPoint){
         std::cerr << "the last location was smaller than the first position:" << startingPoint << " > " << endPoint << std::endl;
         return;
