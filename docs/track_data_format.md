@@ -7,8 +7,8 @@ Each data_point has the following fields:
 
 **Required:**
 
-* frame (int) (since 0.4.0)
-* location (float) (since 0.4.0)
+* frame (unsigned int) (since 0.4.0)
+* location (double) (since 0.4.0)
 
 
 **Optional:**

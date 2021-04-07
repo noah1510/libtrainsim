@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @file track_data.hpp
  * @author Noah Kirschmann (noah.kirschmann@mnd.thm.de)
@@ -8,15 +10,51 @@
  * @copyright Copyright (c) 2020
  * 
  */
- 
-#pragma once
 
 #include <filesystem>
+#include <algorithm>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace libtrainsim {
     namespace core {
+        
+        /**
+         * @brief This class stores the data of a single data point from the track data.
+         * For the format of the json files look [here](@ref track_data_format).
+         */
+        class Track_data_point {
+        private:
+            
+            /**
+             * @brief The frame number of the data point
+             */
+            uint64_t _frame;
+            
+            /**
+             * @brief The location along the track in m.
+             */
+            double _location;
+            
+        public:
+            
+            /**
+             * @brief The frame number of the data point
+             */
+            uint64_t frame() const;
+            
+            /**
+             * @brief The location along the track in m.
+             */
+            double location() const;
+            
+            /**
+             * @brief Create the minimum required Data point without any optional value set.
+             */
+            Track_data_point(uint64_t Frame, double Location);
+            
+        };
+        
         /**
          * @brief This class stores the data of a given track.
          * For the format of the json files look [here](@ref track_data_format).
@@ -24,12 +62,11 @@ namespace libtrainsim {
          */
         class Track_data {
         private:
-
             /**
-             * @brief This object contains the json data of the current track.
-             *
+             * @brief The parsed data of the current Track.
+             * 
              */
-            json data_json;
+            std::vector<Track_data_point> data;
 
             /**
              * @brief This saves the last value returned by getFrame to speed the binary search up.
@@ -42,6 +79,14 @@ namespace libtrainsim {
              *
              */
             bool m_isValid = false;
+            
+            /**
+             * @brief Parses the track data json format into the data array.
+             * 
+             * @return bool true The parsed data was valid
+             * @return bool false The parsed data was not valid
+             */
+            bool parseJsonData(const json& data_json);
 
             /**
              * @brief this is the binary search to find the frame of a given location, between the lower and upper bound with the a given starting index.
@@ -88,7 +133,7 @@ namespace libtrainsim {
              *
              * @param data
              */
-            explicit Track_data(const json& data);
+            explicit Track_data(const json& data_json);
 
             /**
              * @brief Destroy the Track_data object
@@ -114,14 +159,6 @@ namespace libtrainsim {
              * @return int64_t the nearest frame to that location
              */
             int64_t getFrame(double location) const;
-
-            /**
-             * @brief dump the data of the json content as a return value
-             *
-             * @param ident If indent is nonnegative, then array elements and object members will be pretty-printed with that indent level. An indent level of 0 will only insert newlines. -1 (the default) selects the most compact representation.
-             * @return std::string the data of the loaded json file
-             */
-            std::string dump(int ident = -1) const;
 
             /**
              * @brief Get the number of elements in the loaded json file
