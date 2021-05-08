@@ -4,6 +4,7 @@
 #include <fstream>
 
 using namespace libtrainsim::core;
+using namespace sakurajin::unit_system::base::literals;
 
 Track_data_point::Track_data_point(uint64_t Frame, sakurajin::unit_system::base::length Location):_frame{Frame},_location{Location}{};
 
@@ -51,7 +52,7 @@ bool Track_data::parseJsonData(const json& data_json){
     
     data.reserve(data_json.size());
     for (auto dat:data_json){
-        double location = dat["location"].get<double>();
+        sakurajin::unit_system::base::length location{dat["location"].get<double>()};
         uint64_t frame = dat["frame"].get<uint64_t>();
         
         //libtrainsim::core::Track_data_point point = libtrainsim::core::Track_data_point{frame,location};
@@ -69,7 +70,7 @@ int64_t Track_data::getFrame_c(sakurajin::unit_system::base::length location, in
     location = sakurajin::unit_system::unit_cast(location,1);
     
     while(true){
-        sakurajin::unit_system::base::length loc = data[index].location();
+        auto loc = data[index].location();
 
         //if it is an exact match return the current index
         if (loc == location){
@@ -118,13 +119,13 @@ bool Track_data::isValid() const{
 }
 
 sakurajin::unit_system::base::length Track_data::lastLocation() const{
-    if(!isValid()){return 0;};
+    if(!isValid()){return 0_m;};
     
     return data.back().location();
 }
             
 sakurajin::unit_system::base::length Track_data::firstLocation() const{
-    if(!isValid()){return 0;};
+    if(!isValid()){return 0_m;};
     
     return data.front().location();
 }

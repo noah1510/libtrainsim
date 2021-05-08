@@ -55,13 +55,13 @@ namespace libtrainsim{
              * @brief The location where the train should start in the beginning.
              *
              */
-            sakurajin::unit_system::base::length startingPoint = 0.0f;
+            sakurajin::unit_system::base::length startingPoint;
 
             /**
              * @brief The location where the train should end.
              *
              */
-            sakurajin::unit_system::base::length endPoint = 0.0f;
+            sakurajin::unit_system::base::length endPoint;
 
             /**
              * @brief The name of the track

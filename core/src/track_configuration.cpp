@@ -5,6 +5,8 @@
 #include <fstream>
 
 using namespace libtrainsim::core;
+using namespace sakurajin::unit_system::common;
+using namespace sakurajin::unit_system::base;
 
 Track::Track(const std::filesystem::path& URI){
         
@@ -73,14 +75,14 @@ Track::Track(const std::filesystem::path& URI){
     
     dat = data_json["startingPoint"];
     if(dat.is_number_float()){
-        startingPoint = dat.get<double>();
+        startingPoint =  length{dat.get<double>()};
     }else{
         startingPoint = track_dat.firstLocation();
     }
     
     dat = data_json["endPoint"];
     if(dat.is_number_float()){
-        endPoint = dat.get<double>();
+        endPoint = length{dat.get<double>()};
     }else{
         endPoint = track_dat.lastLocation();
     }
