@@ -5,7 +5,9 @@
 #include <shared_mutex>
 
 using namespace libtrainsim::core;
+using namespace sakurajin::unit_system::common;
 using namespace sakurajin::unit_system::common::literals;
+using namespace sakurajin::unit_system;
 using namespace sakurajin::unit_system::base::literals;
 
 static const long double airDensity = 1.2041;
@@ -64,7 +66,7 @@ void train_properties::loadJsonData(){
         std::cerr << "mass is not a float" << std::endl;
         return;
     }
-    mass = sakurajin::unit_system::base::mass{_dat.get<double>()};
+    mass = base::mass{_dat.get<double>()};
     
     long double velocityUnit = 1.0;
     _dat = data_json["velocityUnit"];
@@ -80,14 +82,14 @@ void train_properties::loadJsonData(){
         std::cerr << "maxVelocity is not a float" << std::endl;
         return;
     }
-    max_velocity = sakurajin::unit_system::common::speed{_dat.get<double>(), velocityUnit};
+    max_velocity = speed{_dat.get<double>(), velocityUnit};
     
     _dat = data_json["maxAcceleration"];
     if(!_dat.is_number_float()){
         std::cerr << "maxAcceleration is not a float" << std::endl;
         return;
     }
-    max_acceleration = sakurajin::unit_system::common::acceleration{_dat.get<double>()};
+    max_acceleration = acceleration{_dat.get<double>()};
     
     _dat = data_json["trackDrag"];
     if(!_dat.empty() && _dat.is_number_float()){
@@ -102,8 +104,8 @@ void train_properties::loadJsonData(){
     hasError = false;
 }
 
-sakurajin::unit_system::common::force train_properties::calulateDrag(sakurajin::unit_system::common::speed currentVelocity) const{
-    currentVelocity = sakurajin::unit_system::unit_cast(currentVelocity,1);
+force train_properties::calulateDrag(speed currentVelocity) const{
+    currentVelocity = unit_cast(currentVelocity,1);
     return (mass * 1_G) * track_drag + 1_N * 0.5 * currentVelocity.value * currentVelocity.value * airDensity * air_drag;
 }
 
@@ -111,27 +113,27 @@ bool train_properties::isValid() const{
     return !hasError;
 }
 
-sakurajin::unit_system::common::speed train_properties::clampVelocity(sakurajin::unit_system::common::speed currentVelocity) const{
-    return sakurajin::unit_system::clamp(currentVelocity,0.0_mps,max_velocity);
+speed train_properties::clampVelocity(speed currentVelocity) const{
+    return clamp(currentVelocity,0.0_mps,max_velocity);
 }
 
-sakurajin::unit_system::common::acceleration train_properties::clampAcceleration(sakurajin::unit_system::common::acceleration currentAcceleration) const{
-    return sakurajin::unit_system::clamp(currentAcceleration,-max_acceleration,max_acceleration);
+acceleration train_properties::clampAcceleration(acceleration currentAcceleration) const{
+    return clamp(currentAcceleration,-max_acceleration,max_acceleration);
 }
 
 const std::string& train_properties::getName() const{
     return name;
 }
 
-sakurajin::unit_system::common::speed train_properties::getMaxVelocity() const{
+speed train_properties::getMaxVelocity() const{
     return max_velocity;
 }
 
-sakurajin::unit_system::common::acceleration train_properties::getMaxAcceleration() const{
+acceleration train_properties::getMaxAcceleration() const{
     return max_acceleration;
 }
 
-sakurajin::unit_system::base::mass train_properties::getMass() const{
+base::mass train_properties::getMass() const{
     return mass;
 }
 

@@ -26,19 +26,19 @@ physics::~physics(){
 
 };
 
-sakurajin::unit_system::common::speed physics::getVelocity(){
+common::speed physics::getVelocity(){
     if(autoTick){tick();};
     std::shared_lock<std::shared_mutex> lock(mutex_data);
     return velocity;
 }
 
-sakurajin::unit_system::base::length physics::getLocation(){
+base::length physics::getLocation(){
     if(autoTick){tick();};
     std::shared_lock<std::shared_mutex> lock(mutex_data);
     return location;
 }
 
-void physics::setAcelleration(sakurajin::unit_system::common::acceleration acc){
+void physics::setAcelleration(common::acceleration acc){
     tick();
     std::scoped_lock<std::shared_mutex> lock(mutex_data);
     acelleration = config.train().clampAcceleration(acc);
@@ -63,7 +63,7 @@ void physics::tick(){
     base::time_si dt = unit_cast(new_time - last_update);
     
     ///@Todo improve calculation by considering drag.
-    location += velocity * dt + acelleration * dt * dt * 0.5;
+    location += velocity * dt + 0.5 * (acelleration * dt * dt);
     velocity += acelleration * dt;
     
     location = clamp(location, config.firstLocation(),config.lastLocation());

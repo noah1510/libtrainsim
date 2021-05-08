@@ -4,15 +4,16 @@
 #include <fstream>
 
 using namespace libtrainsim::core;
+using namespace sakurajin::unit_system::base;
 using namespace sakurajin::unit_system::base::literals;
 
-Track_data_point::Track_data_point(uint64_t Frame, sakurajin::unit_system::base::length Location):_frame{Frame},_location{Location}{};
+Track_data_point::Track_data_point(uint64_t Frame, length Location):_frame{Frame},_location{Location}{};
 
 uint64_t Track_data_point::frame() const{
     return _frame;
 }
 
-sakurajin::unit_system::base::length Track_data_point::location() const{
+length Track_data_point::location() const{
     return _location;
 }
 
@@ -52,7 +53,7 @@ bool Track_data::parseJsonData(const json& data_json){
     
     data.reserve(data_json.size());
     for (auto dat:data_json){
-        sakurajin::unit_system::base::length location{dat["location"].get<double>()};
+        length location{dat["location"].get<double>()};
         uint64_t frame = dat["frame"].get<uint64_t>();
         
         //libtrainsim::core::Track_data_point point = libtrainsim::core::Track_data_point{frame,location};
@@ -64,7 +65,7 @@ bool Track_data::parseJsonData(const json& data_json){
 
 Track_data::~Track_data(){}
 
-int64_t Track_data::getFrame_c(sakurajin::unit_system::base::length location, int64_t index, int64_t lower, int64_t upper) const{
+int64_t Track_data::getFrame_c(length location, int64_t index, int64_t lower, int64_t upper) const{
     if(!isValid() || lower < 0 || lower > getSize() || upper < lower || upper > getSize() || index < lower || index > upper){return 0;};
 
     location = sakurajin::unit_system::unit_cast(location,1);
@@ -97,13 +98,13 @@ int64_t Track_data::getFrame_c(sakurajin::unit_system::base::length location, in
     return index;
 }
 
-int64_t Track_data::getFrame(sakurajin::unit_system::base::length location){
+int64_t Track_data::getFrame(length location){
     if(!isValid()){return 0;};
 
     return last_frame_index = getFrame_c(location,last_frame_index,0,getSize());
 }
 
-int64_t Track_data::getFrame(sakurajin::unit_system::base::length location) const{
+int64_t Track_data::getFrame(length location) const{
     if(!isValid()){return 0;};
 
     return getFrame_c(location,getSize()/2,0,getSize());
@@ -118,13 +119,13 @@ bool Track_data::isValid() const{
     return m_isValid;
 }
 
-sakurajin::unit_system::base::length Track_data::lastLocation() const{
+length Track_data::lastLocation() const{
     if(!isValid()){return 0_m;};
     
     return data.back().location();
 }
             
-sakurajin::unit_system::base::length Track_data::firstLocation() const{
+length Track_data::firstLocation() const{
     if(!isValid()){return 0_m;};
     
     return data.front().location();
