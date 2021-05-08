@@ -13,6 +13,9 @@
 
 #include <filesystem>
 #include <algorithm>
+
+#include "length.hpp"
+
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -34,7 +37,7 @@ namespace libtrainsim {
             /**
              * @brief The location along the track in m.
              */
-            double _location;
+            sakurajin::unit_system::base::length _location;
             
         public:
             
@@ -46,12 +49,12 @@ namespace libtrainsim {
             /**
              * @brief The location along the track in m.
              */
-            double location() const;
+            sakurajin::unit_system::base::length location() const;
             
             /**
              * @brief Create the minimum required Data point without any optional value set.
              */
-            Track_data_point(uint64_t Frame, double Location);
+            Track_data_point(uint64_t Frame, sakurajin::unit_system::base::length Location);
             
         };
         
@@ -99,7 +102,7 @@ namespace libtrainsim {
              * @param upper the upper serch bound
              * @return int64_t the nearest frame to that location
              */
-            int64_t getFrame_c(double location, int64_t index, int64_t lower, int64_t upper) const;
+            int64_t getFrame_c(sakurajin::unit_system::base::length location, int64_t index, int64_t lower, int64_t upper) const;
 
         public:
 
@@ -148,7 +151,7 @@ namespace libtrainsim {
              * @param location the location on the track in meters
              * @return int64_t the nearest frame to that location
              */
-            int64_t getFrame(double location);
+            int64_t getFrame(sakurajin::unit_system::base::length location);
 
             /**
              * @brief Get the Frame to the given location.
@@ -158,7 +161,7 @@ namespace libtrainsim {
              * @param location the location on the track in meters
              * @return int64_t the nearest frame to that location
              */
-            int64_t getFrame(double location) const;
+            int64_t getFrame(sakurajin::unit_system::base::length location) const;
 
             /**
              * @brief Get the number of elements in the loaded json file
@@ -180,14 +183,14 @@ namespace libtrainsim {
              *
              * @return double the last location
              */
-            double lastLocation() const;
+            sakurajin::unit_system::base::length lastLocation() const;
 
             /**
              * @brief returns the first location in the dataset
              *
              * @return double the first location
              */
-            double firstLocation() const;
+            sakurajin::unit_system::base::length firstLocation() const;
 
 
         };

@@ -108,12 +108,12 @@ bool Track::isValid() const{
     return !hasError;
 }
 
-double Track::lastLocation() const{
+sakurajin::unit_system::base::length Track::lastLocation() const{
     auto loc = data().lastLocation();
     return (endPoint < loc) ? endPoint : loc;
 }
 
-double Track::firstLocation() const{
+sakurajin::unit_system::base::length Track::firstLocation() const{
     auto loc = data().firstLocation();
     return (startingPoint > loc) ? startingPoint : loc;
 }

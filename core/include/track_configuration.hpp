@@ -14,6 +14,8 @@
 #include "track_data.hpp"
 #include "train_properties.hpp"
 
+#include "length.hpp"
+
 #include <filesystem>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -53,13 +55,13 @@ namespace libtrainsim{
              * @brief The location where the train should start in the beginning.
              *
              */
-            double startingPoint = 0.0f;
+            sakurajin::unit_system::base::length startingPoint = 0.0f;
 
             /**
              * @brief The location where the train should end.
              *
              */
-            double endPoint = 0.0f;
+            sakurajin::unit_system::base::length endPoint = 0.0f;
 
             /**
              * @brief The name of the track
@@ -117,14 +119,14 @@ namespace libtrainsim{
              *
              * @return double the last location
              */
-            double lastLocation() const;
+            sakurajin::unit_system::base::length lastLocation() const;
 
             /**
              * @brief returns the first location of the track.
              *
              * @return double the first location
              */
-            double firstLocation() const;
+            sakurajin::unit_system::base::length firstLocation() const;
 
             /**
              * @brief Get the path to the video file.

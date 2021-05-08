@@ -19,7 +19,7 @@ namespace libtrainsim{
 
             double velocity = 0.0f;
 
-            double location = 0.0f;
+            sakurajin::unit_system::base::length location = 0.0f;
 
             double max_velocity = 0.0f;
             
@@ -44,7 +44,7 @@ namespace libtrainsim{
             
             void setAcelleration(double acc);
 
-            double getLocation();
+            sakurajin::unit_system::base::length getLocation();
             
             bool reachedEnd();
             

@@ -5,13 +5,13 @@
 
 using namespace libtrainsim::core;
 
-Track_data_point::Track_data_point(uint64_t Frame, double Location):_frame{Frame},_location{Location}{};
+Track_data_point::Track_data_point(uint64_t Frame, sakurajin::unit_system::base::length Location):_frame{Frame},_location{Location}{};
 
 uint64_t Track_data_point::frame() const{
     return _frame;
 }
 
-double Track_data_point::location() const{
+sakurajin::unit_system::base::length Track_data_point::location() const{
     return _location;
 }
 
@@ -63,11 +63,13 @@ bool Track_data::parseJsonData(const json& data_json){
 
 Track_data::~Track_data(){}
 
-int64_t Track_data::getFrame_c(double location, int64_t index, int64_t lower, int64_t upper) const{
+int64_t Track_data::getFrame_c(sakurajin::unit_system::base::length location, int64_t index, int64_t lower, int64_t upper) const{
     if(!isValid() || lower < 0 || lower > getSize() || upper < lower || upper > getSize() || index < lower || index > upper){return 0;};
 
+    location = sakurajin::unit_system::unit_cast(location,1);
+    
     while(true){
-        double loc = data[index].location();
+        sakurajin::unit_system::base::length loc = data[index].location();
 
         //if it is an exact match return the current index
         if (loc == location){
@@ -94,13 +96,13 @@ int64_t Track_data::getFrame_c(double location, int64_t index, int64_t lower, in
     return index;
 }
 
-int64_t Track_data::getFrame(double location){
+int64_t Track_data::getFrame(sakurajin::unit_system::base::length location){
     if(!isValid()){return 0;};
 
     return last_frame_index = getFrame_c(location,last_frame_index,0,getSize());
 }
 
-int64_t Track_data::getFrame(double location) const{
+int64_t Track_data::getFrame(sakurajin::unit_system::base::length location) const{
     if(!isValid()){return 0;};
 
     return getFrame_c(location,getSize()/2,0,getSize());
@@ -115,13 +117,13 @@ bool Track_data::isValid() const{
     return m_isValid;
 }
 
-double Track_data::lastLocation() const{
+sakurajin::unit_system::base::length Track_data::lastLocation() const{
     if(!isValid()){return 0;};
     
     return data.back().location();
 }
             
-double Track_data::firstLocation() const{
+sakurajin::unit_system::base::length Track_data::firstLocation() const{
     if(!isValid()){return 0;};
     
     return data.front().location();

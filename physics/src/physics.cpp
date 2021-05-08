@@ -8,7 +8,7 @@ physics::physics(const Track& conf, bool _autoTick):config(conf),autoTick(_autoT
     
     std::scoped_lock<std::shared_mutex> lock1(mutex_data);
     velocity = 0.0;
-    location = config.firstLocation();
+    location = config.firstLocation().value;
     acelleration = 0.0;
     
     last_update = now();
@@ -28,7 +28,7 @@ double physics::getVelocity(){
     return velocity;
 }
 
-double physics::getLocation(){
+sakurajin::unit_system::base::length physics::getLocation(){
     if(autoTick){tick();};
     std::shared_lock<std::shared_mutex> lock(mutex_data);
     return location;
@@ -48,7 +48,7 @@ bool physics::isValid(){
 bool physics::reachedEnd(){
     if(autoTick){tick();};
     std::scoped_lock<std::shared_mutex> lock(mutex_data);
-    return std::abs(location - config.lastLocation()) < 0.1;
+    return std::abs((location - config.lastLocation()).value) < 0.1;
 }
 
 void physics::tick(){

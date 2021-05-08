@@ -13,6 +13,8 @@
 
 #include "types.hpp"
 
+#include "common.hpp"
+
 #include <filesystem>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
