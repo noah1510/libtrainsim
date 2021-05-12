@@ -9,6 +9,7 @@ build:fedora:
   script:
     - dnf remove meson ninja
     - dnf install -y python3 python3-pip opencv-devel clang SDL2-devel ffmpeg-devel gcc-c++ git wget git-lfs
+    - export PATH=$PATH:/root/.local/bin
     - python3 -m pip install --user meson ninja
     - meson setup build
     - meson compile -C build

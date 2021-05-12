@@ -117,7 +117,9 @@ jobs:
       - name: install dependencies in msys2
         run: bash ./setup-scripts/user/msys2_install_only.sh
         shell: msys2 {0}
-      - name: |
+      - name: compile libtrainsim 
+        shell: msys2 {0}
+        run: |
           meson setup -Ddefault_library=static -Db_lto=false build
           meson compile -C build
           meson test -C build
