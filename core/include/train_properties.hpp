@@ -13,6 +13,8 @@
 
 #include "types.hpp"
 
+#include "common.hpp"
+
 #include <filesystem>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -45,30 +47,30 @@ namespace libtrainsim {
             /**
              * @brief The maximum velocity the train can have in m/s.
              */
-            double max_velocity;
+            sakurajin::unit_system::common::speed max_velocity;
 
             /**
              * @brief The maximum acceleration the train can have in m/(s^2).
              */
-            double max_acceleration;
+            sakurajin::unit_system::common::acceleration max_acceleration;
 
             /**
              * @brief The mass of the train in kg.
              */
-            double mass;
+            sakurajin::unit_system::base::mass mass;
 
             /**
              * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
              */
-            double air_drag = 0.0;
+            long double air_drag = 0.0;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
              * The default value is 0.002.
              */
-            double track_drag = 0.002;
+            long double track_drag = 0.002;
 
             /**
              * @brief Loads the data_json into the other menbers;
@@ -121,30 +123,30 @@ namespace libtrainsim {
             /**
              * @brief The maximum velocity the train can have in m/s.
              */
-            double getMaxVelocity() const;
+            sakurajin::unit_system::common::speed getMaxVelocity() const;
 
             /**
              * @brief The maximum acceleration the train can have in m/(s^2).
              */
-            double getMaxAcceleration() const;
+            sakurajin::unit_system::common::acceleration getMaxAcceleration() const;
 
             /**
              * @brief The mass of the train in kg.
              */
-            double getMass() const;
+            sakurajin::unit_system::base::mass getMass() const;
 
             /**
              * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
              */
-            double getAirDrag() const;
+            long double getAirDrag() const;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
              * The default value is 0.002.
              */
-            double getTrackDrag() const;
+            long double getTrackDrag() const;
 
             /**
              * @brief This function calculates the drag force based on the current velocity.
@@ -152,7 +154,7 @@ namespace libtrainsim {
              * @param currentVelocity the current velocity in m/s
              * @return double the drag force in N
              */
-            double calulateDrag(double currentVelocity) const;
+            sakurajin::unit_system::common::force calulateDrag(sakurajin::unit_system::common::speed currentVelocity) const;
 
             /**
              * @brief clamps the given velocity to the max velocity
@@ -160,7 +162,7 @@ namespace libtrainsim {
              * @param currentVelocity the verlocity that should be clamped
              * @return double the clamped velocity
              */
-            double clampVelocity(double currentVelocity) const;
+            sakurajin::unit_system::common::speed clampVelocity(sakurajin::unit_system::common::speed currentVelocity) const;
 
             /**
              * @brief clamps the given accelleration to the max velocity
@@ -168,7 +170,7 @@ namespace libtrainsim {
              * @param currentVelocity the accelleration that should be clamped
              * @return double the clamped accelleration
              */
-            double clampAcceleration(double currentAcceleration) const;
+            sakurajin::unit_system::common::acceleration clampAcceleration(sakurajin::unit_system::common::acceleration currentAcceleration) const;
 
         };
     }

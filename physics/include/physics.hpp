@@ -9,19 +9,21 @@
 #include "track_configuration.hpp"
 #include "types.hpp"
 
+#include "common.hpp"
+
 namespace libtrainsim{
     class physics{
         private:
 
             std::shared_mutex mutex_data;
 
-            double acelleration = 0.0f;
+            sakurajin::unit_system::common::acceleration acelleration;
 
-            double velocity = 0.0f;
+            sakurajin::unit_system::common::speed velocity;
 
-            double location = 0.0f;
+            sakurajin::unit_system::base::length location;
 
-            double max_velocity = 0.0f;
+            sakurajin::unit_system::common::speed max_velocity;
             
             const libtrainsim::core::Track config;
             
@@ -40,11 +42,11 @@ namespace libtrainsim{
             
             bool isValid();
             
-            double getVelocity();
+            sakurajin::unit_system::common::speed getVelocity();
             
-            void setAcelleration(double acc);
+            void setAcelleration(sakurajin::unit_system::common::acceleration acc);
 
-            double getLocation();
+            sakurajin::unit_system::base::length getLocation();
             
             bool reachedEnd();
             

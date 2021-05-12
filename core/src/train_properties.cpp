@@ -5,9 +5,12 @@
 #include <shared_mutex>
 
 using namespace libtrainsim::core;
+using namespace sakurajin::unit_system::common;
+using namespace sakurajin::unit_system::common::literals;
+using namespace sakurajin::unit_system;
+using namespace sakurajin::unit_system::base::literals;
 
-static const double airDensity = 1.2041;
-static const double gravityConstant = 9.81;
+static const long double airDensity = 1.2041;
 
 train_properties::train_properties(const std::string& URI):train_properties(std::filesystem::path(URI)){};
 train_properties::train_properties(const char* URI):train_properties(std::filesystem::path(URI)){};
@@ -63,21 +66,30 @@ void train_properties::loadJsonData(){
         std::cerr << "mass is not a float" << std::endl;
         return;
     }
-    mass = _dat.get<double>();
+    mass = base::mass{_dat.get<double>()};
+    
+    long double velocityUnit = 1.0;
+    _dat = data_json["velocityUnit"];
+    if(!_dat.empty() && _dat.is_string()){
+        auto unit = _dat.get<std::string>();
+        if(unit == "kmh"){
+            velocityUnit = 3.6;
+        }
+    }
     
     _dat = data_json["maxVelocity"];
     if(!_dat.is_number_float()){
         std::cerr << "maxVelocity is not a float" << std::endl;
         return;
     }
-    max_velocity = _dat.get<double>();
+    max_velocity = speed{_dat.get<double>(), velocityUnit};
     
     _dat = data_json["maxAcceleration"];
     if(!_dat.is_number_float()){
         std::cerr << "maxAcceleration is not a float" << std::endl;
         return;
     }
-    max_acceleration = _dat.get<double>();
+    max_acceleration = acceleration{_dat.get<double>()};
     
     _dat = data_json["trackDrag"];
     if(!_dat.empty() && _dat.is_number_float()){
@@ -89,53 +101,46 @@ void train_properties::loadJsonData(){
         air_drag = _dat.get<double>();
     }
     
-    _dat = data_json["velocityUnit"];
-    if(!_dat.empty() && _dat.is_string()){
-        auto unit = _dat.get<std::string>();
-        if(unit == "kmh"){
-            max_velocity /= 3.6;
-        }
-    }
-    
     hasError = false;
 }
 
-double train_properties::calulateDrag(double currentVelocity) const{
-    return mass * gravityConstant * track_drag + 0.5 * currentVelocity * currentVelocity * airDensity * air_drag;
+force train_properties::calulateDrag(speed currentVelocity) const{
+    currentVelocity = unit_cast(currentVelocity,1);
+    return (mass * 1_G) * track_drag + 1_N * 0.5 * currentVelocity.value * currentVelocity.value * airDensity * air_drag;
 }
 
 bool train_properties::isValid() const{
     return !hasError;
 }
 
-double train_properties::clampVelocity(double currentVelocity) const{
-    return clamp<double>(currentVelocity,0.0,max_velocity);
+speed train_properties::clampVelocity(speed currentVelocity) const{
+    return clamp(currentVelocity,0.0_mps,max_velocity);
 }
 
-double train_properties::clampAcceleration(double currentAcceleration) const{
-    return clamp<double>(currentAcceleration,-max_acceleration,max_acceleration);
+acceleration train_properties::clampAcceleration(acceleration currentAcceleration) const{
+    return clamp(currentAcceleration,-max_acceleration,max_acceleration);
 }
 
 const std::string& train_properties::getName() const{
     return name;
 }
 
-double train_properties::getMaxVelocity() const{
+speed train_properties::getMaxVelocity() const{
     return max_velocity;
 }
 
-double train_properties::getMaxAcceleration() const{
+acceleration train_properties::getMaxAcceleration() const{
     return max_acceleration;
 }
 
-double train_properties::getMass() const{
+base::mass train_properties::getMass() const{
     return mass;
 }
 
-double train_properties::getAirDrag() const{
+long double train_properties::getAirDrag() const{
     return air_drag;
 }
 
-double train_properties::getTrackDrag() const{
+long double train_properties::getTrackDrag() const{
     return track_drag;
 }

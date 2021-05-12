@@ -16,6 +16,7 @@ The main branch always contains the latest working code, while the stable branch
 If you want to have the most recent version without needing to worry about possible build problems use the stable branch.
 Pull request should always be targeted at the main branch.
 
+
 ## Contributing
 
 If you want to contribute please look at the issues first to find out what is being worked on at the moment.
