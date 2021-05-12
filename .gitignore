@@ -5,6 +5,7 @@ subprojects/avcpp/
 subprojects/Catch2*/
 subprojects/packagecache/
 subprojects/nlohmann_json-*/
+subprojects/unit-system/
 
 libtrainsim.kdev4
 
