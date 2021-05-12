@@ -34,6 +34,7 @@ jobs:
         run: | 
           sudo apt-get update
           sudo apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev ninja-build
+          GIT_LFS_SKIP_SMUDGE=1 git clone https://git.thm.de/bahn-simulator/simulator-data.git
           
       - uses: BSFishy/meson-build@v1.0.2
         name: build full
@@ -122,6 +123,7 @@ jobs:
         run: |
           meson setup -Ddefault_library=static -Db_lto=false build
           meson compile -C build
+          GIT_LFS_SKIP_SMUDGE=1 git clone https://git.thm.de/bahn-simulator/simulator-data.git
           meson test -C build
 
   pre-release:

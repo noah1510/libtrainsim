@@ -3,6 +3,7 @@ build:fedora:
   script:
     - meson setup build
     - meson compile -C build
+    - GIT_LFS_SKIP_SMUDGE=1 git clone https://git.thm.de/bahn-simulator/simulator-data.git
     - meson test -C build
   only:
     - merge_requests
