@@ -3,22 +3,24 @@
 #include <iostream>
 #include "track_data.hpp"
 
+using namespace sakurajin::unit_system::base::literals;
+
 void test_nearest_c(const libtrainsim::core::Track_data& dat){
     REQUIRE(dat.isValid());
     REQUIRE(dat.getSize() == 10);
 
-    REQUIRE(dat.getFrame(0.04264325) == 7);
-    REQUIRE(dat.getFrame(0.04264328) == 9);
-    REQUIRE(dat.getFrame(0.02132164) == 7);
+    REQUIRE(dat.getFrame(0.04264325_m) == 7);
+    REQUIRE(dat.getFrame(0.04264328_m) == 9);
+    REQUIRE(dat.getFrame(0.02132164_m) == 7);
 }
 
 void test_nearest(libtrainsim::core::Track_data* dat){
     REQUIRE(dat->isValid());
     REQUIRE(dat->getSize() == 10);
 
-    REQUIRE(dat->getFrame(0.04264325) == 7);
-    REQUIRE(dat->getFrame(0.04264328) == 9);
-    REQUIRE(dat->getFrame(0.02132164) == 7);
+    REQUIRE(dat->getFrame(0.04264325_m) == 7);
+    REQUIRE(dat->getFrame(0.04264328_m) == 9);
+    REQUIRE(dat->getFrame(0.02132164_m) == 7);
 }
 
 TEST_CASE( "Checking if getNearestFrame works", "[vector]" ) {
@@ -45,6 +47,6 @@ TEST_CASE( "Checking if load track works with valid input", "[vector]" ) {
     REQUIRE(dat.isValid());
     
     REQUIRE(dat.getSize() == 10);
-    REQUIRE(dat.firstLocation() == 0.0);
-    REQUIRE(dat.lastLocation() == 0.04264326);
+    REQUIRE(dat.firstLocation() == 0.0_m);
+    REQUIRE(dat.lastLocation() == 0.04264326_m);
 };

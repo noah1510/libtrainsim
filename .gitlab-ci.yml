@@ -1,24 +1,14 @@
-build:debian:
-  image: gcc:latest
-  stage: build
+build:fedora:
+  image: fedora:latest
+  before_script:
+    - dnf install -y git wget
   script:
-    - echo 'echo $K8S_SECRET_GITLAB_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
-    - export GIT_ASKPASS=$HOME/.git-askpass
-    - git config --global url."https://api@git.thm.de/".insteadOf "https://git.thm.de/"
-    - git config --global url."https://ssh@git.thm.de/".insteadOf "ssh://git@git.thm.de/"
-    - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
-    - apt-get update
-    - apt-get install --yes gfortran-10 build-essential tar curl zip unzip python3-pip doxygen graphviz
-    - update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-10 1
-    - apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
-    - python3 -m pip install meson ninja
-    - python3 -m pip install glad
-    - mkdir build && cd build
-    - meson setup ..
-    - meson compile
-    - meson test
-    - cd ..
-    
+    - git clone https://git.thm.de/bahn-simulator/setup-scripts.git
+    - bash ./setup-scripts/root/dnf.sh --ci
+  only:
+    - merge_requests
+    - main
+
 wiki:
   image: noasakurajin/latex:latest
   stage: deploy
@@ -45,6 +35,8 @@ wiki:
     - make
     - cd ../..
     - mv doc/latex/refman.pdf refman_en.pdf
+  only:
+    - main
 
   artifacts:
     paths:
