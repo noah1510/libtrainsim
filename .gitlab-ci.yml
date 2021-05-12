@@ -1,16 +1,6 @@
 build:fedora:
-  image: fedora:latest
-  before_script:
-    - dnf install -y git wget
-    - . /etc/os-release
-    - wget https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$VERSION_ID.noarch.rpm
-    - rpm -Uvh rpmfusion-free-release-$VERSION_ID.noarch.rpm
-
+  image: noasakurajin/libtrainsim-build-container:fedora
   script:
-    - dnf remove meson ninja
-    - dnf install -y python3 python3-pip opencv-devel clang SDL2-devel ffmpeg-devel gcc-c++ git wget git-lfs
-    - export PATH=$PATH:/root/.local/bin
-    - python3 -m pip install --user meson ninja
     - meson setup build
     - meson compile -C build
     - meson test -C build

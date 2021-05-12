@@ -5,6 +5,8 @@
 
 using namespace libtrainsim::core;
 
+using namespace sakurajin::unit_system::base::literals;
+using namespace sakurajin::unit_system::common::literals;
 
 TEST_CASE( "Checking if load track fails with invalid inputs", "[vector]" ) {
     const auto dat1 = train_properties("");
@@ -19,8 +21,8 @@ TEST_CASE( "Checking if load track works with valid input", "[vector]" ) {
     const auto dat = train_properties("../core/tests/data/test_train_data_1.json");
     REQUIRE(dat.isValid());
     REQUIRE(dat.getName() == "DB-Baureihe 423/433");
-    REQUIRE(dat.getMaxVelocity() == Approx(140.0/3.6));
-    REQUIRE(dat.getMaxAcceleration() == Approx(1.0));
-    REQUIRE(dat.getMass() == Approx(119400));
+    REQUIRE(dat.getMaxVelocity() == 140_kmph);
+    REQUIRE(dat.getMaxAcceleration() == 1_mps2);
+    REQUIRE(dat.getMass() == 119400_kg);
 };
 
