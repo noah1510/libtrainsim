@@ -8,7 +8,7 @@ build:debian:
     - git config --global url."https://ssh@git.thm.de/".insteadOf "ssh://git@git.thm.de/"
     - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
     - apt-get update
-    - apt-get install --yes gfortran-8 build-essential tar curl zip unzip python3-pip doxygen graphviz
+    - apt-get install --yes gfortran-10 build-essential tar curl zip unzip python3-pip doxygen graphviz
     - update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-10 1
     - apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev
     - python3 -m pip install meson ninja
