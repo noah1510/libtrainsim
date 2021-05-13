@@ -56,8 +56,8 @@ bool Track_data::parseJsonData(const json& data_json){
         length location{dat["location"].get<double>()};
         uint64_t frame = dat["frame"].get<uint64_t>();
         
-        //libtrainsim::core::Track_data_point point = libtrainsim::core::Track_data_point{frame,location};
-        data.emplace_back(frame,location);
+        libtrainsim::core::Track_data_point point{frame,location};
+        data.emplace_back(point);
     }
     
     return true;

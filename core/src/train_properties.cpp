@@ -73,7 +73,7 @@ void train_properties::loadJsonData(){
     if(!_dat.empty() && _dat.is_string()){
         auto unit = _dat.get<std::string>();
         if(unit == "kmh"){
-            velocityUnit = 3.6;
+            velocityUnit = 1000.0/(60.0*60.0);
         }
     }
     
