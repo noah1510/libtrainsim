@@ -111,6 +111,9 @@ jobs:
           update: true
           install: >-
             git
+      - name: clone dependencies in msys2
+        run: git clone https://git.thm.de/bahn-simulator/setup-scripts.git
+        shell: msys2 {0}
       - name: install dependencies in msys2
         run: bash ./setup-scripts/user/msys2_install_only.sh
         shell: msys2 {0}
@@ -119,7 +122,6 @@ jobs:
         run: |
           meson setup -Ddefault_library=static -Db_lto=false build
           meson compile -C build
-          GIT_LFS_SKIP_SMUDGE=1 git clone https://git.thm.de/bahn-simulator/simulator-data.git
           meson test -C build
 
   macos-10:
