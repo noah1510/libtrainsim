@@ -3,28 +3,30 @@
 #include <iostream>
 #include "track_data.hpp"
 
+using namespace sakurajin::unit_system::base::literals;
+
 void test_nearest_c(const libtrainsim::core::Track_data& dat){
     REQUIRE(dat.isValid());
     REQUIRE(dat.getSize() == 10);
 
-    REQUIRE(dat.getFrame(0.04264325) == 7);
-    REQUIRE(dat.getFrame(0.04264328) == 9);
-    REQUIRE(dat.getFrame(0.02132164) == 7);
+    REQUIRE(dat.getFrame(0.04264325_m) == 8);
+    REQUIRE(dat.getFrame(0.04264328_m) == 8);
+    REQUIRE(dat.getFrame(0.02132164_m) == 5);
 }
 
 void test_nearest(libtrainsim::core::Track_data* dat){
     REQUIRE(dat->isValid());
     REQUIRE(dat->getSize() == 10);
 
-    REQUIRE(dat->getFrame(0.04264325) == 7);
-    REQUIRE(dat->getFrame(0.04264328) == 9);
-    REQUIRE(dat->getFrame(0.02132164) == 7);
+    REQUIRE(dat->getFrame(0.04264325_m) == 8);
+    REQUIRE(dat->getFrame(0.04264328_m) == 8);
+    REQUIRE(dat->getFrame(0.02132164_m) == 4);
 }
 
 TEST_CASE( "Checking if getNearestFrame works", "[vector]" ) {
     
-    auto dat = libtrainsim::core::Track_data("../core/tests/data/test_track_data.json");
-    const auto dat_c = libtrainsim::core::Track_data("../core/tests/data/test_track_data.json");
+    libtrainsim::core::Track_data dat{"../core/tests/data/test_track_data.json"};
+    const libtrainsim::core::Track_data dat_c{"../core/tests/data/test_track_data.json"};
 
     test_nearest_c(dat);
     test_nearest_c(dat_c);
@@ -34,17 +36,17 @@ TEST_CASE( "Checking if getNearestFrame works", "[vector]" ) {
 };
 
 TEST_CASE( "Checking if load track fails with invalid inputs", "[vector]" ) {
-    const auto dat1 = libtrainsim::core::Track_data("");
-    const auto dat2 = libtrainsim::core::Track_data("meson.build");
+    const libtrainsim::core::Track_data dat1{""};
+    const libtrainsim::core::Track_data dat2{"meson.build"};
     REQUIRE_FALSE(dat1.isValid());
     REQUIRE_FALSE(dat2.isValid());
 };
 
 TEST_CASE( "Checking if load track works with valid input", "[vector]" ) {
-    const auto dat = libtrainsim::core::Track_data("../core/tests/data/test_track_data.json");
+    const libtrainsim::core::Track_data dat{"../core/tests/data/test_track_data.json"};
     REQUIRE(dat.isValid());
     
     REQUIRE(dat.getSize() == 10);
-    REQUIRE(dat.firstLocation() == 0.0);
-    REQUIRE(dat.lastLocation() == 0.04264326);
+    REQUIRE(sakurajin::unit_system::unit_cast(dat.firstLocation(),1).value == 0.0);
+    REQUIRE(dat.lastLocation() == 0.04264326_m);
 };

@@ -106,51 +106,49 @@ jobs:
     runs-on: "windows-latest"
     steps:
       - uses: actions/checkout@v1
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            git
+      - name: clone dependencies in msys2
+        run: git clone https://git.thm.de/bahn-simulator/setup-scripts.git
+        shell: msys2 {0}
+      - name: install dependencies in msys2
+        run: bash ./setup-scripts/user/msys2_install_only.sh
+        shell: msys2 {0}
+      - name: compile libtrainsim 
+        shell: msys2 {0}
+        run: |
+          meson setup -Ddefault_library=static -Db_lto=false build
+          meson compile -C build
+          meson test -C build
+
+  macos-10:
+    name: "macos compile and test"
+    runs-on: "macos-10.15"
+    steps:
+      - uses: actions/checkout@v1
       - uses: actions/setup-python@v1
       - name: install dependencies
-        run: choco install pkgconfiglite wget
-      - name: install sdl2
-        run: vcpkg install sdl2
-      - name: download ffmpeg
-        run: Invoke-WebRequest 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full-shared.7z' -OutFile ffmpeg.7z
-      - name: extract ffmpeg
-        run: 7z x ffmpeg.7z
-      - name: copy ffmpeg and delete extracted files
-        run: |
-           cp -r .\ffmpeg-*-full_build-shared\ .\ffmpeg
-           rm -r .\ffmpeg-*-full_build-shared\
-      - name: download .pc files for ffmpeg
-        run: git clone 'https://git.thm.de/nkrs14/ffmpeg-windows.pc.git' 'ffmpeg/pkgconfig'
-      - name: update env
-        run: refreshenv
-        shell: pwsh
-      - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v1
-        with:
-          version: "10.0"
-          directory: ${{ runner.temp }}/llvm
+        run: | 
+          brew install sdl2
+          brew install ffmpeg
           
       - uses: BSFishy/meson-build@v1.0.2
-        name: build llvm/clang
-        env:
-          CXX: clang++
-          CC: clang
-          PKG_CONFIG_PATH: 'C:\vcpkg\installed\x86-windows\lib\pkgconfig;ffmpeg\pkgconfig'
+        name: build full
         with:
           action: test
           directory: build
           options: --verbose
           meson-version: 0.56.1
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: windows build folder
-          path: build
+      - name: clearing build directory
+        run: rm -rf build
 
   pre-release:
     name: "Pre Release latest"
     runs-on: "ubuntu-20.04"
-    needs: [windows, ubunut20]
+    needs: [windows, ubunut20, macos-10]
     steps:
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:

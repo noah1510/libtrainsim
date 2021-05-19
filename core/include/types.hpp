@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <tuple>
+#include <algorithm>
 
 /**
  * @brief This namespace contains all of libtrainsim.
@@ -41,23 +43,30 @@ namespace libtrainsim {
          */
         class version {
         public:
+            
+            /**
+             * @brief The major version number x.y.z
+             *
+             */
+            const std::tuple<uint64_t,uint64_t,uint64_t> Version;
+            
             /**
              * @brief The major version number X.y.z
              *
              */
-            const uint64_t major;
-
+            uint64_t major() const;
+            
             /**
              * @brief The minor version number x.Y.z
              *
              */
-            const uint64_t minor;
-
+            uint64_t minor() const;
+            
             /**
              * @brief The patch version number x.y.Z
              *
              */
-            const uint64_t patch;
+            uint64_t patch() const;
 
             /**
              * @brief Construct a new version object with given major, minor and patch version number.
@@ -74,6 +83,12 @@ namespace libtrainsim {
              * @param ver a string in the format manjor.minor.patch
              */
             version(const std::string& ver);
+            /**
+             * @brief Construct a new version object from a given string with the format "x.y.z".
+             *
+             * @param ver a string in the format manjor.minor.patch
+             */
+            version(std::tuple<uint64_t,uint64_t,uint64_t> ver);
 
             /**
              * @brief returns the version number as "major.minor.patch".
@@ -93,30 +108,49 @@ namespace libtrainsim {
              * @return int the result of the comparison
              */
             static int compare(const version& v1, const version& v2) {
-                if (v1.major > v2.major) { return 1; }
-                if (v1.major < v2.major) { return -1; }
-
-                if (v1.minor > v2.minor) { return 1; }
-                if (v1.minor < v2.minor) { return -1; }
-
-                if (v1.patch > v2.patch) { return 1; }
-                if (v1.patch < v2.patch) { return -1; }
+                if (v1.Version > v2.Version) { return 1; }
+                if (v1.Version < v2.Version) { return -1; }
 
                 return 0;
             };
+            
+            /*
+             * @brief Compare two versions.
+             */
+            bool operator>(const version& other) const;
+            
+            /*
+             * @brief Compare two versions.
+             */
+            bool operator<(const version& other) const;
+            
+            /*
+             * @brief Compare two versions.
+             */
+            bool operator>=(const version& other) const;
+            
+            /*
+             * @brief Compare two versions.
+             */
+            bool operator<=(const version& other) const;
+            
+            /*
+             * @brief Compare two versions.
+             */
+            bool operator==(const version& other) const;
         };
 
         /**
          * @brief the current version of the libtrainsim
          *
          */
-        const version lib_version("0.4.0");
+        const version lib_version(0,6,0);
 
         /**
          * @brief the current version of the json formats
          *
          */
-        const version format_version("0.5.0");
+        const version format_version(0,5,0);
 
         /**
          * @brief this enum maps readable keywords to the values of the keys.
@@ -142,26 +176,5 @@ namespace libtrainsim {
             ACTION_BREAK = 2,
         };
 
-        /**
-         * @brief clamps the value between two bounds (upper and lower will siwthced if they are in the wrong order).
-         *
-         * @tparam T the type of the parameters
-         * @param val the value that will be clamped
-         * @param min the lower bound for the value
-         * @param max the upper bound for the value
-         * @return T the clamped value
-         */
-        template <typename T>
-        T clamp(T val, T min, T max) {
-            if (min > max) {
-                T temp = max;
-                max = min;
-                min = temp;
-            };
-
-            if (val < min) { return min; };
-            if (val > max) { return max; };
-            return val;
-        }
     }
 }
