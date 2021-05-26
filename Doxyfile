@@ -827,6 +827,8 @@ INPUT                  = video/src \
                          video/include \
                          control/src \
                          control/include \
+                         physics/src \
+                         physics/include \
                          core/src \
                          core/include \
                          README.md \
