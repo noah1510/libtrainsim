@@ -1,0 +1,8 @@
+{
+    "name":"AWagen München",
+    "mass":159300.0,
+    "maxVelocity":80.0,
+    "Power":2160000.0,
+    "velocityUnit":"kmh",
+    "formatVersion":"0.4.0"
+}
