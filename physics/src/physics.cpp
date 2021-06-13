@@ -15,6 +15,8 @@ physics::physics(const Track& conf, bool _autoTick):config(conf),autoTick(_autoT
     location = config.firstLocation();
     acelleration = 0.0_mps2;
 
+
+
     last_update = now();
 
     std::scoped_lock<std::shared_mutex> lock2(mutex_error);
@@ -43,7 +45,7 @@ void physics::setAcelleration(common::acceleration acc){
     std::scoped_lock<std::shared_mutex> lock(mutex_data);
     acelleration = config.train().clampAcceleration(acc);
 }*/
-
+/*
 void physics::setMass(base::mass mass){
     //get the Trainmass from Train_data.json
 }
@@ -52,6 +54,7 @@ void physics::setTrainPower(common::power pow){
     tick();
     //should be set in the same way as the accelleration is set now.
 }
+*/
 
 common::force physics::getTraction(){
     if(autoTick){tick();};
@@ -59,8 +62,8 @@ common::force physics::getTraction(){
     return traction;
 }
 
-common::force physics::calcMaxForce(base::mass mass, common::acceleration g, long double track_drag){
-    long double maxforce = mass*g*track_drag;
+common::force physics::calcMaxForce(base::mass mass, common::acceleration g, long double track_drag)const{
+    auto maxforce = mass*g*track_drag;
     return maxforce;
 }
 
@@ -82,16 +85,30 @@ void physics::tick(){
 
     base::time_si dt = unit_cast(new_time - last_update);
 
+    auto mass = config.train().getMass();
+    auto track_drag = config.train().getTrackDrag();
+
+    auto MaxForce = calcMaxForce(mass,g,track_drag) ;
+
     ///@Todo improve calculation by considering drag.
     ///@Todo calculation of acceleration by power of Train)
+    ///@Todo Fahrstufen von -1,0 bis 1,0
+    //clamp acc in traainproperties möglicherweise in physics reintun
+    //Bremsvorgang implementieren mit Fahrstufen schalter
+    //clamp auch für Max Leistung und Max Kraft implementieren
+    //set mass rausnehmen
+    //airdrag miteinarbeiten
+    //Trainpower im train_properties miteinarbeiten
+    //velocity kleiner gleich check einbauen
+
     if (velocity == 0) {
-      common::force currTraction = physics::calcMaxForce(mass, g, track_drag);
+      common::force currTraction = MaxForce;
     } else {
       common::force currTraction = trainpower/velocity;
     }
 
-    if (currTraction > physics::calcMaxForce(mass, g, track_drag) ) {
-      currTraction = physics::calcMaxForce(mass, g, track_drag);
+    if (currTraction >  MaxForce) {
+      currTraction = MaxForce;
     }
 
     accelleration = currTraction/mass;

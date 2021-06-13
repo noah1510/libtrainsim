@@ -69,15 +69,19 @@ namespace libtrainsim{
             void setTrainPower(sakurajin::unit_system::common::power pow);
 
             void SetMass(sakurajin::unit_system::base mass);
-            
+
             sakurajin::unit_system::base::mass getMass();
 
             sakurajin::unit_system::common::force getTraction();
 
-            sakurajin::unit_system::common::force calcMaxForce();
+            sakurajin::unit_system::common::force calcMaxForce(base::mass mass, common::acceleration g, long double track_drag)const;
 
             sakurajin::unit_system::common::force setDrag();
 
+            //sakurajin::unit_system::common::acceleration clampAcceleration(sakurajin::unit_system::common::acceleration currentAcceleration) const;
+
+            sakurajin::unit_system::common::speed clampVelocity(sakurajin::unit_system::common::speed currentVelocity) const;
+            
 
 
             bool reachedEnd();
