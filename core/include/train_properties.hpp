@@ -4,9 +4,9 @@
  * @brief This file contains the definition of the train_properties to manage train models.
  * @version 0.4.0
  * @date 2020-10-20
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
 
 #pragma once
@@ -72,6 +72,8 @@ namespace libtrainsim {
              */
             long double track_drag = 0.002;
 
+            //long double speedlevel;
+
             /**
              * @brief Loads the data_json into the other menbers;
              */
@@ -123,17 +125,23 @@ namespace libtrainsim {
             /**
              * @brief The maximum velocity the train can have in m/s.
              */
-            sakurajin::unit_system::common::speed getMaxVelocity() const;
+            //sakurajin::unit_system::common::speed getMaxVelocity() const;
 
             /**
              * @brief The maximum acceleration the train can have in m/(s^2).
              */
-            sakurajin::unit_system::common::acceleration getMaxAcceleration() const;
-
+            //sakurajin::unit_system::common::acceleration getMaxAcceleration() const;
             /**
              * @brief The mass of the train in kg.
              */
             sakurajin::unit_system::base::mass getMass() const;
+
+            /**
+             * @brief The maximum of Power in W the Train can have.
+             */
+
+            sakurajin::unit_system::common::power getPower() const;
+
 
             /**
              * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
@@ -171,6 +179,12 @@ namespace libtrainsim {
              * @return double the clamped accelleration
              */
             sakurajin::unit_system::common::acceleration clampAcceleration(sakurajin::unit_system::common::acceleration currentAcceleration) const;
+
+            long double clampSpeedlevel(long double currentSpeedlevel) const;
+
+
+
+
 
         };
     }

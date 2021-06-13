@@ -92,14 +92,15 @@ void physics::tick(){
 
     ///@Todo improve calculation by considering drag.
     ///@Todo calculation of acceleration by power of Train)
-    ///@Todo Fahrstufen von -1,0 bis 1,0
-    //clamp acc in traainproperties möglicherweise in physics reintun
+    ///@Todo Fahrstufen mit clamp von -1,0 bis 1,0
     //Bremsvorgang implementieren mit Fahrstufen schalter
-    //clamp auch für Max Leistung und Max Kraft implementieren
-    //set mass rausnehmen
     //airdrag miteinarbeiten
-    //Trainpower im train_properties miteinarbeiten
-    //velocity kleiner gleich check einbauen
+    
+
+
+    if(abs(velocity) < 0.07 mps) {
+      velocity = 0.0 mps;
+    }
 
     if (velocity == 0) {
       common::force currTraction = MaxForce;
@@ -117,7 +118,7 @@ void physics::tick(){
     velocity += acelleration * dt;
 
     location = clamp(location, config.firstLocation(),config.lastLocation());
-    velocity = clamp(velocity,0_mps,config.train().getMaxVelocity());
+    //velocity = clamp(velocity,0_mps,config.train().getMaxVelocity());
 
     last_update = new_time;
 

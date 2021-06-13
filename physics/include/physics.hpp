@@ -54,6 +54,9 @@ namespace libtrainsim{
 
             void setAcelleration(sakurajin::unit_system::common::acceleration acc);
 
+            void setSpeedlevel(long double slvl);
+
+
             sakurajin::unit_system::common::speed getVelocity();
             /**
             * @brief
@@ -66,9 +69,9 @@ namespace libtrainsim{
             * Trainpower is set by playerinput. It will replace setting the accelleration by input from player
             */
 
-            void setTrainPower(sakurajin::unit_system::common::power pow);
+            //void setTrainPower(sakurajin::unit_system::common::power pow);
 
-            void SetMass(sakurajin::unit_system::base mass);
+            //void SetMass(sakurajin::unit_system::base mass);
 
             sakurajin::unit_system::base::mass getMass();
 
@@ -80,8 +83,13 @@ namespace libtrainsim{
 
             //sakurajin::unit_system::common::acceleration clampAcceleration(sakurajin::unit_system::common::acceleration currentAcceleration) const;
 
-            sakurajin::unit_system::common::speed clampVelocity(sakurajin::unit_system::common::speed currentVelocity) const;
-            
+            //sakurajin::unit_system::common::speed clampVelocity(sakurajin::unit_system::common::speed currentVelocity) const;
+
+            sakurajin::unit_system::common::force clampForce(sakurajin::unit_system::common::force currentTraction) const;
+
+            sakurajin::unit_system::common::power clampPower(sakurajin::currentVelocity::common::power currentPower) const;
+
+
 
 
             bool reachedEnd();
