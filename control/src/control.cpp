@@ -31,8 +31,7 @@ std::string libtrainsim::control::input_handler::getKeyFunction() {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             SDL_PollEvent(&event);
             if(event.type == SDL_QUIT){
-                pressedKey = static_cast<char>(27);
-                break;
+                return "CLOSE";
             };
             if(event.type == SDL_KEYDOWN){
                 pressedKey = event.key.keysym.sym;
@@ -48,6 +47,7 @@ std::string libtrainsim::control::input_handler::getKeyFunction() {
     #endif
     
     auto keyFunction = keys.getFunction(pressedKey);
+    
     return keyFunction;
 }
 
