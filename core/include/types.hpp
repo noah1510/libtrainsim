@@ -153,19 +153,8 @@ namespace libtrainsim {
         const version format_version(0,5,0);
 
         /**
-         * @brief this enum maps readable keywords to the values of the keys.
-         *
-         */
-        enum keyboard_keys : char {
-            KEY_ESCAPE = static_cast<char>(27),
-            KEY_CLOSE = static_cast<char>(27),
-            KEY_ACCELERATE = 'w',
-            KEY_BREAK = 's',
-            KEY_OTHER = '\0',
-        };
-
-        /**
          * @brief This enum maps action names to values for use with the control
+         * @warning will be removed in the future. Look into using key functions of the keymap
          *
          */
         enum actions {
