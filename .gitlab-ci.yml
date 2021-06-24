@@ -33,7 +33,7 @@ wiki:
     - cd ../latex
     - make
     - cd ../..
-    - mv doc/latex/refman.pdf refman_en.pdf
+    - mv doc/latex/refman.pdf reference_manual_en.pdf
   only:
     - main
 
