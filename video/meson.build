@@ -1,5 +1,3 @@
-cc = meson.get_compiler('cpp')
-
 sources = [
     'src/video.cpp',
     'src/frame.cpp',
@@ -14,11 +12,12 @@ enable_opencv = false
 enable_ffmpeg = false
 enable_sdl = false
 
-CC = meson.get_compiler('c')
-CXX = meson.get_compiler('cpp')
-
 #check if emscripten is used
 if target_machine.system() == 'emscripten'
+
+    CC = meson.get_compiler('c')
+    CXX = meson.get_compiler('cpp')
+
     enable_sdl = true
         
     message('compiling with sdl2 enabled')

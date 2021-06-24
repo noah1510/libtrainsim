@@ -22,6 +22,7 @@ tests = [
     'track_data',
     'train_properties',
     'version',
+    'input-axis',
 ]
 
 #create all the tests
