@@ -13,7 +13,7 @@ TEST_CASE( "Checking if the input-axis behaves correctly works", "[vector]" ) {
     REQUIRE(ax2.get() == -1.0);
 
     const input_axis ax3 = 0.0;
-    REQUIRE( (ax1-ax2).get() == 0.0 );
-    REQUIRE( (ax1-ax2) == ax3 );
+    REQUIRE( (ax1+ax2).get() == 0.0 );
+    REQUIRE( (ax1+ax2) == ax3 );
     
 }
