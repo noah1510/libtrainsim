@@ -9,116 +9,38 @@ using namespace libtrainsim::backend;
 videoFF_SDL::~videoFF_SDL(){
     lastFrame.clear();
     pict.clear();
-    av_packet_unref(pPacket);
-    avcodec_close(pCodecCtx);
-    avformat_close_input(&pFormatCtx);
 
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
 }
 
 bool videoFF_SDL::load(const std::filesystem::path& uri){
-    loadedFile = uri;
-    videoFullyLoaded = false;
-
-    auto ret = avformat_open_input(&pFormatCtx, loadedFile.string().c_str(), NULL, NULL);
-    if (ret < 0){
-        std::cerr << "Could not open file: " << loadedFile << std::endl;
-        return false;
-    }
+    rendererFF.load(uri);
     
-    ret = avformat_find_stream_info(pFormatCtx, NULL);
-    if (ret < 0){
-        std::cerr << "Could not find stream information for file: " << loadedFile << std::endl;
-        return false;
-    }
-
-    av_dump_format(pFormatCtx, 0, loadedFile.string().c_str(), 0);
-    
-    for (unsigned int i = 0; i < pFormatCtx->nb_streams; i++)
-    {
-        if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
-        {
-            videoStream = i;
-            break;
-        }
-    }
-
-    if (videoStream == -1){
-        std::cerr << "Could not find video stream." << std::endl;
-        return false;
-    }
-
-    pCodec = NULL;
-    pCodec = avcodec_find_decoder(pFormatCtx->streams[videoStream]->codecpar->codec_id);
-    if (pCodec == NULL){
-        std::cerr << "Unsupported codec!" << std::endl;
-        return false;
-    }
-
-    pCodecCtx = avcodec_alloc_context3(pCodec);
-    ret = avcodec_parameters_to_context(pCodecCtx, pFormatCtx->streams[videoStream]->codecpar);
-    if (ret != 0){
-        std::cerr << "Could not copy codec context." << std::endl;
-        return false;
-    }
-
-    ret = avcodec_open2(pCodecCtx, pCodec, NULL);
-    if (ret < 0)
-    {
-        std::cerr << "Could not open codec." << std::endl;
-        return false;
-    }
-    
-    videoFullyLoaded = true;
     lastFrame = Frame();
-    lastFrame.setBackend(ffmpeg_sdl);
+    lastFrame.setBackend(ffmpeg);
 
     return true; 
 }
 
 const libtrainsim::Frame videoFF_SDL::getNextFrame(){
-    if(!videoFullyLoaded){return Frame();};
-    
-    av_packet_unref(pPacket);
-    
-    Frame pFrame = Frame();
-    pFrame.setBackend(ffmpeg_sdl);
-    
-    auto ret = av_read_frame(pFormatCtx, pPacket);
-    if(ret < 0 || pPacket->stream_index != videoStream){
-        return Frame();
-    };
-    
-    ret = avcodec_send_packet(pCodecCtx, pPacket);
-    if (ret < 0){
-        std::cerr << "Error sending packet for decoding." << std::endl;
-        return Frame();
-    }
-    
-    ret = avcodec_receive_frame(pCodecCtx, pFrame);
-    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0){
-        return Frame();
-    }
-    
-    currentFrameNumber++;
-    return pFrame;
+    return rendererFF.getNextFrame();
 }
 
 
 void videoFF_SDL::createWindow(const std::string& windowName){
-    if(currentWindowName != "" || windowName == "" || !videoFullyLoaded || windowFullyCreated){
+    if(currentWindowName != "" || windowName == "" || rendererFF.reachedEndOfFile() || windowFullyCreated){
         return;
     }
 
     currentWindowName = windowName;
     screen = SDL_CreateWindow(
-                            currentWindowName.c_str(),
-                            SDL_WINDOWPOS_UNDEFINED,
-                            SDL_WINDOWPOS_UNDEFINED,
-                            pCodecCtx->width/2,
-                            pCodecCtx->height/2,
-                            SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE
+        currentWindowName.c_str(),
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        rendererFF.getWidth()/2,
+        rendererFF.getHight()/2,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE
     );
 
     if (!screen){
@@ -134,50 +56,14 @@ void videoFF_SDL::createWindow(const std::string& windowName){
     renderer = SDL_CreateRenderer(screen, -1, renderFlags);
     
     texture = SDL_CreateTexture(
-                renderer,
-                SDL_PIXELFORMAT_YV12,
-                SDL_TEXTUREACCESS_STREAMING,
-                pCodecCtx->width,
-                pCodecCtx->height
-            );
-    
-    pPacket = av_packet_alloc();
-    if (pPacket == NULL){
-        std::cout << "Could not alloc packet." << std::endl;
-        return;
-    }
-
-    sws_ctx = sws_getContext(
-        pCodecCtx->width,
-        pCodecCtx->height,
-        pCodecCtx->pix_fmt,
-        pCodecCtx->width,
-        pCodecCtx->height,
-        AV_PIX_FMT_YUV420P,
-        SWS_BILINEAR,
-        NULL,
-        NULL,
-        NULL
+        renderer,
+        SDL_PIXELFORMAT_YV12,
+        SDL_TEXTUREACCESS_STREAMING,
+        rendererFF.getWidth(),
+        rendererFF.getHight()
     );
     
-    numBytes = av_image_get_buffer_size(
-                AV_PIX_FMT_YUV420P,
-                pCodecCtx->width,
-                pCodecCtx->height,
-                32
-            );
-    buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
-    
-    pict.setBackend(ffmpeg);
-    av_image_fill_arrays(
-        pict.dataFF()->data,
-        pict.dataFF()->linesize,
-        buffer,
-        AV_PIX_FMT_YUV420P,
-        pCodecCtx->width,
-        pCodecCtx->height,
-        32
-    );
+    rendererFF.initFrame(pict);
     
     lastFrame.clear();
     lastFrame = getNextFrame();
@@ -190,21 +76,13 @@ void videoFF_SDL::refreshWindow(){
         return;
     }
     
-    sws_scale(
-        sws_ctx,
-        (uint8_t const * const *)lastFrame.dataFF()->data,
-        lastFrame.dataFF()->linesize,
-        0,
-        pCodecCtx->height,
-        pict.dataFF()->data,
-        pict.dataFF()->linesize
-    );
+    pict = rendererFF.scaleFrame(lastFrame);
 
     SDL_Rect rect;
     rect.x = 0;
     rect.y = 0;
-    rect.w = pCodecCtx->width;
-    rect.h = pCodecCtx->height;
+    rect.w = rendererFF.getWidth();
+    rect.h = rendererFF.getHight();
     
     SDL_UpdateYUVTexture(
         texture,
@@ -235,28 +113,18 @@ void videoFF_SDL::displayFrame(const Frame& newFrame){
 }
 
 void videoFF_SDL::gotoFrame(uint64_t frameNum){
-    if(!videoFullyLoaded){return;};
-    //double fps = static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.num) / static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.den);
-    //int64_t _time = static_cast<int64_t>( static_cast<double>(frameNum)*fps);
-    //av_seek_frame(pFormatCtx, videoStream, frameNum, AVSEEK_FLAG_ANY);
-    while (frameNum > currentFrameNumber + 1){
-        getNextFrame();
-    }
-    if(currentFrameNumber+1 == frameNum){displayFrame(getNextFrame());};
+    displayFrame(rendererFF.gotoFrame(frameNum));
 }
 
 uint64_t videoFF_SDL::getFrameCount(){
-    if(!videoFullyLoaded){return 0;};
-    return pCodecCtx->frame_number;
+    return rendererFF.getFrameCount();
 }
 double videoFF_SDL::getHight(){
-    if(pCodecCtx == nullptr || !videoFullyLoaded){return 0.0;};
-    return pCodecCtx->height;
+    return rendererFF.getHight();
 }
 
 double videoFF_SDL::getWidth(){
-    if(pCodecCtx == nullptr || !videoFullyLoaded){return 0.0;};
-    return pCodecCtx->width;
+    return rendererFF.getWidth();
 }
 
 #endif

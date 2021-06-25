@@ -2,29 +2,23 @@
 
 #include "generic.hpp"
 #include "frame.hpp"
+#include "ffmpegRenderer.hpp"
+
 #include <filesystem>
 #include <string>
 
 namespace libtrainsim{
     namespace backend{
         #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
+        
         class videoFF_SDL : public videoGeneric{
             private:
-                AVFormatContext* pFormatCtx = nullptr;
-                AVCodecContext* pCodecCtx = nullptr;
-                AVCodec* pCodec = nullptr;
-                int videoStream = -1;
+                libtrainsim::Video::ffmpegRenderer rendererFF{};
                 
                 SDL_Window* screen = nullptr;
                 SDL_Renderer* renderer = nullptr;
                 SDL_Texture* texture = nullptr;
                 
-                int numBytes = 0;
-                struct SwsContext* sws_ctx = nullptr;
-                AVPacket* pPacket = nullptr;
-                uint8_t * buffer = nullptr;
-                
-                bool videoFullyLoaded = false;
                 bool windowFullyCreated = false;
                 
                 Frame pict;
