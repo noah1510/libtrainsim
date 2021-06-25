@@ -3,6 +3,7 @@ sources = [
     'src/frame.cpp',
     'src/generic.cpp',
     'src/genericRenderer.cpp',
+    'src/genericWindowManager.cpp'
 ]
 
 video_deps = [
@@ -50,6 +51,7 @@ if target_machine.system() == 'emscripten'
     sources += 'src/ffmpeg/backend.cpp'
     
     sources += 'src/backends/ffmpegRenderer.cpp'
+    sources += 'src/backends/genericWindowManager.cpp'
     message('compiling with ffmpeg enabled')
     
 else
@@ -119,6 +121,7 @@ else
         sources += 'src/ffmpeg/frame.cpp'
         sources += 'src/ffmpeg/backend.cpp'
         sources += 'src/backends/ffmpegRenderer.cpp'
+        sources += 'src/backends/SDL2WindowManager.cpp'
         message('compiling with ffmpeg enabled')
     endif
 

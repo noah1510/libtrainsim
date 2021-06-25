@@ -3,6 +3,7 @@
 #include "generic.hpp"
 #include "frame.hpp"
 #include "ffmpegRenderer.hpp"
+#include "SDL2WindowManager.hpp"
 
 #include <filesystem>
 #include <string>
@@ -15,19 +16,12 @@ namespace libtrainsim{
             private:
                 libtrainsim::Video::ffmpegRenderer rendererFF{};
                 
-                SDL_Window* screen = nullptr;
-                SDL_Renderer* renderer = nullptr;
-                SDL_Texture* texture = nullptr;
-                
-                bool windowFullyCreated = false;
-                
-                Frame pict;
+                libtrainsim::Video::SDL2WindowManager window;
 
-            protected:
-                void displayFrame(const Frame& newFrame);
-                const libtrainsim::Frame getNextFrame();
             public:
 
+                videoFF_SDL();
+                
                 /**
                 * @brief Destroy the video FF_SDL object
                 * 

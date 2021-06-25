@@ -4,7 +4,7 @@
 using namespace libtrainsim;
 using namespace libtrainsim::Video;
 
-#if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
+#if defined(HAS_FFMPEG_SUPPORT)
 
 ffmpegRenderer::~ffmpegRenderer(){
     av_packet_unref(pPacket);
