@@ -47,11 +47,13 @@ namespace libtrainsim {
             /**
              * @brief The maximum velocity the train can have in m/s.
              */
+
             sakurajin::unit_system::common::speed max_velocity;
 
             /**
              * @brief The maximum acceleration the train can have in m/(s^2).
              */
+
             sakurajin::unit_system::common::acceleration max_acceleration;
 
             /**
@@ -64,6 +66,7 @@ namespace libtrainsim {
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
              */
+             
             long double air_drag = 0.0;
 
             /**
