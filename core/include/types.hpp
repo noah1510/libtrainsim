@@ -17,6 +17,10 @@
 #include <tuple>
 #include <algorithm>
 
+#undef major
+#undef minor
+#undef patch
+
 /**
  * @brief This namespace contains all of libtrainsim.
  * 
