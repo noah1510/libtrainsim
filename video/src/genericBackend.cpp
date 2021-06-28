@@ -1,12 +1,20 @@
-#include "generic.hpp"
+#include "genericBackend.hpp"
 
-using namespace libtrainsim::backend;
+using namespace libtrainsim::Video;
 
 videoGeneric::~videoGeneric(){
     
 }
 
 videoGeneric::videoGeneric(libtrainsim::Video::genericWindowManager& _window, libtrainsim::Video::genericRenderer& _renderer):renderer{_renderer},window{_window}{};
+
+genericRenderer& videoGeneric::getRenderer(){
+    return renderer;
+}
+
+genericWindowManager& videoGeneric::getWindowManager(){
+    return window;
+}
 
 bool videoGeneric::load(const std::filesystem::path& uri){
     return renderer.load(uri);

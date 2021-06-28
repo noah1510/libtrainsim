@@ -1,9 +1,10 @@
 sources = [
     'src/video.cpp',
     'src/frame.cpp',
-    'src/generic.cpp',
+    'src/genericBackend.cpp',
     'src/genericRenderer.cpp',
-    'src/genericWindowManager.cpp'
+    'src/genericWindowManager.cpp',
+    'src/VideoBackends.cpp',
 ]
 
 video_deps = [

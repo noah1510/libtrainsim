@@ -47,56 +47,8 @@ namespace libtrainsim {
             renderer_ffmpeg = 2,
             #endif
         };
-        
-        enum WindowingBackends{
-            /// No selected backend
-            window_none = 0,
-            
-            #ifdef HAS_OPENCV_SUPPORT
-            /// use opencv as video backend
-            window_opencv = 1,
-            #endif
-            
-            #ifdef HAS_SDL_SUPPORT
-            ///use ffmpeg with any found windowing system
-            window_sdl = 2,
-            #endif
-            
-            #ifdef HAS_GLFW_SUPPORT
-            ///use ffmpeg with any found windowing system
-            window_glfw = 3,
-            #endif
-        };
+    
     }
-
-    /**
-     * @brief a list of the available video backends.
-     * 
-     */
-    enum VideoBackends{
-        /// No selected backend
-        none = 0,
-
-        #ifdef HAS_OPENCV_SUPPORT
-        /// use opencv as video backend
-        opencv = 1,
-        #endif
-        
-        #ifdef HAS_FFMPEG_SUPPORT
-        ///use ffmpeg with any found windowing system
-        ffmpeg = 2,
-        #endif
-        
-        #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
-        ///use ffmpeg with an sdl window as backend
-        ffmpeg_sdl = 3,
-        #endif
-        
-        #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_GLFW_SUPPORT)
-        ///use ffmpeg with an sdl window as backend
-        ffmpeg_glfw = 4,
-        #endif
-    };
 
     /**
      * @brief an abstraction on whatever backend is used for handling frames.

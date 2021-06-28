@@ -16,34 +16,33 @@ std::string libtrainsim::control::input_handler::getKeyFunction() {
     char pressedKey = '\0';
     
     #ifdef HAS_VIDEO_SUPPORT
-                
-    switch(libtrainsim::video::getBackend()){
+    
+        auto backend = libtrainsim::video::getBackend().windowType;
+
         #ifdef HAS_OPENCV_SUPPORT
-        case(opencv):
-            pressedKey = cv::waitKey(1);
-            break;
+            if ( backend == libtrainsim::Video::window_opencv){
+
+                pressedKey = cv::waitKey(1);
+            }
         #endif
-        #ifdef HAS_SDL_SUPPORT
-        #ifdef HAS_FFMPEG_SUPPORT
-        case(ffmpeg):
-        case(ffmpeg_sdl):
-            SDL_Event event;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            SDL_PollEvent(&event);
-            if(event.type == SDL_QUIT){
-                return "CLOSE";
-            };
-            if(event.type == SDL_KEYDOWN){
-                pressedKey = event.key.keysym.sym;
-                break;
-            };
-            break;
-        #endif // HAS_FFMPEG_SUPPORT
+
+        #ifdef HAS_OPENCV_SUPPORT
+            if ( backend == libtrainsim::Video::window_sdl){
+
+                SDL_Event event;
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                SDL_PollEvent(&event);
+
+                if(event.type == SDL_QUIT){
+                    return "CLOSE";
+                };
+
+                if(event.type == SDL_KEYDOWN){
+                    pressedKey = event.key.keysym.sym;
+                };
+            }
         #endif
-        case(none):
-        default:
-            break;
-    }
+
     #endif
     
     auto keyFunction = keys.getFunction(pressedKey);

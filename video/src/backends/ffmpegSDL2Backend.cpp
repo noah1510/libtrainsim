@@ -3,7 +3,6 @@
 
 using namespace libtrainsim;
 using namespace libtrainsim::Video;
-using namespace libtrainsim::backend;
 
 #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
 

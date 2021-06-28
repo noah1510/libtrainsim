@@ -1,6 +1,6 @@
 #pragma once
 
-#include "generic.hpp"
+#include "genericBackend.hpp"
 #include "frame.hpp"
 #include <filesystem>
 #include <string>
@@ -9,14 +9,14 @@
 #include "openCVWindowManager.hpp"
 
 namespace libtrainsim{
-    namespace backend{
+    namespace Video{
         #ifdef HAS_OPENCV_SUPPORT
         class videoOpenCV : public videoGeneric{
             private:
                 
-                libtrainsim::Video::openCVRenderer rendererCV{};
+                openCVRenderer rendererCV{};
                 
-                libtrainsim::Video::openCVWindowManager windowCV{rendererCV};
+                openCVWindowManager windowCV{rendererCV};
             public:
                 
                 videoOpenCV();

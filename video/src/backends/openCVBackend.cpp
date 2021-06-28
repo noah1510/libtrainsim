@@ -2,7 +2,7 @@
 #include "frame.hpp"
 
 using namespace libtrainsim;
-using namespace libtrainsim::backend;
+using namespace libtrainsim::Video;
 
 #ifdef HAS_OPENCV_SUPPORT
 

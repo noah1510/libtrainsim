@@ -4,19 +4,11 @@
 #include <string>
 #include <filesystem>
 
+#include "backends/openCVRenderer.hpp"
+#include "backends/openCVWindowManager.hpp"
 #include "frame.hpp"
-#include "generic.hpp"
-
-#ifdef HAS_OPENCV_SUPPORT
-#include "backends/opencv.hpp"
-#endif
-
-#ifdef HAS_FFMPEG_SUPPORT
-    #ifdef HAS_SDL_SUPPORT
-    #include "backends/ffmpeg_sdl.hpp"
-    #endif
-#endif
-
+#include "genericBackend.hpp"
+#include "VideoBackends.hpp"
 
 namespace libtrainsim {    
 
@@ -30,7 +22,7 @@ namespace libtrainsim {
              * @brief Construct a new video object (must only be called by getInstance when necessary)
              * 
              */
-            video(VideoBackends backend = getDefaultBackend());
+            video(Video::VideoBackendDefinition backend = getDefaultBackend());
 
             /**
              * @brief Destroy the video object, on destruction everything will be reset.
@@ -70,16 +62,20 @@ namespace libtrainsim {
             ///The implementation for the getFilePath method
             const std::filesystem::path& getFilePath_impl() const;
 
+            #ifdef HAS_SDL_SUPPORT
+            void initSDL2();
+            #endif
+
             /**
              * @brief the used video backend
              * 
              */
-            VideoBackends currentBackend;
+            Video::VideoBackendDefinition currentBackend;
             
             /**
              * @brief the implementation of the current backend
              */
-            std::unique_ptr<backend::videoGeneric> currentBackend_impl;
+            std::unique_ptr<Video::videoGeneric> currentBackend_impl;
 
             /**
              * @brief the name of the window for the simulator
@@ -89,30 +85,29 @@ namespace libtrainsim {
             
             libtrainsim::Video::genericRenderer fallbackRenderer{};
             libtrainsim::Video::genericWindowManager fallbackWindow{fallbackRenderer};
-            
+
             static void checkBackend_impl(){
                 if(getInstance().currentBackend_impl == nullptr){
-                    switch(getInstance().currentBackend){
-                        case(none):
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::backend::videoGeneric>(getInstance().fallbackWindow, getInstance().fallbackRenderer);
-                            break;
-                        #ifdef HAS_OPENCV_SUPPORT
-                        case(opencv):
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::backend::videoOpenCV>();
-                            break;
-                        #endif
-                        #ifdef HAS_FFMPEG_SUPPORT
-                        case(ffmpeg):
-                        #ifdef HAS_SDL_SUPPORT
-                        case(ffmpeg_sdl):
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::backend::videoFF_SDL>();
-                            break;
-                        #endif
-                            break;
-                        #endif
-                        default:
+
+                    #ifdef HAS_OPENCV_SUPPORT
+                        if(getInstance().currentBackend == Video::VideoBackends::openCV){
+                            
+                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoOpenCV>();
+
                             return;
-                    }
+                        }
+                    #endif
+
+                    #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
+                        if(getInstance().currentBackend == Video::VideoBackends::ffmpeg_SDL2){
+                            getInstance().initSDL2();
+                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoFF_SDL>();
+
+                            return;
+                        }
+                    #endif
+
+                    std::make_unique<libtrainsim::Video::videoGeneric>(getInstance().fallbackWindow, getInstance().fallbackRenderer);
                 }
             }
 
@@ -160,7 +155,7 @@ namespace libtrainsim {
              * 
              * @return VideoBackends the currently used backend
              */
-            static VideoBackends getBackend(){
+            static Video::VideoBackendDefinition getBackend(){
                 return getInstance().currentBackend;
             }
 
@@ -169,7 +164,7 @@ namespace libtrainsim {
              * 
              * @param backend the new backend to be used
              */
-            static void setBackend(VideoBackends backend){
+            static void setBackend(Video::VideoBackendDefinition backend){
                 getInstance().currentBackend = backend;
             }
 
@@ -198,18 +193,18 @@ namespace libtrainsim {
              * 
              * @return VideoBackends the backend to be used by default
              */
-            static VideoBackends getDefaultBackend(){
+            static Video::VideoBackendDefinition getDefaultBackend(){
                 #ifdef HAS_FFMPEG_SUPPORT
                 #ifdef HAS_SDL_SUPPORT
-                return ffmpeg_sdl;
+                return Video::VideoBackends::ffmpeg_SDL2;
                 #endif
                 #endif
                 
                 #ifdef HAS_OPENCV_SUPPORT
-                return opencv;
+                return Video::VideoBackends::openCV;
                 #endif
 
-                return none;
+                return Video::VideoBackends::none;
             }
 
             /**
@@ -243,8 +238,8 @@ namespace libtrainsim {
              */
             static void setCVBackend(cv::VideoCaptureAPIs newBackend){
                 checkBackend_impl();
-                if(getInstance().currentBackend == opencv){
-                    ((backend::videoOpenCV*)getInstance().currentBackend_impl.get())->setBackend(newBackend);
+                if(getInstance().currentBackend == Video::VideoBackends::openCV){
+                    dynamic_cast<Video::videoOpenCV*>(getInstance().currentBackend_impl.get())->setBackend(newBackend);
                 }
             }
 
@@ -255,8 +250,8 @@ namespace libtrainsim {
              */
             static cv::VideoCaptureAPIs getCVBackend(){
                 checkBackend_impl();
-                if(getInstance().currentBackend == opencv){
-                    return ((backend::videoOpenCV*)getInstance().currentBackend_impl.get())->getBackend();
+                if(getInstance().currentBackend == Video::VideoBackends::openCV){
+                    return dynamic_cast<Video::videoOpenCV*>(getInstance().currentBackend_impl.get())->getBackend();
                 }
                 return cv::CAP_ANY;
             }
