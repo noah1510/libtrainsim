@@ -111,6 +111,8 @@ else
     if enable_opencv
         video_deps += opencv_dep
         sources += 'src/backends/openCVFrame.cpp'
+        sources += 'src/backends/openCVRenderer.cpp'
+        sources += 'src/backends/openCVWindowManager.cpp'
         sources += 'src/opencv/backend.cpp'
         message('compiling with opencv enabled')
     endif

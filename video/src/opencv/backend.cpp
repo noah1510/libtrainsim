@@ -13,53 +13,27 @@ videoOpenCV::~videoOpenCV(){
 }
 
 bool videoOpenCV::load(const std::filesystem::path& uri){
-    loadedFile = uri;
-
-    videoCap = std::make_unique<cv::VideoCapture>(loadedFile.string(),backend);
-    if(!videoCap->isOpened()){
-        return false;
-    }
-
-    return true;
+    return renderer.load(uri);
 }
 
 const libtrainsim::Frame videoOpenCV::getNextFrame(){
-    cv::UMat frame;
-    auto status = videoCap->grab();
-    if(!status){
-        return cv::UMat();
-    }
-
-    status = videoCap->retrieve(frame);
-    if (!status){
-        return cv::UMat();
-    }
-    
-    return frame.clone();
+    return renderer.getNextFrame();
 }
 
 double videoOpenCV::getVideoProperty(const cv::VideoCaptureProperties& prop)const{
-    if(videoCap->isOpened()){
-        return videoCap->get(prop);
-    }
-
-    return 0.0f;
+    return renderer.getVideoProperty(prop);
 }
 
 bool videoOpenCV::setVideoProperty(const cv::VideoCaptureProperties& prop, double value){
-     if(videoCap->isOpened()){
-        return videoCap->set(prop,value);
-    }
-
-    return false;
+     return renderer.setVideoProperty(prop, value);
 }
 
 cv::VideoCaptureAPIs videoOpenCV::getBackend(){
-    return backend;
+    return renderer.getBackend();
 }
 
 void videoOpenCV::setBackend(cv::VideoCaptureAPIs newBackend){
-    backend = newBackend;
+    return renderer.setBackend(newBackend);
 }
 
 void videoOpenCV::createWindow(const std::string& windowName){
@@ -87,20 +61,19 @@ void videoOpenCV::displayFrame(const Frame& newFrame){
 }
 
 void videoOpenCV::gotoFrame(uint64_t frameNum){
-    setVideoProperty(cv::CAP_PROP_POS_FRAMES, frameNum);
-    displayFrame(getNextFrame());
+    displayFrame(renderer.gotoFrame(frameNum));
 }
 
 uint64_t videoOpenCV::getFrameCount(){
-    return getVideoProperty(cv::CAP_PROP_FRAME_COUNT);
+    return renderer.getFrameCount();
 }
 
 double videoOpenCV::getHight(){
-    return getVideoProperty(cv::CAP_PROP_FRAME_HEIGHT);
+    return renderer.getHight();
 }
 
 double videoOpenCV::getWidth(){
-    return getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
+    return renderer.getWidth();
 }
 
 #endif
