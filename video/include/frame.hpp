@@ -13,17 +13,8 @@
     #endif
 #endif
 
-#ifdef HAS_SDL_SUPPORT
-    #if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
-        #include <SDL2/SDL.h>
-        #include <SDL2/SDL_thread.h>
-    #else
-        #undef HAS_SDL_SUPPORT
-    #endif
-#endif
-
 #ifdef HAS_FFMPEG_SUPPORT
-    #if defined(HAS_SDL_SUPPORT) && __has_include("libavcodec/avcodec.h") && __has_include("libavutil/imgutils.h") && __has_include("libavformat/avformat.h") && __has_include("libswscale/swscale.h")
+    #if __has_include("libavcodec/avcodec.h") && __has_include("libavutil/imgutils.h") && __has_include("libavformat/avformat.h") && __has_include("libswscale/swscale.h")
         extern "C"{
             #include <libavcodec/avcodec.h>
             #include <libavutil/imgutils.h>
@@ -36,6 +27,47 @@
 #endif
 
 namespace libtrainsim {
+    
+    namespace Video{
+        /**
+         * @brief a list of the available renderer Backends
+         */
+        enum RendererBackends{
+            
+            /// No selected backend
+            renderer_none = 0,
+            
+            #ifdef HAS_OPENCV_SUPPORT
+            /// use opencv as video backend
+            renderer_opencv = 1,
+            #endif
+            
+            #ifdef HAS_FFMPEG_SUPPORT
+            ///use ffmpeg with any found windowing system
+            renderer_ffmpeg = 2,
+            #endif
+        };
+        
+        enum WindowingBackends{
+            /// No selected backend
+            window_none = 0,
+            
+            #ifdef HAS_OPENCV_SUPPORT
+            /// use opencv as video backend
+            window_opencv = 1,
+            #endif
+            
+            #ifdef HAS_SDL_SUPPORT
+            ///use ffmpeg with any found windowing system
+            window_sdl = 2,
+            #endif
+            
+            #ifdef HAS_GLFW_SUPPORT
+            ///use ffmpeg with any found windowing system
+            window_glfw = 3,
+            #endif
+        };
+    }
 
     /**
      * @brief a list of the available video backends.
@@ -59,6 +91,11 @@ namespace libtrainsim {
         ///use ffmpeg with an sdl window as backend
         ffmpeg_sdl = 3,
         #endif
+        
+        #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_GLFW_SUPPORT)
+        ///use ffmpeg with an sdl window as backend
+        ffmpeg_glfw = 4,
+        #endif
     };
 
     /**
@@ -71,7 +108,7 @@ namespace libtrainsim {
              * @brief the video backend used for this frame.
              * 
              */
-            VideoBackends currentBackend = none;
+            Video::RendererBackends currentBackend = Video::renderer_none;
 
             #ifdef HAS_OPENCV_SUPPORT
 
@@ -159,7 +196,7 @@ namespace libtrainsim {
              * 
              * @return VideoBackends the backend of the frame
              */
-            VideoBackends getBackend() const;
+            Video::RendererBackends getBackend() const;
 
             /**
              * @brief Construct an empty frame.
@@ -181,7 +218,7 @@ namespace libtrainsim {
              * @brief set the video backend of an empty frame to the given backend
              * @param newBackend the new backend this frame should have
              */
-            void setBackend(VideoBackends newBackend);
+            void setBackend(Video::RendererBackends newBackend);
 
             bool isEmpty() const;
     };

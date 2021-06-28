@@ -47,11 +47,11 @@ if target_machine.system() == 'emscripten'
     
     #video_deps += ffmpeg_dep
     video_deps += ffmpeg.get_variable('declared_dep')
-    sources += 'src/ffmpeg/frame.cpp'
     sources += 'src/ffmpeg/backend.cpp'
     
     sources += 'src/backends/ffmpegRenderer.cpp'
     sources += 'src/backends/genericWindowManager.cpp'
+    sources += 'src/backends/ffmpegFrame.cpp'
     message('compiling with ffmpeg enabled')
     
 else
@@ -110,7 +110,7 @@ else
     #enable opencv if needed
     if enable_opencv
         video_deps += opencv_dep
-        sources += 'src/opencv/frame.cpp'
+        sources += 'src/backends/openCVFrame.cpp'
         sources += 'src/opencv/backend.cpp'
         message('compiling with opencv enabled')
     endif
@@ -118,9 +118,10 @@ else
     #enable ffmpeg if needed
     if enable_ffmpeg
         video_deps += ffmpeg_dep
-        sources += 'src/ffmpeg/frame.cpp'
         sources += 'src/ffmpeg/backend.cpp'
+        
         sources += 'src/backends/ffmpegRenderer.cpp'
+        sources += 'src/backends/ffmpegFrame.cpp'
         sources += 'src/backends/SDL2WindowManager.cpp'
         message('compiling with ffmpeg enabled')
     endif

@@ -103,7 +103,7 @@ const libtrainsim::Frame ffmpegRenderer::getNextFrame(){
     av_packet_unref(pPacket);
     
     Frame pFrame = Frame();
-    pFrame.setBackend(ffmpeg);
+    pFrame.setBackend(renderer_ffmpeg);
     
     auto ret = av_read_frame(pFormatCtx, pPacket);
     if(ret < 0 || pPacket->stream_index != videoStream){
@@ -178,7 +178,7 @@ libtrainsim::Frame ffmpegRenderer::scaleFrame(const libtrainsim::Frame& frame){
 void ffmpegRenderer::initFrame(libtrainsim::Frame& frame){
     if(pCodecCtx == nullptr || endOfFile){return;};
     
-    frame.setBackend(ffmpeg);
+    frame.setBackend(renderer_ffmpeg);
     av_image_fill_arrays(
         frame.dataFF()->data,
         frame.dataFF()->linesize,

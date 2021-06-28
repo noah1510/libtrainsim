@@ -2,6 +2,16 @@
 
 #include "genericWindowManager.hpp"
 
+#ifdef HAS_SDL_SUPPORT
+    #if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
+        #include <SDL2/SDL.h>
+        #include <SDL2/SDL_thread.h>
+    #else
+        #undef HAS_SDL_SUPPORT
+    #endif
+#endif
+
+
 namespace libtrainsim {
     namespace Video{
         #if defined(HAS_SDL_SUPPORT)

@@ -1,11 +1,12 @@
 #include "frame.hpp"
 
 using namespace libtrainsim;
+using namespace libtrainsim::Video;
 
 #ifdef HAS_FFMPEG_SUPPORT
 
 Frame::Frame(AVFrame* dat){
-    currentBackend = ffmpeg;
+    currentBackend = renderer_ffmpeg;
     frameDataFF = dat;
 }
 
@@ -31,7 +32,7 @@ Frame::operator AVFrame*(){
 }
 
 Frame& Frame::operator=(AVFrame* x){
-    currentBackend = ffmpeg;
+    currentBackend = renderer_ffmpeg;
     if (x == frameDataFF){return *this;};
     if(frameDataFF != nullptr){
         av_frame_free(&frameDataFF);

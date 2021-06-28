@@ -78,7 +78,7 @@ void videoOpenCV::refreshWindow(){
 }
 
 void videoOpenCV::displayFrame(const Frame& newFrame){
-    if (newFrame.getBackend() != libtrainsim::opencv || newFrame.dataCV().empty()){
+    if (newFrame.getBackend() != libtrainsim::Video::renderer_opencv || newFrame.dataCV().empty()){
         return;
     } 
 
