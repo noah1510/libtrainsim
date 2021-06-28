@@ -61,16 +61,6 @@ double openCVRenderer::getWidth(){
     return getVideoProperty(cv::CAP_PROP_FRAME_WIDTH);
 }
 
-libtrainsim::Frame openCVRenderer::scaleFrame(const libtrainsim::Frame& frame){
-    return frame;
-}
-
-void openCVRenderer::initFrame(libtrainsim::Frame& frame){
-    if(endOfFile){return;};
-    
-    frame.setBackend(renderer_opencv);
-}
-
 double openCVRenderer::getVideoProperty(const cv::VideoCaptureProperties& prop)const{
     if(videoCap->isOpened()){
         return videoCap->get(prop);

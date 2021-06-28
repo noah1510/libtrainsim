@@ -41,7 +41,7 @@ bool libtrainsim::Video::genericRenderer::reachedEndOfFile() {
 }
 
 libtrainsim::Frame libtrainsim::Video::genericRenderer::scaleFrame(const libtrainsim::Frame& frame){
-    return Frame();
+    return frame;
 }
 
 void libtrainsim::Video::genericRenderer::initFrame(libtrainsim::Frame& frame){

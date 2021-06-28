@@ -80,9 +80,6 @@ namespace libtrainsim {
                 * @return const libtrainsim::Frame The next frame of the video
                 */
                 const libtrainsim::Frame getNextFrame();
-                
-                libtrainsim::Frame scaleFrame(const libtrainsim::Frame& frame);
-                void initFrame(libtrainsim::Frame& frame);
             };
         
         #endif
