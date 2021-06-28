@@ -1,4 +1,4 @@
-#include "backends/generic.hpp"
+#include "generic.hpp"
 
 using namespace libtrainsim::backend;
 
@@ -6,54 +6,36 @@ videoGeneric::~videoGeneric(){
     
 }
 
+videoGeneric::videoGeneric(libtrainsim::Video::genericWindowManager& _window, libtrainsim::Video::genericRenderer& _renderer):renderer{_renderer},window{_window}{};
+
 bool videoGeneric::load(const std::filesystem::path& uri){
-    loadedFile = uri;
-
-    return true;
+    return renderer.load(uri);
 }
-
-const libtrainsim::Frame videoGeneric::getNextFrame(){    
-    return Frame();
-}
-
 
 void videoGeneric::createWindow(const std::string& windowName){
-    if(currentWindowName != "" || windowName == ""){
-        return;
-    }
-
-    currentWindowName = windowName;
+    window.createWindow(windowName);
 }
 
 void videoGeneric::refreshWindow(){
-    if(currentWindowName != ""){std::cout << "refreshing the window" << std::endl;};
-}
-
-void videoGeneric::displayFrame(const Frame& newFrame){
-    if (newFrame.isEmpty()){
-        return;
-    }
-
-    lastFrame = newFrame;
-    refreshWindow();
+    window.refreshWindow();
 }
 
 uint64_t videoGeneric::getFrameCount(){
-    return 0;
+    return renderer.getFrameCount();
 }
 
 void videoGeneric::gotoFrame(uint64_t frameNum){
-    return;
+    return window.gotoFrame(frameNum);
 }
 
 double videoGeneric::getHight(){
-    return 0.0;
+    return renderer.getHight();
 }
 
 double videoGeneric::getWidth(){
-    return 0.0;
+    return renderer.getWidth();
 }
 
 const std::filesystem::path& videoGeneric::getLoadedFile() const{
-    return loadedFile;
+    return renderer.getLoadedFile();
 }

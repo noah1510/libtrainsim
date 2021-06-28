@@ -16,7 +16,7 @@ namespace libtrainsim{
             private:
                 libtrainsim::Video::ffmpegRenderer rendererFF{};
                 
-                libtrainsim::Video::SDL2WindowManager window;
+                libtrainsim::Video::SDL2WindowManager windowSDL{rendererFF};
 
             public:
 
@@ -27,16 +27,6 @@ namespace libtrainsim{
                 * 
                 */
                 ~videoFF_SDL();
-
-                //The functions below are just reimplemented from video_generic
-
-                bool load(const std::filesystem::path& uri);
-                void createWindow(const std::string& windowName);
-                void refreshWindow();
-                void gotoFrame(uint64_t frameNum);
-                uint64_t getFrameCount();
-                double getHight();
-                double getWidth();
 
         };
 

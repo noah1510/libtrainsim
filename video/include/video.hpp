@@ -5,7 +5,7 @@
 #include <filesystem>
 
 #include "frame.hpp"
-#include "backends/generic.hpp"
+#include "generic.hpp"
 
 #ifdef HAS_OPENCV_SUPPORT
 #include "backends/opencv.hpp"
@@ -87,11 +87,14 @@ namespace libtrainsim {
              */
             std::string windowName = "trainsim";
             
+            libtrainsim::Video::genericRenderer fallbackRenderer{};
+            libtrainsim::Video::genericWindowManager fallbackWindow{fallbackRenderer};
+            
             static void checkBackend_impl(){
                 if(getInstance().currentBackend_impl == nullptr){
                     switch(getInstance().currentBackend){
                         case(none):
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::backend::videoGeneric>();
+                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::backend::videoGeneric>(getInstance().fallbackWindow, getInstance().fallbackRenderer);
                             break;
                         #ifdef HAS_OPENCV_SUPPORT
                         case(opencv):

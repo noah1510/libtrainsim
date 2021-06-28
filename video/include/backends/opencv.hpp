@@ -6,6 +6,7 @@
 #include <string>
 
 #include "openCVRenderer.hpp"
+#include "openCVWindowManager.hpp"
 
 namespace libtrainsim{
     namespace backend{
@@ -13,11 +14,12 @@ namespace libtrainsim{
         class videoOpenCV : public videoGeneric{
             private:
                 
-                libtrainsim::Video::openCVRenderer renderer;
-            protected:
-                void displayFrame(const Frame& newFrame);
-                const libtrainsim::Frame getNextFrame();
+                libtrainsim::Video::openCVRenderer rendererCV{};
+                
+                libtrainsim::Video::openCVWindowManager windowCV{rendererCV};
             public:
+                
+                videoOpenCV();
 
                 /**
                 * @brief Destroy the video OpenCV object
@@ -56,16 +58,6 @@ namespace libtrainsim{
                 * @return cv::VideoCaptureAPIs the video capture backend
                 */
                 cv::VideoCaptureAPIs getBackend();
-
-                //The functions below are just reimplemented from video_generic
-
-                bool load(const std::filesystem::path& uri);
-                void createWindow(const std::string& windowName);
-                void refreshWindow();
-                void gotoFrame(uint64_t frameNum);
-                uint64_t getFrameCount();
-                double getHight();
-                double getWidth();
 
         };
 
