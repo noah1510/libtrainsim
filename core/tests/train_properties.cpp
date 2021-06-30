@@ -21,8 +21,7 @@ TEST_CASE( "Checking if load track works with valid input", "[vector]" ) {
     const libtrainsim::core::train_properties dat{"../core/tests/data/test_train_data_1.json"};
     REQUIRE(dat.isValid());
     REQUIRE(dat.getName() == "DB-Baureihe 423/433");
-    REQUIRE(dat.getMaxVelocity() == 140_kmph);
-    REQUIRE(dat.getMaxAcceleration() == 1_mps2);
+    //@TODO Kraft reinhauen
+
     REQUIRE(dat.getMass() == 119400_kg);
 };
-

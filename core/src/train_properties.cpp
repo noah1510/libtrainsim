@@ -35,7 +35,7 @@ train_properties::train_properties(const std::filesystem::path& URI){
 
 train_properties::train_properties(const json& data){
     data_json = data;
-    
+
     loadJsonData();
 }
 
@@ -43,7 +43,7 @@ void train_properties::loadJsonData(){
     if(!data_json.is_object()){
         return;
     }
-    
+
     auto _dat = data_json["formatVersion"];
     if(!_dat.empty() && _dat.is_string()){
         version ver = _dat.get<std::string>();
@@ -53,21 +53,21 @@ void train_properties::loadJsonData(){
             return;
         };
     };
-    
+
     _dat = data_json["name"];
     if(!_dat.is_string()){
         std::cerr << "name is not a string" << std::endl;
         return;
     }
     name = _dat.get<std::string>();
-    
+
     _dat = data_json["mass"];
     if(!_dat.is_number_float()){
         std::cerr << "mass is not a float" << std::endl;
         return;
     }
     mass = base::mass{_dat.get<double>()};
-    
+/*
     long double velocityUnit = 1.0;
     _dat = data_json["velocityUnit"];
     if(!_dat.empty() && _dat.is_string()){
@@ -76,31 +76,32 @@ void train_properties::loadJsonData(){
             velocityUnit = 1000.0/(60.0*60.0);
         }
     }
-    
+
     _dat = data_json["maxVelocity"];
     if(!_dat.is_number_float()){
         std::cerr << "maxVelocity is not a float" << std::endl;
         return;
     }
     max_velocity = speed{_dat.get<double>(), velocityUnit};
-    
+
     _dat = data_json["maxAcceleration"];
     if(!_dat.is_number_float()){
         std::cerr << "maxAcceleration is not a float" << std::endl;
         return;
     }
+
     max_acceleration = acceleration{_dat.get<double>()};
-    
+*/
     _dat = data_json["trackDrag"];
     if(!_dat.empty() && _dat.is_number_float()){
         track_drag = _dat.get<double>();
     }
-    
+
     _dat = data_json["airDrag"];
     if(!_dat.empty() && _dat.is_number_float()){
         air_drag = _dat.get<double>();
     }
-    
+
     hasError = false;
 }
 
@@ -125,6 +126,7 @@ const std::string& train_properties::getName() const{
     return name;
 }
 
+/*
 speed train_properties::getMaxVelocity() const{
     return max_velocity;
 }
@@ -132,6 +134,7 @@ speed train_properties::getMaxVelocity() const{
 acceleration train_properties::getMaxAcceleration() const{
     return max_acceleration;
 }
+*/
 
 base::mass train_properties::getMass() const{
     return mass;

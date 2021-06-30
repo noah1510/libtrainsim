@@ -2,7 +2,6 @@
     "name":"Alstom Coradia Continental 440.1",
     "mass":176000.0,
     "maxVelocity":160.0,
-    "maxAcceleration":1.0,
     "velocityUnit":"kmh",
     "formatVersion":"10.4.0"
 }

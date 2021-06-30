@@ -8,6 +8,7 @@
 
 #include "track_configuration.hpp"
 #include "types.hpp"
+#include "input_axis.hpp"
 
 #include "common.hpp"
 
@@ -29,11 +30,15 @@ namespace libtrainsim{
 
             sakurajin::unit_system::common::force traction;
 
+            sakurajin::unit_system::common::force currTraction;
+
             sakurajin::unit_system::common::force maxforce;
 
-            long double air_drag;
+            long double speedlevel = 0.0;
 
-            long double track_drag;
+            long double air_drag = 0.0;
+
+            long double track_drag = 0.0;
 
             const libtrainsim::core::Track config;
 
@@ -54,7 +59,7 @@ namespace libtrainsim{
 
             void setAcelleration(sakurajin::unit_system::common::acceleration acc);
 
-            void setSpeedlevel(long double slvl);
+            void setSpeedlevel(core::input_axis slvl);
 
 
             sakurajin::unit_system::common::speed getVelocity();
@@ -68,7 +73,7 @@ namespace libtrainsim{
             * @brief
             * Trainpower is set by player input. It will replace setting the accelleration by input from player
             */
-            
+
             //void setTrainPower(sakurajin::unit_system::common::power pow);
 
             //void SetMass(sakurajin::unit_system::base mass);
@@ -77,7 +82,7 @@ namespace libtrainsim{
 
             sakurajin::unit_system::common::force getTraction();
 
-            sakurajin::unit_system::common::force calcMaxForce(base::mass mass, common::acceleration g, long double track_drag)const;
+            sakurajin::unit_system::common::force calcMaxForce(sakurajin::unit_system::base::mass mass, sakurajin::unit_system::common::acceleration g, long double track_drag)const;
 
             sakurajin::unit_system::common::force setDrag();
 
@@ -87,7 +92,8 @@ namespace libtrainsim{
 
             sakurajin::unit_system::common::force clampForce(sakurajin::unit_system::common::force currentTraction) const;
 
-            sakurajin::unit_system::common::power clampPower(sakurajin::currentVelocity::common::power currentPower) const;
+            sakurajin::unit_system::common::power clampPower(sakurajin::unit_system::common::power currentPower) const;
+
 
 
 

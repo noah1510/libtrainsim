@@ -45,6 +45,12 @@ void physics::setAcelleration(common::acceleration acc){
     std::scoped_lock<std::shared_mutex> lock(mutex_data);
     acelleration = config.train().clampAcceleration(acc);
 }*/
+void physics::setSpeedlevel(core::input_axis slvl){
+    tick();
+    std::scoped_lock<std::shared_mutex> lock(mutex_data);
+    speedlevel = slvl.get();
+}
+
 /*
 void physics::setMass(base::mass mass){
     //get the Trainmass from Train_data.json
@@ -88,7 +94,7 @@ void physics::tick(){
     auto mass = config.train().getMass();
     auto track_drag = config.train().getTrackDrag();
 
-    auto MaxForce = calcMaxForce(mass,g,track_drag) ;
+    auto MaxForce = calcMaxForce(mass,1_G,track_drag) ;
 
     ///@Todo improve calculation by considering drag.
     ///@Todo calculation of acceleration by power of Train)
@@ -103,11 +109,11 @@ void physics::tick(){
 
 
 
-    if(abs(velocity) < 0.07 mps) {
-      velocity = 0.0 mps;
+    if(abs(velocity) < 0.07_mps) {
+      velocity = 0.0_mps;
     }
 
-    if (velocity == 0) {
+    if (velocity == 0_mps) {
       common::force currTraction = MaxForce;
     } else {
       common::force currTraction = trainpower/velocity;
@@ -117,7 +123,7 @@ void physics::tick(){
       currTraction = MaxForce;
     }
 
-    accelleration = currTraction/mass;
+    acelleration = currTraction/mass;
     velocity += acelleration * dt;
     location += velocity * dt + 0.5 * (acelleration * dt * dt);
 
