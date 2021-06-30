@@ -1,40 +1,36 @@
 #include "frame.hpp"
 
 using namespace libtrainsim;
+using namespace libtrainsim::Video;
 
 Frame::Frame(){};
 
-VideoBackends Frame::getBackend() const{
+RendererBackends Frame::getBackend() const{
     return currentBackend;
 }
 
 bool Frame::isEmpty() const {
     switch (currentBackend){
         #ifdef HAS_FFMPEG_SUPPORT
-            case(ffmpeg):
-            case(ffmpeg_sdl):
+            case(renderer_ffmpeg):
                 return frameDataFF==nullptr;
         #endif
         #ifdef HAS_OPENCV_SUPPORT
-            case(opencv):
+            case(renderer_opencv):
                 return frameDataCV.empty();
         #endif // HAS_OPENCV_SUPPORT
 
-        case(none):
+        case(renderer_none):
         default:
             return true;
     }
 }
 
-void Frame::setBackend ( VideoBackends newBackend ) {
-    if(currentBackend == none){
+void Frame::setBackend ( RendererBackends newBackend ) {
+    if(currentBackend == renderer_none){
         #ifdef HAS_FFMPEG_SUPPORT
-        if (newBackend == ffmpeg){
+        if (newBackend == renderer_ffmpeg){
             createEmptyFF();
-        }else{
-            #ifdef HAS_SDL_SUPPORT
-            if(newBackend == ffmpeg_sdl){createEmptyFF();};
-            #endif
         }
         #endif
         currentBackend = newBackend;
@@ -46,25 +42,19 @@ Frame::~Frame(){
 }
 
 void Frame::clear(){
-    if(currentBackend == none){return;};
+    if(currentBackend == renderer_none){return;};
     
     #ifdef HAS_OPENCV_SUPPORT
-    if(currentBackend == opencv){
+    if(currentBackend == renderer_opencv){
         clearCV();
         return;
     }
     #endif
     
     #ifdef HAS_FFMPEG_SUPPORT
-    if(currentBackend == ffmpeg){
+    if(currentBackend == renderer_ffmpeg){
         clearFF();
         return;
     }
-    #ifdef HAS_SDL_SUPPORT
-    if(currentBackend == ffmpeg_sdl){
-        clearFF();
-        return;
-    }
-    #endif
     #endif
 }

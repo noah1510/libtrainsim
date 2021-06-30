@@ -4,8 +4,11 @@
 #include <chrono>
 #include <thread>
 #include <memory>
+
 #include "types.hpp"
 #include "libtrainsim_config.hpp"
+#include "input_axis.hpp"
+#include "keymap.hpp"
 
 #ifdef HAS_VIDEO_SUPPORT
     #if __has_include("video.hpp")
@@ -16,126 +19,88 @@
 #endif
 
 namespace libtrainsim {
+    
     /**
-     * @brief this class provides an interface to control the train easily independent of the used windowsing system.
-     * @warning this interface is only really useful is you use libtrainsim::video to handle window management otherwise it is not possible to retrieve the currently pressed keys.
-     * @todo implment input from (analog) hardware controls.
+     * @brief This namespace has all of the control related functions.
+     * At the moment these are the input_handler and the keymap.
+     * 
      */
-    class control{
-        private:
-            /**
-             * @brief Construct a new control object
-             * 
-             */
-            control(void);
+    namespace control{
+        /**
+        * @brief this class provides an interface to control the train easily independent of the used windowsing system.
+        * The following Key functions are defined:
+        *
+        *   * NONE -> Does nothing
+        *   * CLOSE -> indicates that the windows chould close and the program should end
+        *   * OTHER -> some other random event
+        *   * BREAK -> indicates the train should break
+        *   * ACCELERATE -> indicates the train should accelerate
+        *
+        * Using the Keymap() function you can get a reference to the keymap of the input_handler and register addtional keys and functions,
+        * that can be handled by an implementation of the simulator.
+        *
+        * @warning this interface is only really useful is you use libtrainsim::video to handle window management otherwise
+        * it is not possible to retrieve the currently pressed keys. You can use this a a base to implement you own input_handler
+        * if you some other window management.
+        * @todo implment input from (analog) hardware controls.
+        */
+        class input_handler{
+            private:
+                /**
+                 * @brief the keymap used for the input_handler module
+                 * 
+                 */
+                control::keymap keys;
 
-            /**
-             * @brief Get the Instance of this singleton
-             * 
-             * @return control& a reference to the single instance
-             */
-            static control& getInstance(){
-                static control instance;
-                return instance;
-            };
-
-            ///the implementation of hello()
-            std::string hello_impl() const;
-
-        public:
-            /**
-             * @brief return a string to test if the singleton works correctly
-             * 
-             * @return std::string the starting message
-             */
-            static std::string hello(){
-                return getInstance().hello_impl();
-            }
-
-            /**
-             * @brief check if a specific key is pressed
-             * 
-             * @param Key the key to check
-             * @return true the key is pressed
-             * @return false the key is not pressed
-             */
-            static bool isKeyPressed(char Key){
-                return getKey() == Key;
-            }
-
-            /**
-             * @brief Get the Key that is currently pressed
-             * 
-             * @return char the key that is pressed
-             */
-            static char getKey(){
-                #ifdef HAS_VIDEO_SUPPORT
+            public:
+                /**
+                * @brief Construct a new input_handler object.
+                * By default w accelerates, s breaks and ESC closes the program.
+                * 
+                */
+                input_handler();
                 
-                switch(libtrainsim::video::getBackend()){
-                    #ifdef HAS_OPENCV_SUPPORT
-                    case(opencv):
-                        return cv::waitKey(1);
-                    #endif
-                    #ifdef HAS_SDL_SUPPORT
-                    #ifdef HAS_FFMPEG_SUPPORT
-                    case(ffmpeg):
-                    case(ffmpeg_sdl):
-                        SDL_Event event;
-                        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                        SDL_PollEvent(&event);
-                        if(event.type == SDL_QUIT){return core::KEY_ESCAPE;};
-                        if(event.type == SDL_KEYDOWN){return event.key.keysym.sym;};
-                        break;
-                    #endif // HAS_FFMPEG_SUPPORT
-                    #endif
-                    case(none):
-                    default:
-                        break;
-                }
-                #endif
+                /**
+                * @brief return a string to test if the singleton works correctly
+                * 
+                * @return std::string the starting message
+                */
+                std::string hello() const;
+
+                /**
+                 * @brief Get the function of the currently pressed key.
+                 * 
+                 * @return std::string the function that should be performed.
+                 */
+                std::string getKeyFunction();
                 
-                return '\0';
-            }
-
-            /**
-             * @brief Get the action that is currently performed.
-             * 
-             * @return core::actions the current action
-             */
-            static core::actions getCurrentAction(){
-                switch(getKey()){
-                    case(core::KEY_ESCAPE):
-                        return core::ACTION_CLOSE;
-                    case(core::KEY_ACCELERATE):
-                        return core::ACTION_ACCELERATE;
-                    case(core::KEY_BREAK):
-                        return core::ACTION_BREAK;
-                    case('\0'):
-                        return core::ACTION_NONE;
-                    default:
-                        return core::ACTION_OTHER;       
-                }
-
-                return core::ACTION_NONE;
-            }
-
-            /**
-             * @brief This function returns the acelleration on a scale from -1.0 to 1.0.
-             * @note at the moment there is no support for any analog input so it is either 1.0 or -1.0.
-             * @return double the amount of acceleration between -1.0 and 1.0 
-             */
-            static double getScaledAcceleration(){
-                //if there is harware input return the scaled acceleration
-                #ifdef HAS_HW_INPUT_SUPPORT
-
-                #endif
-
-                auto action = getCurrentAction();
-                if (action == core::ACTION_ACCELERATE){return 1.0;};
-                if (action == core::ACTION_BREAK){return -1.0;};
-
-                return 0.0;
-            }
-    };
+                /**
+                 * @brief access the internal keymap to change the input configuration.
+                 * @note the keymap is only useful for keyboard input
+                 * 
+                 * @return keymap& a reference to the internal keymap
+                 */
+                keymap& Keymap();
+                
+                /**
+                * @brief Get the action that is currently performed.
+                * @deprecated use the getKeyFunction() function since this will be removed in a future version.
+                * 
+                * @return core::actions the current action
+                */
+                core::actions getCurrentAction();
+                
+                /**
+                 * @brief Get the Speed Axis of the current input.
+                 * If a keyboard is used, the value will be -1.0, 0.0 or 1.0.
+                 * Hardware controls can provide any value between -1.0 and 1.0.
+                 * This input axis can be passed directly to the physics component.
+                 * 
+                 * @todo implement the step by step increments that the simulator does in this function for keyboard inputs.
+                 * @return core::input_axis The input axis which desribes how much the train should accelerate/break.
+                 */
+                core::input_axis getSpeedAxis();
+        };
+    }
 }
 

@@ -1,32 +1,45 @@
 #pragma once
 
-#include "genericBackend.hpp"
 #include "frame.hpp"
+#include "genericRenderer.hpp"
+
 #include <filesystem>
 #include <string>
 
-#include "openCVRenderer.hpp"
-#include "openCVWindowManager.hpp"
-
-namespace libtrainsim{
+namespace libtrainsim {
     namespace Video{
-        #ifdef HAS_OPENCV_SUPPORT
-        class videoOpenCV : public videoGeneric{
+        #if defined(HAS_OPENCV_SUPPORT)
+        
+            class openCVRenderer : public genericRenderer{
             private:
-                
-                openCVRenderer rendererCV{};
-                
-                openCVWindowManager windowCV{rendererCV};
-            public:
-                
-                videoOpenCV();
-
                 /**
-                * @brief Destroy the video OpenCV object
+                * @brief This variable saves the state of the video capture device aka the video that is rendered.
                 * 
                 */
-                ~videoOpenCV();
+                std::unique_ptr<cv::VideoCapture> videoCap;
 
+                ///the backend for the video capture class.
+                cv::VideoCaptureAPIs backend = cv::CAP_ANY;
+                
+            protected:
+                
+            public:
+                
+                /**
+                * @brief Destroy the video FF_SDL object
+                * 
+                */
+                ~openCVRenderer();
+
+                //The functions below are just reimplemented from video_generic
+
+                bool load(const std::filesystem::path& uri);
+                const libtrainsim::Frame gotoFrame(uint64_t frameNum);
+                uint64_t getFrameCount();
+                double getHight();
+                double getWidth();
+                
+                
                 /**
                 * @brief Get a property of the internal videoCapture object.
                 * @note Reading / writing properties involves many layers. Some unexpected result might happens along this chain. See cv::VideoCapture::get() for more information.
@@ -58,10 +71,18 @@ namespace libtrainsim{
                 * @return cv::VideoCaptureAPIs the video capture backend
                 */
                 cv::VideoCaptureAPIs getBackend();
-
-        };
-
+                
+                /**
+                * @brief Retrieve the next frame to display it.
+                * If no video is loaded or there is no new frame, an empty frame will be returned.
+                * You should check the returned frame with the method .empty(), which will return true if the frame is empty.
+                *
+                * @return const libtrainsim::Frame The next frame of the video
+                */
+                const libtrainsim::Frame getNextFrame();
+            };
+        
         #endif
-
     }
 }
+

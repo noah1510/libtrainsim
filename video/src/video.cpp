@@ -2,12 +2,13 @@
 #include <iostream>
 #include <memory>
 
-libtrainsim::video::video(VideoBackends backend){
-    currentBackend = backend;
-    #ifdef HAS_SDL_SUPPORT
-        SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
-    #endif
+libtrainsim::video::video(libtrainsim::Video::VideoBackendDefinition backend):currentBackend{backend}{}
+
+#ifdef HAS_SDL_SUPPORT
+void libtrainsim::video::initSDL2(){
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
 }
+#endif
 
 std::string libtrainsim::video::hello_impl() const{
     return "Hello from the video singleton";
@@ -17,13 +18,13 @@ void libtrainsim::video::reset(){
     currentBackend_impl = nullptr;
     
     #ifdef HAS_OPENCV_SUPPORT
-    if (currentBackend == opencv){
+    if (currentBackend == libtrainsim::Video::VideoBackends::openCV){
         cv::destroyAllWindows();
     }
     #endif
     
-    #ifdef HAS_FFMPEG_SUPPORT
-    if(currentBackend == ffmpeg_sdl){
+    #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
+    if(currentBackend == libtrainsim::Video::VideoBackends::ffmpeg_SDL2){
         SDL_Quit();
     }
     #endif

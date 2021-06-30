@@ -2,6 +2,7 @@ cc = meson.get_compiler('cpp')
 
 sources = [
     'src/control.cpp',
+    'src/keymap.cpp',
 ]
 
 incdir = include_directories('include','..')

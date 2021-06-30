@@ -1,16 +1,17 @@
 #include "frame.hpp"
 
 using namespace libtrainsim;
+using namespace libtrainsim::Video;
 
 #ifdef HAS_OPENCV_SUPPORT
 
 Frame::Frame(const cv::UMat& frameDat){
-    currentBackend = opencv;
+    currentBackend = renderer_opencv;
     frameDataCV = frameDat;
 }
 
 cv::UMat Frame::dataCV() const{
-    if(currentBackend != opencv){
+    if(currentBackend != renderer_opencv){
         return cv::UMat();
     }
 

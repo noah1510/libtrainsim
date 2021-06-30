@@ -5,6 +5,7 @@ sources = [
     'src/train_properties.cpp',
     'src/track_configuration.cpp',
     'src/types.cpp',
+    'src/input_axis.cpp',
 ]
 
 incdir = include_directories('include','..')
