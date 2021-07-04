@@ -101,26 +101,31 @@ void physics::tick(){
     ///@Todo Fahrstufen mit clamp von -1,0 bis 1,0
     //Bremsvorgang implementieren mit Fahrstufen schalter
     //airdrag miteinarbeiten
-    //Speedlevelclamp in Trainproperties.cpp
     //Bremsen
     //Traction noch genauer beschreiben/ Traktion ist noch nicht definieren
     //doxygen dokumentation für bericht unter doxygen.nl
 
 
+    currPower = speedlevel*trainpower;
+    if (speedlevel >= 0)
+    {
 
+      if(abs(velocity) < 0.07_mps) {
+        velocity = 0.0_mps;
+      }
 
-    if(abs(velocity) < 0.07_mps) {
-      velocity = 0.0_mps;
-    }
+      if (velocity == 0_mps) {
+        common::force currTraction = MaxForce;
+      } else {
+        common::force currTraction = currPower/velocity;
+      }
 
-    if (velocity == 0_mps) {
-      common::force currTraction = MaxForce;
-    } else {
-      common::force currTraction = trainpower/velocity;
-    }
-
-    if (currTraction >  MaxForce) {
-      currTraction = MaxForce;
+      if (currTraction >  MaxForce) {
+        currTraction = MaxForce;
+      }
+    }else
+    {
+      currTraction = speedlevel*MaxForce;
     }
 
     acelleration = currTraction/mass;

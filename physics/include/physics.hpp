@@ -34,6 +34,8 @@ namespace libtrainsim{
 
             sakurajin::unit_system::common::force maxforce;
 
+            sakurajin::unit_system::common::power currPower;
+            
             long double speedlevel = 0.0;
 
             long double air_drag = 0.0;
