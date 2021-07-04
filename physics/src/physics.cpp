@@ -97,8 +97,6 @@ void physics::tick(){
     auto MaxForce = calcMaxForce(mass,1_G,track_drag) ;
 
     ///@Todo improve calculation by considering drag.
-    ///@Todo calculation of acceleration by power of Train)
-    ///@Todo Fahrstufen mit clamp von -1,0 bis 1,0
     //Bremsvorgang implementieren mit Fahrstufen schalter
     //airdrag miteinarbeiten
     //Bremsen
@@ -115,9 +113,9 @@ void physics::tick(){
       }
 
       if (velocity == 0_mps) {
-        common::force currTraction = MaxForce;
+        currTraction = MaxForce;
       } else {
-        common::force currTraction = currPower/velocity;
+        currTraction = currPower/velocity;
       }
 
       if (currTraction >  MaxForce) {
