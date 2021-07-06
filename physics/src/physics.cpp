@@ -105,7 +105,7 @@ void physics::tick(){
 
 
     currPower = speedlevel*trainpower;
-    if (speedlevel >= 0)
+    if (speedlevel >= 0.0)
     {
 
       if(abs(velocity) < 0.07_mps) {

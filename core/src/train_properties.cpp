@@ -92,6 +92,14 @@ void train_properties::loadJsonData(){
 
     max_acceleration = acceleration{_dat.get<double>()};
 */
+    _dat = data_json["maxPower"];
+    if(!_dat.is_number_float()){
+        std::cerr << "Power is not a float" << std::endl;
+        return;
+    }
+    maxPower = common::power{_dat.get<double>()};
+    
+
     _dat = data_json["trackDrag"];
     if(!_dat.empty() && _dat.is_number_float()){
         track_drag = _dat.get<double>();
