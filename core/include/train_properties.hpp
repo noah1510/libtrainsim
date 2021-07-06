@@ -62,7 +62,7 @@ namespace libtrainsim {
             sakurajin::unit_system::base::mass mass;
 
             sakurajin::unit_system::common::power maxPower;
-            
+
 
             /**
              * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
@@ -146,7 +146,7 @@ namespace libtrainsim {
              * @brief The maximum of Power in W the Train can have.
              */
 
-            sakurajin::unit_system::common::power getPower() const;
+            sakurajin::unit_system::common::power getMaxPower() const;
 
 
             /**

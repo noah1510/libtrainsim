@@ -98,7 +98,7 @@ void train_properties::loadJsonData(){
         return;
     }
     maxPower = common::power{_dat.get<double>()};
-    
+
 
     _dat = data_json["trackDrag"];
     if(!_dat.empty() && _dat.is_number_float()){
@@ -146,6 +146,10 @@ acceleration train_properties::getMaxAcceleration() const{
 
 base::mass train_properties::getMass() const{
     return mass;
+}
+
+common::power train_properties::getMaxPower() const{
+    return maxPower;
 }
 
 long double train_properties::getAirDrag() const{

@@ -94,7 +94,10 @@ void physics::tick(){
     auto mass = config.train().getMass();
     auto track_drag = config.train().getTrackDrag();
 
-    auto MaxForce = calcMaxForce(mass,1_G,track_drag) ;
+    auto MaxForce = calcMaxForce(mass,1_G,track_drag);
+
+    auto MaxPower = config.train().getMaxPower();
+
 
     ///@Todo improve calculation by considering drag.
     //Bremsvorgang implementieren mit Fahrstufen schalter
@@ -104,9 +107,15 @@ void physics::tick(){
     //doxygen dokumentation für bericht unter doxygen.nl
 
 
-    currPower = speedlevel*trainpower;
+    currPower = speedlevel*MaxPower;
+
     if (speedlevel >= 0.0)
     {
+      if (abs(velocity) < 0.007_mps){
+        currTraction = MaxForce;
+      }else{
+        currTraction = currPower/velocity;
+      }
 
       if(abs(velocity) < 0.07_mps) {
         velocity = 0.0_mps;
