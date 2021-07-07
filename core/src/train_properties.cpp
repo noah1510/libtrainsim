@@ -92,12 +92,24 @@ void train_properties::loadJsonData(){
 
     max_acceleration = acceleration{_dat.get<double>()};
 */
+    long double powerUnit = 1.0;
+    _dat = data_json["powerUnit"];
+    if(!_dat.empty() && _dat.is_string()){
+        auto unit = _dat.get<std::string>();
+        if(unit == "kW"){
+            powerUnit = 1000.0;
+        }
+    }
+
     _dat = data_json["maxPower"];
     if(!_dat.is_number_float()){
         std::cerr << "Power is not a float" << std::endl;
         return;
     }
-    maxPower = common::power{_dat.get<double>()};
+
+    maxPower = common::power{_dat.get<double>(),powerUnit};
+
+
 
 
     _dat = data_json["trackDrag"];
