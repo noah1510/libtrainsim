@@ -117,16 +117,6 @@ void physics::tick(){
         currTraction = currPower/velocity;
       }
 
-      if(abs(velocity) < 0.07_mps) {
-        velocity = 0.0_mps;
-      }
-
-      if (velocity == 0_mps) {
-        currTraction = MaxForce;
-      } else {
-        currTraction = currPower/velocity;
-      }
-
       if (currTraction >  MaxForce) {
         currTraction = MaxForce;
       }
