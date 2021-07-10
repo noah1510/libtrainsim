@@ -77,7 +77,7 @@ namespace libtrainsim{
             * @brief
             * Trainpower is set by player input. It will replace setting the accelleration by input from player
             */
-
+            sakurajin::unit_system::common::acceleration getAcceleration();
             //void setTrainPower(sakurajin::unit_system::common::power pow);
 
             //void SetMass(sakurajin::unit_system::base mass);

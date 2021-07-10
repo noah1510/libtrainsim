@@ -39,6 +39,12 @@ base::length physics::getLocation(){
     std::shared_lock<std::shared_mutex> lock(mutex_data);
     return location;
 }
+
+common::acceleration physics::getAcceleration(){
+    if(autoTick){tick();};
+      std::shared_lock<std::shared_mutex> lock(mutex_data);
+      return acceleration;
+}
 /*
 void physics::setAcelleration(common::acceleration acc){
     tick();
