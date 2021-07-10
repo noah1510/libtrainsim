@@ -18,7 +18,7 @@ namespace libtrainsim{
 
             std::shared_mutex mutex_data;
 
-            sakurajin::unit_system::common::acceleration acelleration;
+            sakurajin::unit_system::common::acceleration acceleration;
 
             sakurajin::unit_system::common::speed velocity;
 
@@ -86,7 +86,7 @@ namespace libtrainsim{
 
             sakurajin::unit_system::common::force getTraction();
 
-            
+
 
             sakurajin::unit_system::common::force calcMaxForce(sakurajin::unit_system::base::mass mass, sakurajin::unit_system::common::acceleration g, long double track_drag)const;
 

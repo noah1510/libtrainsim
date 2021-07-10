@@ -13,7 +13,7 @@ physics::physics(const Track& conf, bool _autoTick):config(conf),autoTick(_autoT
     std::scoped_lock<std::shared_mutex> lock1(mutex_data);
     velocity = 0.0_mps;
     location = config.firstLocation();
-    acelleration = 0.0_mps2;
+    acceleration = 0.0_mps2;
 
 
 
@@ -126,9 +126,9 @@ void physics::tick(){
       currTraction = speedlevel*MaxForce;
     }
 
-    acelleration = currTraction/mass;
-    velocity += acelleration * dt;
-    location += velocity * dt + 0.5 * (acelleration * dt * dt);
+    acceleration = currTraction/mass;
+    velocity += acceleration * dt;
+    location += velocity * dt + 0.5 * (acceleration * dt * dt);
 
     location = clamp(location, config.firstLocation(),config.lastLocation());
     velocity = clamp(velocity,0_mps,85_mps);
