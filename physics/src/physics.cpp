@@ -116,6 +116,10 @@ void physics::tick(){
 
     currPower = speedlevel*MaxPower;
 
+    if (abs(velocity) < 0.007_mps && speedlevel == 0.0){
+      velocity = 0.0_mps;
+    }
+
     if (speedlevel >= 0.0)
     {
       if (abs(velocity) < 0.007_mps){
