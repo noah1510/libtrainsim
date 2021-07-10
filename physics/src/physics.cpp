@@ -130,6 +130,10 @@ void physics::tick(){
       }
     }else if (speedlevel < 0.0){
       currTraction = speedlevel*MaxForce;
+    }else if (speedlevel == 0.0){
+        if (velocity > 0.0_mps){
+          currTraction = currPower/velocity;
+        }
     }
 
     acceleration = currTraction/mass;
