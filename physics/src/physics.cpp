@@ -106,21 +106,18 @@ void physics::tick(){
 
 
     ///@Todo improve calculation by considering drag.
-    //Bremsvorgang implementieren mit Fahrstufen schalter
     //airdrag miteinarbeiten
-    //Bremsen
     //Traction noch genauer beschreiben/ Traktion ist noch nicht definieren
-    //Reibwert stahl Stahl implementieren
     //doxygen dokumentation für bericht unter doxygen.nl
 
 
     currPower = speedlevel*MaxPower;
 
-    if (abs(velocity) < 0.007_mps && speedlevel == 0.0){
-      velocity = 0.0_mps;
+    if (abs(speedlevel) < 0.007){
+        speedlevel = 0.0;
     }
 
-    if (speedlevel >= 0.0)
+    if (speedlevel > 0.0)
     {
       if (abs(velocity) < 0.007_mps){
         currTraction = MaxForce;
@@ -131,8 +128,7 @@ void physics::tick(){
       if (currTraction >  MaxForce) {
         currTraction = MaxForce;
       }
-    }else
-    {
+    }else if (speedlevel < 0.0){
       currTraction = speedlevel*MaxForce;
     }
 
