@@ -104,6 +104,7 @@ void physics::tick(){
     //airdrag miteinarbeiten
     //Bremsen
     //Traction noch genauer beschreiben/ Traktion ist noch nicht definieren
+    //Reibwert stahl Stahl implementieren
     //doxygen dokumentation für bericht unter doxygen.nl
 
 
@@ -130,7 +131,7 @@ void physics::tick(){
     location += velocity * dt + 0.5 * (acelleration * dt * dt);
 
     location = clamp(location, config.firstLocation(),config.lastLocation());
-    //velocity = clamp(velocity,0_mps,config.train().getMaxVelocity());
+    velocity = clamp(velocity,0_mps,85_mps);
 
     last_update = new_time;
 
