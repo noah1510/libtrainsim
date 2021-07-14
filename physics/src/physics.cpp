@@ -45,28 +45,12 @@ common::acceleration physics::getAcceleration(){
       std::shared_lock<std::shared_mutex> lock(mutex_data);
       return acceleration;
 }
-/*
-void physics::setAcelleration(common::acceleration acc){
-    tick();
-    std::scoped_lock<std::shared_mutex> lock(mutex_data);
-    acelleration = config.train().clampAcceleration(acc);
-}*/
+
 void physics::setSpeedlevel(core::input_axis slvl){
     tick();
     std::scoped_lock<std::shared_mutex> lock(mutex_data);
     speedlevel = slvl.get();
 }
-
-/*
-void physics::setMass(base::mass mass){
-    //get the Trainmass from Train_data.json
-}
-
-void physics::setTrainPower(common::power pow){
-    tick();
-    //should be set in the same way as the accelleration is set now.
-}
-*/
 
 common::force physics::getTraction(){
     if(autoTick){tick();};
