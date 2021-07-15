@@ -45,18 +45,6 @@ namespace libtrainsim {
             std::string name;
 
             /**
-             * @brief The maximum velocity the train can have in m/s.
-             */
-
-            sakurajin::unit_system::common::speed max_velocity;
-
-            /**
-             * @brief The maximum acceleration the train can have in m/(s^2).
-             */
-
-            sakurajin::unit_system::common::acceleration max_acceleration;
-
-            /**
              * @brief The mass of the train in kg.
              */
             sakurajin::unit_system::base::mass mass;
@@ -77,8 +65,6 @@ namespace libtrainsim {
              * The default value is 0.002.
              */
             long double track_drag = 0.002;
-
-            //long double speedlevel;
 
             /**
              * @brief Loads the data_json into the other menbers;
@@ -129,15 +115,6 @@ namespace libtrainsim {
             const std::string& getName() const;
 
             /**
-             * @brief The maximum velocity the train can have in m/s.
-             */
-            //sakurajin::unit_system::common::speed getMaxVelocity() const;
-
-            /**
-             * @brief The maximum acceleration the train can have in m/(s^2).
-             */
-            //sakurajin::unit_system::common::acceleration getMaxAcceleration() const;
-            /**
              * @brief The mass of the train in kg.
              */
             sakurajin::unit_system::base::mass getMass() const;
@@ -185,13 +162,7 @@ namespace libtrainsim {
              * @return double the clamped accelleration
              */
             sakurajin::unit_system::common::acceleration clampAcceleration(sakurajin::unit_system::common::acceleration currentAcceleration) const;
-
-            long double clampSpeedlevel(long double currentSpeedlevel) const;
-
-
-
-
-
+          
         };
     }
 }

@@ -67,31 +67,7 @@ void train_properties::loadJsonData(){
         return;
     }
     mass = base::mass{_dat.get<double>()};
-/*
-    long double velocityUnit = 1.0;
-    _dat = data_json["velocityUnit"];
-    if(!_dat.empty() && _dat.is_string()){
-        auto unit = _dat.get<std::string>();
-        if(unit == "kmh"){
-            velocityUnit = 1000.0/(60.0*60.0);
-        }
-    }
 
-    _dat = data_json["maxVelocity"];
-    if(!_dat.is_number_float()){
-        std::cerr << "maxVelocity is not a float" << std::endl;
-        return;
-    }
-    max_velocity = speed{_dat.get<double>(), velocityUnit};
-
-    _dat = data_json["maxAcceleration"];
-    if(!_dat.is_number_float()){
-        std::cerr << "maxAcceleration is not a float" << std::endl;
-        return;
-    }
-
-    max_acceleration = acceleration{_dat.get<double>()};
-*/
     long double powerUnit = 1.0;
     _dat = data_json["powerUnit"];
     if(!_dat.empty() && _dat.is_string()){
@@ -132,14 +108,6 @@ force train_properties::calulateDrag(speed currentVelocity) const{
 
 bool train_properties::isValid() const{
     return !hasError;
-}
-
-speed train_properties::clampVelocity(speed currentVelocity) const{
-    return clamp(currentVelocity,0.0_mps,max_velocity);
-}
-
-acceleration train_properties::clampAcceleration(acceleration currentAcceleration) const{
-    return clamp(currentAcceleration,-max_acceleration,max_acceleration);
 }
 
 const std::string& train_properties::getName() const{

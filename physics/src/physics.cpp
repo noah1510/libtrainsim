@@ -59,7 +59,7 @@ common::force physics::getTraction(){
 }
 
 common::force physics::calcMaxForce(base::mass mass, common::acceleration g, long double track_drag)const{
-    auto maxforce = mass*g*track_drag;
+    common::force maxforce = mass*g*track_drag;
     return maxforce;
 }
 
@@ -94,6 +94,9 @@ void physics::tick(){
     //Traction noch genauer beschreiben/ Traktion ist noch nicht definieren
     //doxygen dokumentation für bericht unter doxygen.nl
 
+    if (abs(speedlevel) < 0.007){
+      speedlevel = 0.0;
+    }
 
     currPower = speedlevel*MaxPower;
 
@@ -110,7 +113,8 @@ void physics::tick(){
       }
     }else if (speedlevel < 0.0){
       currTraction = speedlevel*MaxForce;
-    }else if (speedlevel == 0.0){
+    }else {
+        currTraction = 0_N;
         if (velocity > 0.0_mps){
           currTraction = currPower/velocity;
         }
