@@ -94,13 +94,9 @@ void physics::tick(){
     //Traction noch genauer beschreiben/ Traktion ist noch nicht definieren
     //doxygen dokumentation für bericht unter doxygen.nl
 
-    if (abs(speedlevel) < 0.007){
-      speedlevel = 0.0;
-    }
-
     currPower = speedlevel*MaxPower;
 
-    if (speedlevel > 0.0)
+    if (speedlevel > 0.007)
     {
       if (abs(velocity) < 0.007_mps){
         currTraction = MaxForce;
@@ -111,7 +107,7 @@ void physics::tick(){
       if (currTraction >  MaxForce) {
         currTraction = MaxForce;
       }
-    }else if (speedlevel < 0.0){
+    }else if (speedlevel < 0.007){
       currTraction = speedlevel*MaxForce;
     }else {
         currTraction = 0_N;
