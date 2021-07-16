@@ -65,9 +65,9 @@ namespace libtrainsim {
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
-             * The default value is 0.002.
+             * The default value is 0.02.
              */
-            long double track_drag = 0.002;
+            long double track_drag = 0.02;
 
             /**
              * @brief Loads the data_json into the other menbers;
