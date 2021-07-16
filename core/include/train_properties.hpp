@@ -4,9 +4,9 @@
  * @brief This file contains the definition of the train_properties to manage train models.
  * @version 0.4.0
  * @date 2020-10-20
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
 
 #pragma once
@@ -45,32 +45,29 @@ namespace libtrainsim {
             std::string name;
 
             /**
-             * @brief The maximum velocity the train can have in m/s.
-             */
-            sakurajin::unit_system::common::speed max_velocity;
-
-            /**
-             * @brief The maximum acceleration the train can have in m/(s^2).
-             */
-            sakurajin::unit_system::common::acceleration max_acceleration;
-
-            /**
              * @brief The mass of the train in kg.
              */
             sakurajin::unit_system::base::mass mass;
+
+            /**
+            * @brief The maximum Power of a train in W
+            */
+            sakurajin::unit_system::common::power maxPower;
+
 
             /**
              * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
              */
+
             long double air_drag = 0.0;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
-             * The default value is 0.002.
+             * The default value is 0.02.
              */
-            long double track_drag = 0.002;
+            long double track_drag = 0.02;
 
             /**
              * @brief Loads the data_json into the other menbers;
@@ -121,19 +118,16 @@ namespace libtrainsim {
             const std::string& getName() const;
 
             /**
-             * @brief The maximum velocity the train can have in m/s.
-             */
-            sakurajin::unit_system::common::speed getMaxVelocity() const;
-
-            /**
-             * @brief The maximum acceleration the train can have in m/(s^2).
-             */
-            sakurajin::unit_system::common::acceleration getMaxAcceleration() const;
-
-            /**
              * @brief The mass of the train in kg.
              */
             sakurajin::unit_system::base::mass getMass() const;
+
+            /**
+             * @brief The maximum of Power in W the Train can have.
+             */
+
+            sakurajin::unit_system::common::power getMaxPower() const;
+
 
             /**
              * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
