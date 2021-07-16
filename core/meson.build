@@ -1,4 +1,4 @@
-cc = meson.get_compiler('cpp')
+cxx = meson.get_compiler('cpp')
 
 sources = [
     'src/track_data.cpp',
@@ -7,6 +7,29 @@ sources = [
     'src/types.cpp',
     'src/input_axis.cpp',
 ]
+
+cxx_header_list = [
+    'filesystem',
+    'algorithm',
+    'string',
+    'vector',
+    'sstream',
+    'tuple',
+    'iostream',
+    'cstdint',
+    'fstream',
+    'cmath',
+    'shared_mutex',
+    'mutex',
+    'future',
+    'chrono',
+    'ratio',
+    'map',
+]
+
+foreach header_name : cxx_header_list
+    cxx.check_header(header_name, required: true)
+endforeach
 
 incdir = include_directories('include','..')
 

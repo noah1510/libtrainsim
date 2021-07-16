@@ -1,5 +1,4 @@
 #include "train_properties.hpp"
-#include <exception>
 #include <iostream>
 #include <fstream>
 #include <shared_mutex>
