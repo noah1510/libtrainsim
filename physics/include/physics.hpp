@@ -63,6 +63,19 @@ namespace libtrainsim{
 
             const bool autoTick;
 
+            /**
+            * @brief This function calculates the maximum amount of the Force the Train can apply. This amount depends on the mass of the Train and the resistance force
+            * between train and track.
+            */
+            sakurajin::unit_system::common::force calcMaxForce(sakurajin::unit_system::base::mass mass, sakurajin::unit_system::common::acceleration g, long double track_drag)const;
+
+            /**
+            * @brief This function calculates the whole amount of the resistance forces and adds them together. Therefore this function uses the different types of drag coefficients from the traindata and the trackdata,
+            * Furthermore it uses the mass of the train as well as the location to get the train_drag coefficient correctly.
+            * This function is not implemented yet and it will return 0 by using it.
+            */
+            sakurajin::unit_system::common::force calcDrag();
+            
         public:
 
             physics(const libtrainsim::core::Track& conf, bool _autoTick = false);
@@ -103,18 +116,6 @@ namespace libtrainsim{
             */
             sakurajin::unit_system::common::power getCurrPower();
 
-            /**
-            * @brief This function calculates the maximum amount of the Force the Train can apply. This amount depends on the mass of the Train and the resistance force
-            * between train and track.
-            */
-            sakurajin::unit_system::common::force calcMaxForce(sakurajin::unit_system::base::mass mass, sakurajin::unit_system::common::acceleration g, long double track_drag)const;
-
-            /**
-            * @brief This function calculates the whole amount of the resistance forces and adds them together. Therefore this function uses the different types of drag coefficients from the traindata and the trackdata,
-            * Furthermore it uses the mass of the train as well as the location to get the train_drag coefficient correctly.
-            * This function is not implemented yet and it will return 0 by using it.
-            */
-            sakurajin::unit_system::common::force calcDrag();
 
             bool reachedEnd();
 

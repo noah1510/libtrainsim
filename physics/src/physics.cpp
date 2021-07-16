@@ -105,12 +105,6 @@ void physics::tick(){
 
     MaxPower = config.train().getMaxPower();
 
-
-    ///@Todo improve calculation by considering drag.
-    //airdrag miteinarbeiten
-    //Traction noch genauer beschreiben/ Traktion ist noch nicht definieren
-    //doxygen dokumentation für bericht unter doxygen.nl
-
     currPower = speedlevel*MaxPower;
 
     if (speedlevel > 0.007)

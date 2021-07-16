@@ -114,16 +114,6 @@ const std::string& train_properties::getName() const{
     return name;
 }
 
-/*
-speed train_properties::getMaxVelocity() const{
-    return max_velocity;
-}
-
-acceleration train_properties::getMaxAcceleration() const{
-    return max_acceleration;
-}
-*/
-
 base::mass train_properties::getMass() const{
     return mass;
 }
