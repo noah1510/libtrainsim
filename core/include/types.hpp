@@ -148,13 +148,13 @@ namespace libtrainsim {
          * @brief the current version of the libtrainsim
          *
          */
-        const version lib_version(0,8,0);
+        const version lib_version(0,9,0);
 
         /**
          * @brief the current version of the json formats
          *
          */
-        const version format_version(0,5,0);
+        const version format_version(0,6,0);
 
         /**
          * @brief This enum maps action names to values for use with the control
