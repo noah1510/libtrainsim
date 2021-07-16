@@ -40,49 +40,19 @@ namespace libtrainsim{
             sakurajin::unit_system::base::length location;
 
             /**
-            * @brief The current Power of the Train. This variable is calculated and therefore not a const variable
-            */
-            sakurajin::unit_system::common::power trainpower;
-
-            /**
-            * @brief The mass of the Train. A const variable because its a property of the train.
-            */
-            sakurajin::unit_system::base::mass mass;
-
-            /**
             * @brief The current Traction of the Train
             */
             sakurajin::unit_system::common::force currTraction;
 
             /**
-            * @brief The maximum of Traction the Train can have on the track
-            */
-            sakurajin::unit_system::common::force maxforce;
-
-            /**
-            * @brief The current Power of the Train
+            * @brief The current Power of the Train. This variable is calculated and therefore not a const variable
             */
             sakurajin::unit_system::common::power currPower;
-
-            /**
-            * @brief The maximum of Power of the Train.
-            */
-            sakurajin::unit_system::common::power MaxPower;
 
             /**
             * @brief The current Speedlevel of the Train. This variable is set by playerinput, the default value is 0.0
             */
             long double speedlevel = 0.0;
-
-            /**
-            * @brief The value of the Drag caused by the air. Default value is 0.0. This variable is not used yet.
-            */
-            long double air_drag = 0.0;
-
-            /**
-            * @brief The value of the Drag caused by the track itself. Default value is 0.0, current value could be found in the train_properties
-            */
-            long double track_drag = 0.0;
 
             const libtrainsim::core::Track config;
 

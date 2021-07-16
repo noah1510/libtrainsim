@@ -85,18 +85,25 @@ bool physics::reachedEnd(){
 }
 
 void physics::tick(){
+
     std::scoped_lock<std::shared_mutex> lock(mutex_data);
 
     auto new_time = now();
 
     base::time_si dt = unit_cast(new_time - last_update);
 
-    auto mass = config.train().getMass();
-    auto track_drag = config.train().getTrackDrag();
+    sakurajin::unit_system::common::power MaxPower;
+    sakurajin::unit_system::common::force MaxForce;
+    sakurajin::unit_system::base::mass mass;
+    long double air_drag = 0.0;
+    long double track_drag = 0.0;
 
-    auto MaxForce = calcMaxForce(mass,1_G,track_drag);
+    mass = config.train().getMass();
+    track_drag = config.train().getTrackDrag();
 
-    auto MaxPower = config.train().getMaxPower();
+    MaxForce = calcMaxForce(mass,1_G,track_drag);
+
+    MaxPower = config.train().getMaxPower();
 
 
     ///@Todo improve calculation by considering drag.
