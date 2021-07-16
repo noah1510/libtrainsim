@@ -49,6 +49,9 @@ namespace libtrainsim {
              */
             sakurajin::unit_system::base::mass mass;
 
+            /**
+            * @brief The maximum Power of a train in W
+            */
             sakurajin::unit_system::common::power maxPower;
 
 
@@ -162,7 +165,7 @@ namespace libtrainsim {
              * @return double the clamped accelleration
              */
             sakurajin::unit_system::common::acceleration clampAcceleration(sakurajin::unit_system::common::acceleration currentAcceleration) const;
-          
+
         };
     }
 }

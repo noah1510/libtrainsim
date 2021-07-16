@@ -96,12 +96,12 @@ void physics::tick(){
     sakurajin::unit_system::common::force MaxForce;
     sakurajin::unit_system::base::mass mass;
     long double air_drag = 0.0;
-    long double track_drag = 0.0;
+    long double train_drag = 0.0;
 
     mass = config.train().getMass();
-    track_drag = config.train().getTrackDrag();
+    train_drag = config.train().getTrackDrag();
 
-    MaxForce = calcMaxForce(mass,1_G,track_drag);
+    MaxForce = calcMaxForce(mass,1_G,train_drag);
 
     MaxPower = config.train().getMaxPower();
 

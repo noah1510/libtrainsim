@@ -72,43 +72,46 @@ namespace libtrainsim{
             bool isValid();
 
             /**
-            * @brief This function sets the speedlevel variable readable, to use the value in other classes
+            * @brief This function returns the current speedlevel of the train, which is set through the actions of a player.
+            * If autoTick is true, this function will automatically call tick before returning the value.
             */
             void setSpeedlevel(core::input_axis slvl);
 
             /**
-            * @brief This function sets the velocity variable readable for using its value in other classes
+            * @brief This function returns the current velocity of the train. If autoTick is true, this function will automatically call tick before returning the value.
             */
             sakurajin::unit_system::common::speed getVelocity();
 
             /**
-            * @brief This function sets the location variable readable for using its value in other classes
+            * @brief This function returns the current location of the train along the track.
+            * If autoTick is true, this function will automatically call tick before returning the value.
             */
             sakurajin::unit_system::base::length getLocation();
 
             /**
-            * @brief This function sets the acceleration variable readable for using its value in other classes
+            * @brief This function returns the current acceleration of the train. If autoTick is true, this function will automatically call tick before returning the value.
             */
             sakurajin::unit_system::common::acceleration getAcceleration();
 
             /**
-            * @brief This function sets the Traction variable readable for using its value in other classes
+            * @brief This function returns the current traction of the train. If autoTick is true, this function will automatically call tick before returning the value.
             */
             sakurajin::unit_system::common::force getTraction();
 
             /**
-            * @brief This function sets the currentPower variable readable for using its value in other classes
+            * @brief This function returns the current power of the train. If autoTick is true, this function will automatically call tick before returning the value.
             */
             sakurajin::unit_system::common::power getCurrPower();
 
             /**
-            * @brief This function calculates the maximum amount of the Force the Train can apply. This amount depends on the mass of the Train and the resistanceforce
-            * between train and track
+            * @brief This function calculates the maximum amount of the Force the Train can apply. This amount depends on the mass of the Train and the resistance force
+            * between train and track.
             */
             sakurajin::unit_system::common::force calcMaxForce(sakurajin::unit_system::base::mass mass, sakurajin::unit_system::common::acceleration g, long double track_drag)const;
 
             /**
-            * @brief This Function calulates the whole amount of the drag. It adds all types of Drags and resistance forces to calculate one value of the resistance forces.
+            * @brief This function calculates the whole amount of the resistance forces and adds them together. Therefore this function uses the different types of drag coefficients from the traindata and the trackdata,
+            * Furthermore it uses the mass of the train as well as the location to get the train_drag coefficient correctly.
             * This function is not implemented yet and it will return 0 by using it.
             */
             sakurajin::unit_system::common::force calcDrag();
