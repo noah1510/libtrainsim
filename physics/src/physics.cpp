@@ -55,12 +55,22 @@ void physics::setSpeedlevel(core::input_axis slvl){
 common::force physics::getTraction(){
     if(autoTick){tick();};
     std::shared_lock<std::shared_mutex> lock(mutex_data);
-    return traction;
+    return currTraction;
+}
+
+common::power physics::getCurrPower(){
+  if(autoTick){tick();};
+  std::shared_lock<std::shared_mutex> lock(mutex_data);
+  return currPower;
 }
 
 common::force physics::calcMaxForce(base::mass mass, common::acceleration g, long double track_drag)const{
     common::force maxforce = mass*g*track_drag;
     return maxforce;
+}
+
+common::force physics::calcDrag(){
+  return 0_N;
 }
 
 bool physics::isValid(){
@@ -107,7 +117,7 @@ void physics::tick(){
       if (currTraction >  MaxForce) {
         currTraction = MaxForce;
       }
-    }else if (speedlevel < 0.007){
+    }else if (speedlevel < -0.007){
       currTraction = speedlevel*MaxForce;
     }else {
         currTraction = 0_N;
@@ -121,7 +131,7 @@ void physics::tick(){
     location += velocity * dt + 0.5 * (acceleration * dt * dt);
 
     location = clamp(location, config.firstLocation(),config.lastLocation());
-    velocity = clamp(velocity,0_mps,85_mps);
+    velocity = clamp(velocity,0_mps,MaxVelocity);
 
     last_update = new_time;
 
