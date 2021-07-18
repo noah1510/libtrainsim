@@ -92,21 +92,24 @@ void physics::tick(){
 
     base::time_si dt = unit_cast(new_time - last_update);
 
+    //all Variables needed to caclulate the physics
     sakurajin::unit_system::common::power MaxPower;
     sakurajin::unit_system::common::force MaxForce;
     sakurajin::unit_system::base::mass mass;
     long double air_drag = 0.0;
     long double train_drag = 0.0;
 
+    //defining the needed variables
     mass = config.train().getMass();
     train_drag = config.train().getTrackDrag();
 
     MaxForce = calcMaxForce(mass,1_G,train_drag);
-
     MaxPower = config.train().getMaxPower();
 
     currPower = speedlevel*MaxPower;
 
+    //Handling the different possibilities for Speedlevel
+    //only calculating the current Force
     if (speedlevel > 0.007)
     {
       if (abs(velocity) < 0.007_mps){
@@ -127,6 +130,7 @@ void physics::tick(){
         }
     }
 
+    //calculating parameters of movement by current Traction
     acceleration = currTraction/mass;
     velocity += acceleration * dt;
     location += velocity * dt + 0.5 * (acceleration * dt * dt);
