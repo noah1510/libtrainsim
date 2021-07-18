@@ -64,8 +64,8 @@ common::power physics::getCurrPower(){
   return currPower;
 }
 
-common::force physics::calcMaxForce(base::mass mass, common::acceleration g, long double track_drag)const{
-    common::force maxforce = mass*g*track_drag;
+common::force physics::calcMaxForce(base::mass mass, common::acceleration g, long double train_drag)const{
+    common::force maxforce = mass*g*train_drag;
     return maxforce;
 }
 
