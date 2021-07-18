@@ -26,7 +26,7 @@ std::string libtrainsim::control::input_handler::getKeyFunction() {
             }
         #endif
 
-        #ifdef HAS_OPENCV_SUPPORT
+        #ifdef HAS_SDL_SUPPORT
             if ( backend == libtrainsim::Video::window_sdl){
 
                 SDL_Event event;

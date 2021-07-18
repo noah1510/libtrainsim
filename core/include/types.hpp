@@ -148,7 +148,7 @@ namespace libtrainsim {
          * @brief the current version of the libtrainsim
          *
          */
-        const version lib_version(0,9,0);
+        const version lib_version(0,9,1);
 
         /**
          * @brief the current version of the json formats
