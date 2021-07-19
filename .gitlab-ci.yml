@@ -1,5 +1,9 @@
-build:fedora:
-  image: noasakurajin/libtrainsim-build-container:fedora
+variables:
+  CONTAINER_PREFIX: "git-registry.thm.de/bahn-simulator/docker-containers/libtrainsim"
+
+build:fedora-full:
+  stage: build
+  image: $CONTAINER_PREFIX:fedora
   script:
     - meson setup build
     - meson compile -C build
@@ -8,9 +12,33 @@ build:fedora:
     - merge_requests
     - main
 
+build:fedora-opencv:
+  stage: build
+  image: $CONTAINER_PREFIX:fedora
+  script:
+    - meson setup -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false build
+    - meson compile -C build
+    - meson test -C build
+  only:
+    - merge_requests
+    - main
+
+build:fedora-sdl-ffmpeg:
+  stage: build
+  image: $CONTAINER_PREFIX:fedora
+  script:
+    - meson setup -Dvideo_backend_opencv=false build
+    - meson compile -C build
+    - meson test -C build
+  only:
+    - merge_requests
+    - main
+
 wiki:
-  image: noasakurajin/latex:latest
+  image: $CONTAINER_PREFIX:wiki
   stage: deploy
+  variables:
+    DOXYBOOK_VERSION: "v1.3.5"
   script:
     - echo 'echo $K8S_SECRET_GITLAB_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
     - export GIT_ASKPASS=$HOME/.git-askpass
@@ -19,10 +47,8 @@ wiki:
     - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
     - git config --global user.email "noah.kirschmann@mnd.thm.de"
     - git config --global user.name "Gitlab-Ci"
-    - apt-get update
-    - apt-get install --yes doxygen graphviz wget unzip make
-    - wget https://github.com/matusnovak/doxybook2/releases/download/v1.2.3/doxybook2-linux-amd64-v1.2.3.zip
-    - unzip doxybook2-linux-amd64-v1.2.3.zip -d doxybook
+    - wget https://github.com/matusnovak/doxybook2/releases/download/$DOXYBOOK_VERSION/doxybook2-linux-amd64-$DOXYBOOK_VERSION.zip
+    - unzip doxybook2-linux-amd64-$DOXYBOOK_VERSION.zip -d doxybook
     - doxygen
     - git clone git@git.thm.de:bahn-simulator/libtrainsim.wiki.git doc/md
     - ./doxybook/bin/doxybook2 -i doc/xml -o doc/md -c docs/config.json
@@ -42,10 +68,9 @@ wiki:
       - "reference_manual_en.pdf"
 
 pages:
-  image: alpine
+  image: $CONTAINER_PREFIX:pages
   stage: deploy
   script:
-    - apk update && apk add doxygen
     - doxygen Doxyfile
     - mv doc/html/ public/
   artifacts:
