@@ -4,6 +4,12 @@
 
 namespace libtrainsim {
     namespace Video{
+        /**
+         * @brief This is a generic window manager.
+         * The window manager is used to create a window, provide control support and display the frames from the renderer.
+         * Most of the virtual functions need to be implemented for each child, since they are specific to the used library.
+         * 
+         */
         class genericWindowManager{
         protected:
             genericRenderer& renderer;

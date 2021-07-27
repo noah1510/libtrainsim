@@ -15,7 +15,8 @@ namespace libtrainsim{
     namespace Video {
         /**
         * @brief This is a generic class every specific video backend can extent from.
-        * It specifies the way every backend should interact with the video sigleton.
+        * It can be used without the need to inherit by passing references to a renderer and window manager.
+        * To see how to use this class with inheritance look at the videoFF_SDL class.
         *
         */
         class videoGeneric {

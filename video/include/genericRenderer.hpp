@@ -7,6 +7,15 @@
 
 namespace libtrainsim {
     namespace Video{
+        /**
+         * @brief This is a generic video renderer.
+         * The video renderer loads a video file and decodes the video.
+         * Using getNextFrame a new frame can be retreived from the video and
+         * can be displayed on any window.
+         *
+         * This class mostly defines which functions each renderer needs to have.
+         * All of the virtual functions need to be reimplemented in the child classes.
+         */
         class genericRenderer{
         protected:
             
