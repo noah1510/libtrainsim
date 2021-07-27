@@ -1,9 +1,9 @@
 variables:
-  CONTAINER_PREFIX: "git-registry.thm.de/bahn-simulator/docker-containers/libtrainsim"
+  CONTAINER_PREFIX: "git-registry.thm.de/bahn-simulator/docker-containers"
 
 build:fedora-full:
   stage: build
-  image: $CONTAINER_PREFIX:fedora
+  image: $CONTAINER_PREFIX/libtrainsim:fedora
   script:
     - meson setup build
     - meson compile -C build
@@ -14,7 +14,7 @@ build:fedora-full:
 
 build:fedora-opencv:
   stage: build
-  image: $CONTAINER_PREFIX:fedora
+  image: $CONTAINER_PREFIX/libtrainsim:fedora
   script:
     - meson setup -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false build
     - meson compile -C build
@@ -25,7 +25,7 @@ build:fedora-opencv:
 
 build:fedora-sdl-ffmpeg:
   stage: build
-  image: $CONTAINER_PREFIX:fedora
+  image: $CONTAINER_PREFIX/libtrainsim:fedora
   script:
     - meson setup -Dvideo_backend_opencv=false build
     - meson compile -C build
@@ -35,7 +35,7 @@ build:fedora-sdl-ffmpeg:
     - main
 
 wiki:
-  image: $CONTAINER_PREFIX:wiki
+  image: $CONTAINER_PREFIX/helper:wiki
   stage: deploy
   variables:
     DOXYBOOK_VERSION: "v1.3.5"
@@ -68,7 +68,7 @@ wiki:
       - "reference_manual_en.pdf"
 
 pages:
-  image: $CONTAINER_PREFIX:pages
+  image: $CONTAINER_PREFIX/helper:pages
   stage: deploy
   script:
     - doxygen Doxyfile
