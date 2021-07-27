@@ -21,8 +21,8 @@ void genericWindowManager::refreshWindow(){
     if(currentWindowName != ""){std::cout << "refreshing the window" << std::endl;};
 }
 
-void genericWindowManager::displayFrame(const Frame& newFrame){
-    if (newFrame.isEmpty()){
+void genericWindowManager::displayFrame(std::shared_ptr<libtrainsim::Frame> newFrame){
+    if (newFrame->isEmpty()){
         return;
     }
 

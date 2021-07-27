@@ -97,29 +97,29 @@ bool ffmpegRenderer::load(const std::filesystem::path& uri){
     return true; 
 }
 
-const libtrainsim::Frame ffmpegRenderer::getNextFrame(){
-    if(endOfFile){return Frame();};
+std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::getNextFrame(){
+    if(endOfFile){return std::make_shared<libtrainsim::Frame>();};
     
     av_packet_unref(pPacket);
     
-    Frame pFrame = Frame();
-    pFrame.setBackend(renderer_ffmpeg);
+    auto pFrame = std::make_shared<libtrainsim::Frame>();
+    pFrame->setBackend(renderer_ffmpeg);
     
     auto ret = av_read_frame(pFormatCtx, pPacket);
     if(ret < 0 || pPacket->stream_index != videoStream){
-        return Frame();
+        return std::make_shared<libtrainsim::Frame>();
     };
     
     ret = avcodec_send_packet(pCodecCtx, pPacket);
     if (ret < 0){
         std::cerr << "Error sending packet for decoding." << std::endl;
-        return Frame();
+        return std::make_shared<libtrainsim::Frame>();
     }
     
-    ret = avcodec_receive_frame(pCodecCtx, pFrame);
+    ret = avcodec_receive_frame(pCodecCtx, pFrame->dataFF());
     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0){
         if(ret == AVERROR_EOF){endOfFile = true;};
-        return Frame();
+        return std::make_shared<libtrainsim::Frame>();
     }
     
     currentFrameNumber++;
@@ -127,8 +127,8 @@ const libtrainsim::Frame ffmpegRenderer::getNextFrame(){
 }
 
 
-const libtrainsim::Frame ffmpegRenderer::gotoFrame(uint64_t frameNum){
-    if(endOfFile){return Frame();};
+std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::gotoFrame(uint64_t frameNum){
+    if(endOfFile){return std::make_shared<libtrainsim::Frame>();};
     //double fps = static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.num) / static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.den);
     //int64_t _time = static_cast<int64_t>( static_cast<double>(frameNum)*fps);
     //av_seek_frame(pFormatCtx, videoStream, frameNum, AVSEEK_FLAG_ANY);
@@ -140,7 +140,7 @@ const libtrainsim::Frame ffmpegRenderer::gotoFrame(uint64_t frameNum){
         return getNextFrame();
     };
     
-    return Frame();
+    return std::make_shared<libtrainsim::Frame>();
 }
 
 uint64_t ffmpegRenderer::getFrameCount(){
@@ -157,31 +157,31 @@ double ffmpegRenderer::getWidth(){
     return pCodecCtx->width;
 }
 
-libtrainsim::Frame ffmpegRenderer::scaleFrame(const libtrainsim::Frame& frame){
-    if(pCodecCtx == nullptr || endOfFile){return Frame();};
-    auto retval = Frame();
+std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::scaleFrame(std::shared_ptr<libtrainsim::Frame> frame){
+    if(pCodecCtx == nullptr || endOfFile){return std::make_shared<libtrainsim::Frame>();};
+    auto retval = std::make_shared<libtrainsim::Frame>(); 
     initFrame(retval);
     
     sws_scale(
         sws_ctx,
-        (uint8_t const * const *)frame.dataFF()->data,
-        frame.dataFF()->linesize,
+        (uint8_t const * const *)frame->dataFF()->data,
+        frame->dataFF()->linesize,
         0,
         pCodecCtx->height,
-        retval.dataFF()->data,
-        retval.dataFF()->linesize
+        retval->dataFF()->data,
+        retval->dataFF()->linesize
     );
     
     return retval;
 }
 
-void ffmpegRenderer::initFrame(libtrainsim::Frame& frame){
-    if(pCodecCtx == nullptr || endOfFile){return;};
+void ffmpegRenderer::initFrame(std::shared_ptr<libtrainsim::Frame> frame){
+    if(pCodecCtx == nullptr || endOfFile || frame == nullptr){return;};
     
-    frame.setBackend(renderer_ffmpeg);
+    frame->setBackend(renderer_ffmpeg);
     av_image_fill_arrays(
-        frame.dataFF()->data,
-        frame.dataFF()->linesize,
+        frame->dataFF()->data,
+        frame->dataFF()->linesize,
         buffer,
         AV_PIX_FMT_YUV420P,
         pCodecCtx->width,

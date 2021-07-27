@@ -22,26 +22,26 @@ bool openCVRenderer::load(const std::filesystem::path& uri){
     return true;
 }
 
-const libtrainsim::Frame openCVRenderer::getNextFrame(){
-    if(endOfFile){return Frame();};
+std::shared_ptr<libtrainsim::Frame> openCVRenderer::getNextFrame(){
+    if(endOfFile){return std::make_shared<libtrainsim::Frame>();};
     
     cv::UMat frame;
     auto status = videoCap->grab();
     if(!status){
-        return cv::UMat();
+        return std::make_shared<libtrainsim::Frame>();
     }
 
     status = videoCap->retrieve(frame);
     if (!status){
-        return cv::UMat();
+        return std::make_shared<libtrainsim::Frame>();
     }
     
-    return frame.clone();
+    return std::make_shared<libtrainsim::Frame>(frame.clone());
 }
 
 
-const libtrainsim::Frame openCVRenderer::gotoFrame(uint64_t frameNum){
-    if(endOfFile){return Frame();};
+std::shared_ptr<libtrainsim::Frame> openCVRenderer::gotoFrame(uint64_t frameNum){
+    if(endOfFile){return std::make_shared<libtrainsim::Frame>();};
     setVideoProperty(cv::CAP_PROP_POS_FRAMES, frameNum);
     
     return getNextFrame();

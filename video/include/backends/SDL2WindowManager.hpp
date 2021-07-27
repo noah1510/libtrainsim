@@ -21,7 +21,7 @@ namespace libtrainsim {
                 SDL_Renderer* sdl_renderer = nullptr;
                 SDL_Texture* texture = nullptr;
                 
-                Frame pict;
+                std::shared_ptr<libtrainsim::Frame> pict;
             public:
                 SDL2WindowManager(genericRenderer& _renderer);
                 ~SDL2WindowManager();

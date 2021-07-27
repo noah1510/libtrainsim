@@ -12,16 +12,16 @@ bool genericRenderer::load(const std::filesystem::path& uri){
     return true;
 }
 
-const libtrainsim::Frame genericRenderer::getNextFrame(){    
-    return Frame();
+std::shared_ptr<libtrainsim::Frame> genericRenderer::getNextFrame(){    
+    return std::make_shared<libtrainsim::Frame>();
 }
 
 uint64_t genericRenderer::getFrameCount(){
     return 0;
 }
 
-const libtrainsim::Frame genericRenderer::gotoFrame(uint64_t frameNum){
-    return Frame();
+std::shared_ptr<libtrainsim::Frame> genericRenderer::gotoFrame(uint64_t frameNum){
+    return std::make_shared<libtrainsim::Frame>();
 }
 
 double genericRenderer::getHight(){
@@ -40,11 +40,11 @@ bool libtrainsim::Video::genericRenderer::reachedEndOfFile() {
     return endOfFile;
 }
 
-libtrainsim::Frame libtrainsim::Video::genericRenderer::scaleFrame(const libtrainsim::Frame& frame){
+std::shared_ptr<libtrainsim::Frame> libtrainsim::Video::genericRenderer::scaleFrame(std::shared_ptr<libtrainsim::Frame> frame){
     return frame;
 }
 
-void libtrainsim::Video::genericRenderer::initFrame(libtrainsim::Frame& frame){
+void libtrainsim::Video::genericRenderer::initFrame(std::shared_ptr<libtrainsim::Frame> frame){
     return;
 }
 

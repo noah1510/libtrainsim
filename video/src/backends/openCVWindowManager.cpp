@@ -8,8 +8,6 @@ using namespace libtrainsim::Video;
 libtrainsim::Video::openCVWindowManager::openCVWindowManager ( libtrainsim::Video::openCVRenderer& _renderer ) : genericWindowManager{_renderer} {};
 
 openCVWindowManager::~openCVWindowManager(){
-    lastFrame.clear();
-    
     if(currentWindowName != ""){
         cv::destroyWindow(currentWindowName);
     }
@@ -23,7 +21,7 @@ void openCVWindowManager::createWindow(const std::string& windowName){
     currentWindowName = windowName;
     cv::namedWindow(currentWindowName, cv::WINDOW_AUTOSIZE);
     
-    lastFrame.clear();
+    lastFrame->clear();
     lastFrame = renderer.getNextFrame();
     
     windowFullyCreated = true;
@@ -35,7 +33,7 @@ void openCVWindowManager::refreshWindow(){
     }
     
     if(currentWindowName != ""){
-        cv::imshow(currentWindowName, lastFrame.dataCV());
+        cv::imshow(currentWindowName, lastFrame->dataCV());
     }
 }
 

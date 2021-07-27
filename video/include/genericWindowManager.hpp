@@ -13,7 +13,7 @@ namespace libtrainsim {
             * @brief the frame that was displayed last.
             *
             */
-            Frame lastFrame;
+            std::shared_ptr<libtrainsim::Frame> lastFrame;
         
             /**
             * @brief the name of the current window
@@ -26,7 +26,7 @@ namespace libtrainsim {
             *
             * @param newFrame the new frame to be displayed
             */
-            virtual void displayFrame(const Frame& newFrame);
+            virtual void displayFrame(std::shared_ptr<libtrainsim::Frame> newFrame);
             
             bool windowFullyCreated = false;
                 

@@ -34,7 +34,7 @@ namespace libtrainsim {
                 //The functions below are just reimplemented from video_generic
 
                 bool load(const std::filesystem::path& uri);
-                const libtrainsim::Frame gotoFrame(uint64_t frameNum);
+                std::shared_ptr<libtrainsim::Frame> gotoFrame(uint64_t frameNum);
                 uint64_t getFrameCount();
                 double getHight();
                 double getWidth();
@@ -46,10 +46,10 @@ namespace libtrainsim {
                 *
                 * @return const libtrainsim::Frame The next frame of the video
                 */
-                const libtrainsim::Frame getNextFrame();
+                std::shared_ptr<libtrainsim::Frame> getNextFrame();
                 
-                libtrainsim::Frame scaleFrame(const libtrainsim::Frame& frame);
-                void initFrame(libtrainsim::Frame& frame);
+                std::shared_ptr<libtrainsim::Frame> scaleFrame(std::shared_ptr<libtrainsim::Frame> frame);
+                void initFrame(std::shared_ptr<libtrainsim::Frame> frame);
             };
         
         #endif

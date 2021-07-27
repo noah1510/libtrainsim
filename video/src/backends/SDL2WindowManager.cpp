@@ -5,12 +5,11 @@
 using namespace libtrainsim;
 using namespace libtrainsim::Video;
 
-libtrainsim::Video::SDL2WindowManager::SDL2WindowManager ( libtrainsim::Video::genericRenderer& _renderer ) : genericWindowManager{_renderer} {};
+libtrainsim::Video::SDL2WindowManager::SDL2WindowManager ( libtrainsim::Video::genericRenderer& _renderer ) : genericWindowManager{_renderer} {
+    pict = std::make_shared<libtrainsim::Frame>();
+};
 
 SDL2WindowManager::~SDL2WindowManager(){
-    lastFrame.clear();
-    pict.clear();
-
     SDL_DestroyRenderer(sdl_renderer);
     SDL_Quit();
 }
@@ -52,7 +51,7 @@ void SDL2WindowManager::createWindow(const std::string& windowName){
     
     renderer.initFrame(pict);
     
-    lastFrame.clear();
+    lastFrame.reset();
     lastFrame = renderer.getNextFrame();
     
     windowFullyCreated = true;
@@ -63,6 +62,7 @@ void SDL2WindowManager::refreshWindow(){
         return;
     }
     
+    pict.reset();
     pict = renderer.scaleFrame(lastFrame);
 
     SDL_Rect rect;
@@ -74,12 +74,12 @@ void SDL2WindowManager::refreshWindow(){
     SDL_UpdateYUVTexture(
         texture,
         &rect,
-        pict.dataFF()->data[0],
-        pict.dataFF()->linesize[0],
-        pict.dataFF()->data[1],
-        pict.dataFF()->linesize[1],
-        pict.dataFF()->data[2],
-        pict.dataFF()->linesize[2]
+        pict->dataFF()->data[0],
+        pict->dataFF()->linesize[0],
+        pict->dataFF()->data[1],
+        pict->dataFF()->linesize[1],
+        pict->dataFF()->data[2],
+        pict->dataFF()->linesize[2]
     );
 
     SDL_RenderClear(sdl_renderer);

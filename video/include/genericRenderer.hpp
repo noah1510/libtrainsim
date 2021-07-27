@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <string>
+#include <memory>
 #include "frame.hpp"
 
 namespace libtrainsim {
@@ -47,7 +48,7 @@ namespace libtrainsim {
             * @brief jump to the given frame number and refresh the window
             * @param frameNum the frame that will be displayed
             */
-            virtual const libtrainsim::Frame gotoFrame(uint64_t frameNum);
+            virtual std::shared_ptr<libtrainsim::Frame> gotoFrame(uint64_t frameNum);
 
             /**
             * @brief get the total number of frames for the loaded video file
@@ -83,11 +84,11 @@ namespace libtrainsim {
             *
             * @return const libtrainsim::Frame The next frame of the video
             */
-            virtual const libtrainsim::Frame getNextFrame();
+            virtual std::shared_ptr<libtrainsim::Frame> getNextFrame();
             
-            virtual libtrainsim::Frame scaleFrame(const libtrainsim::Frame& frame);
+            virtual std::shared_ptr<libtrainsim::Frame> scaleFrame(std::shared_ptr<libtrainsim::Frame> frame);
             
-            virtual void initFrame(libtrainsim::Frame& frame);
+            virtual void initFrame(std::shared_ptr<libtrainsim::Frame> frame);
             
             bool reachedEndOfFile();
         };

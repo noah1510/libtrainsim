@@ -38,7 +38,7 @@ void Frame::setBackend ( RendererBackends newBackend ) {
 }
 
 Frame::~Frame(){
-    //clear();
+    clear();
 }
 
 void Frame::clear(){
