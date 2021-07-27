@@ -226,6 +226,11 @@ namespace libtrainsim {
                 checkBackend_impl();
                 getInstance().currentBackend_impl->refreshWindow();
             }
+            
+            static bool reachedEndOfFile(){
+                checkBackend_impl();
+                return getInstance().currentBackend_impl->getRenderer().reachedEndOfFile();
+            }
 
             //opencv backend specifc opetions
             #ifdef HAS_OPENCV_SUPPORT

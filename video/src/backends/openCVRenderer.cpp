@@ -85,6 +85,10 @@ void openCVRenderer::setBackend(cv::VideoCaptureAPIs newBackend){
     backend = newBackend;
 }
 
+bool openCVRenderer::reachedEndOfFile(){
+    return getFrameCount() == getVideoProperty(cv::CAP_PROP_POS_FRAMES);
+}
+
 #endif
 
 

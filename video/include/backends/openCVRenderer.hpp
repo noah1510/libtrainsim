@@ -81,6 +81,7 @@ namespace libtrainsim {
                 */
                 std::shared_ptr<libtrainsim::Frame> getNextFrame();
                 
+                bool reachedEndOfFile();
             };
         
         #endif
