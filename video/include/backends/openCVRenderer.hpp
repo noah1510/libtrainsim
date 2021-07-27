@@ -26,20 +26,11 @@ namespace libtrainsim {
             public:
                 
                 /**
-                * @brief Destroy the video FF_SDL object
+                * @brief Destroy the video openCVRenderer object
                 * 
                 */
                 ~openCVRenderer();
-
-                //The functions below are just reimplemented from video_generic
-
-                bool load(const std::filesystem::path& uri);
-                std::shared_ptr<libtrainsim::Frame> gotoFrame(uint64_t frameNum);
-                uint64_t getFrameCount();
-                double getHight();
-                double getWidth();
-                
-                
+              
                 /**
                 * @brief Get a property of the internal videoCapture object.
                 * @note Reading / writing properties involves many layers. Some unexpected result might happens along this chain. See cv::VideoCapture::get() for more information.
@@ -72,16 +63,14 @@ namespace libtrainsim {
                 */
                 cv::VideoCaptureAPIs getBackend();
                 
-                /**
-                * @brief Retrieve the next frame to display it.
-                * If no video is loaded or there is no new frame, an empty frame will be returned.
-                * You should check the returned frame with the method .empty(), which will return true if the frame is empty.
-                *
-                * @return const libtrainsim::Frame The next frame of the video
-                */
+                //The functions below are just reimplemented from generic_renderer
+                bool load(const std::filesystem::path& uri);
+                std::shared_ptr<libtrainsim::Frame> gotoFrame(uint64_t frameNum);
+                uint64_t getFrameCount();
+                double getHight();
+                double getWidth();
+                uint64_t getCurrentFrameNumber();
                 std::shared_ptr<libtrainsim::Frame> getNextFrame();
-                
-                bool reachedEndOfFile();
             };
         
         #endif

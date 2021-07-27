@@ -20,9 +20,10 @@ namespace libtrainsim{
         */
         class videoGeneric {
         protected:
-            
+            ///The underlying renderer
             genericRenderer& renderer;
             
+            ///THe underlying window manager
             genericWindowManager& window;
 
         public:
@@ -33,10 +34,26 @@ namespace libtrainsim{
             */
             virtual ~videoGeneric();
             
+            /**
+             * @brief Construct a new generic backend from a renderer and window manager
+             * 
+             * @param _window the window manager to be used in this backend
+             * @param _renderer the renderer to be used in this backend
+             */
             videoGeneric(libtrainsim::Video::genericWindowManager& _window, libtrainsim::Video::genericRenderer& _renderer);
 
+            /**
+             * @brief Get a reference to the underlying renderer
+             * 
+             * @return genericRenderer&  a reference to the renderer used in this backend
+             */
             genericRenderer& getRenderer();
 
+            /**
+             * @brief Get a reference to the underlying window manager
+             * 
+             * @return genericWindowManager& a reference to the window manager used in this backend
+             */
             genericWindowManager& getWindowManager();
 
             /**

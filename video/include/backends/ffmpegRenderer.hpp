@@ -26,28 +26,19 @@ namespace libtrainsim {
             public:
                 
                 /**
-                * @brief Destroy the video FF_SDL object
+                * @brief Destroy the ffmpeg renderer object
                 * 
                 */
                 ~ffmpegRenderer();
 
-                //The functions below are just reimplemented from video_generic
+                //The functions below are just reimplemented from generic renderer
 
                 bool load(const std::filesystem::path& uri);
                 std::shared_ptr<libtrainsim::Frame> gotoFrame(uint64_t frameNum);
                 uint64_t getFrameCount();
                 double getHight();
                 double getWidth();
-                
-                /**
-                * @brief Retrieve the next frame to display it.
-                * If no video is loaded or there is no new frame, an empty frame will be returned.
-                * You should check the returned frame with the method .empty(), which will return true if the frame is empty.
-                *
-                * @return const libtrainsim::Frame The next frame of the video
-                */
                 std::shared_ptr<libtrainsim::Frame> getNextFrame();
-                
                 std::shared_ptr<libtrainsim::Frame> scaleFrame(std::shared_ptr<libtrainsim::Frame> frame);
                 void initFrame(std::shared_ptr<libtrainsim::Frame> frame);
             };

@@ -35,6 +35,10 @@ std::shared_ptr<libtrainsim::Frame> openCVRenderer::getNextFrame(){
     if (!status){
         return std::make_shared<libtrainsim::Frame>();
     }
+
+    if(getFrameCount() <= getCurrentFrameNumber()){
+        endOfFile = true;
+    }
     
     return std::make_shared<libtrainsim::Frame>(frame.clone());
 }
@@ -85,8 +89,8 @@ void openCVRenderer::setBackend(cv::VideoCaptureAPIs newBackend){
     backend = newBackend;
 }
 
-bool openCVRenderer::reachedEndOfFile(){
-    return getFrameCount() == getVideoProperty(cv::CAP_PROP_POS_FRAMES);
+uint64_t openCVRenderer::getCurrentFrameNumber(){
+    return static_cast<uint64_t>(getVideoProperty(cv::CAP_PROP_POS_FRAMES));
 }
 
 #endif

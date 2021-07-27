@@ -227,6 +227,14 @@ namespace libtrainsim {
                 getInstance().currentBackend_impl->refreshWindow();
             }
             
+            /**
+             * @brief check if the end of a video file is reached.
+             * Use this function to stop the simulator if the video file is over.
+             * The simulator will hang or crash once the end is reached and it still tries to render new frames.
+             * 
+             * @return true The end of the video file is reached
+             * @return false The video file is not at the end yet
+             */
             static bool reachedEndOfFile(){
                 checkBackend_impl();
                 return getInstance().currentBackend_impl->getRenderer().reachedEndOfFile();

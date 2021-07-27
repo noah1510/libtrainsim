@@ -45,9 +45,11 @@ namespace libtrainsim {
             virtual bool load(const std::filesystem::path& uri);
             
             /**
-            * @brief jump to the given frame number and refresh the window
-            * @param frameNum the frame that will be displayed
-            */
+             * @brief jump to the given frame number and return that frame
+             * 
+             * @param frameNum the frame you want ro jump to
+             * @return std::shared_ptr<libtrainsim::Frame> the frame at the wanted location
+             */
             virtual std::shared_ptr<libtrainsim::Frame> gotoFrame(uint64_t frameNum);
 
             /**
@@ -56,6 +58,13 @@ namespace libtrainsim {
             *
             */
             virtual uint64_t getFrameCount();
+
+            /**
+             * @brief Gget the number of the currently displayed frame
+             * 
+             * @return uint64_t the number of the current frame
+             */
+            virtual uint64_t getCurrentFrameNumber();
             
             /**
             * @brief Get the Height of the video in pixels
@@ -82,14 +91,33 @@ namespace libtrainsim {
             * If no video is loaded or there is no new frame, an empty frame will be returned.
             * You should check the returned frame with the method .empty(), which will return true if the frame is empty.
             *
-            * @return const libtrainsim::Frame The next frame of the video
+            * @return std::shared_ptr<libtrainsim::Frame> The next frame of the video
             */
             virtual std::shared_ptr<libtrainsim::Frame> getNextFrame();
             
+            /**
+             * @brief scale a frame to the required buffer size and color format.
+             * @note the passed data will no be modified and is read only. The scaled data is in the return value.
+             * @param frame The frame data that should be scaled
+             * @return std::shared_ptr<libtrainsim::Frame> the scaled frame data
+             */
             virtual std::shared_ptr<libtrainsim::Frame> scaleFrame(std::shared_ptr<libtrainsim::Frame> frame);
             
+            /**
+             * @brief initiate an empty frame.
+             * This sets the correct backend and copies the last frame into it.
+             * @param frame The frame that should be initiated.
+             */
             virtual void initFrame(std::shared_ptr<libtrainsim::Frame> frame);
             
+            /**
+             * @brief check if the end of a video file is reached.
+             * Use this function to stop the simulator if the video file is over.
+             * The simulator will hang or crash once the end is reached and it still tries to render new frames.
+             * 
+             * @return true The end of the video file is reached
+             * @return false The video file is not at the end yet
+             */
             bool reachedEndOfFile();
         };
     }

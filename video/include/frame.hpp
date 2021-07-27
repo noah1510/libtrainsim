@@ -172,6 +172,12 @@ namespace libtrainsim {
              */
             void setBackend(Video::RendererBackends newBackend);
 
+            /**
+             * @brief Checks if the frame data is empty
+             * 
+             * @return true the frame data is empty
+             * @return false the frame data has contents
+             */
             bool isEmpty() const;
     };
 

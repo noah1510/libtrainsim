@@ -24,6 +24,10 @@ std::shared_ptr<libtrainsim::Frame> genericRenderer::gotoFrame(uint64_t frameNum
     return std::make_shared<libtrainsim::Frame>();
 }
 
+uint64_t genericRenderer::getCurrentFrameNumber(){
+    return 0;
+}
+
 double genericRenderer::getHight(){
     return 0.0;
 }
