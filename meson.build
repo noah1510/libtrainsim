@@ -1,6 +1,7 @@
 project(
     'libtrainsim',
     'cpp',
+    'c',
     default_options : ['cpp_std=c++17'],
     version : '0.9.2'
 )

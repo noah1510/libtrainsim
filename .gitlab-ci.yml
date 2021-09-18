@@ -16,7 +16,7 @@ build:fedora-opencv:
   stage: build
   image: $CONTAINER_PREFIX/libtrainsim:fedora
   script:
-    - meson setup -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false build
+    - meson setup -Dvideo_backend_glfw3=false -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false build
     - meson compile -C build
     - meson test -C build
   only:
@@ -27,7 +27,7 @@ build:fedora-sdl-ffmpeg:
   stage: build
   image: $CONTAINER_PREFIX/libtrainsim:fedora
   script:
-    - meson setup -Dvideo_backend_opencv=false build
+    - meson setup -Dvideo_backend_opencv=false -Dvideo_backend_glfw3=false build
     - meson compile -C build
     - meson test -C build
   only:
