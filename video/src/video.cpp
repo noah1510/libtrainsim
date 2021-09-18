@@ -10,6 +10,14 @@ void libtrainsim::video::initSDL2(){
 }
 #endif
 
+#ifdef HAS_GLFW_SUPPORT
+void libtrainsim::video::initGLFW3(){
+    if (glfwInit() != GLFW_TRUE){
+        std::cerr << "Error while starting glfw3!" << std::endl;
+    }
+}
+#endif
+
 std::string libtrainsim::video::hello_impl() const{
     return "Hello from the video singleton";
 }

@@ -74,6 +74,9 @@ else
 
     #try to find sdl2 dependnecies and enable sources
     enable_sdl = get_option('video_backend_sdl')
+    
+    #try to find dependnecies glfw3 and enable sources
+    enable_glfw3 = get_option('video_backend_glfw3')
 
     #try to find ffmpeg dependencies
     ffmpeg_dep = []
@@ -122,8 +125,7 @@ else
         video_deps += ffmpeg_dep
         sources += 'src/backends/ffmpegRenderer.cpp'
         sources += 'src/backends/ffmpegFrame.cpp'
-        sources += 'src/backends/SDL2WindowManager.cpp'
-        sources += 'src/backends/ffmpegSDL2Backend.cpp'
+        
         message('compiling with ffmpeg enabled')
     endif
 
@@ -131,7 +133,32 @@ else
     if enable_sdl
         video_deps += dependency('sdl2', required : true, fallback: ['sdl2','sdl2_dep'])
         
+        sources += 'src/backends/SDL2WindowManager.cpp'
+        
+        if enable_ffmpeg
+            sources += 'src/backends/ffmpegSDL2Backend.cpp'
+        endif
+        
         message('compiling with sdl2 enabled')
+    endif
+    
+    if enable_glfw3
+    
+        CC = meson.get_compiler('c')
+        
+        video_deps += dependency('glfw3', required : true, fallback : ['glfw3', 'glfw_dep'])
+        video_deps += dependency('glm', required : true, fallback : ['glm','glm_dep'])
+        video_deps += dependency('gl', required : true)
+        video_deps += CC.find_library('dl', required : false)
+        
+        sources += 'src/backends/glfw3WindowManager.cpp'
+        sources += 'src/glad.c'
+        
+        if enable_ffmpeg
+            sources += 'src/backends/ffmpeg_glfw3.cpp'
+        endif
+        
+        message('compiling with glfw3 enabled')
     endif
 
 endif
@@ -141,6 +168,7 @@ video_conf_data = configuration_data()
 video_conf_data.set('HAS_OPENCV_SUPPORT', enable_opencv)
 video_conf_data.set('HAS_FFMPEG_SUPPORT', enable_ffmpeg)
 video_conf_data.set('HAS_SDL_SUPPORT', enable_sdl)
+video_conf_data.set('HAS_GLFW_SUPPORT', enable_glfw3)
 video_conf_data.set('ENDABLE_VSYNC', get_option('video_use_vsync'))
 configure_file(output : 'video_config.hpp', configuration : video_conf_data, install: true, install_dir: 'include/libtrainsim')
 

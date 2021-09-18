@@ -42,6 +42,16 @@ std::string libtrainsim::control::input_handler::getKeyFunction() {
                 };
             }
         #endif
+        
+        #ifdef HAS_GLFW_SUPPORT
+            if ( backend == libtrainsim::Video::window_glfw){
+                auto _window = video::getGLFWwindow();
+                
+                if (glfwWindowShouldClose(_window)){
+                    return "CLOSE";
+                }
+            }
+        #endif
 
     #endif
     

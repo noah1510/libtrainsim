@@ -3,6 +3,7 @@
 #include "genericBackend.hpp"
 #include "backends/opencv.hpp"
 #include "backends/ffmpeg_sdl.hpp"
+#include "backends/ffmpeg_glfw3.hpp"
 
 namespace libtrainsim {
     
@@ -46,6 +47,10 @@ namespace libtrainsim {
 
             #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
             const VideoBackendDefinition ffmpeg_SDL2{window_sdl,renderer_ffmpeg};
+            #endif
+            
+            #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_GLFW_SUPPORT)
+            const VideoBackendDefinition ffmpeg_glfw{window_glfw,renderer_ffmpeg};
             #endif
         }
     }
