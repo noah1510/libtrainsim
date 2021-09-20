@@ -9,6 +9,7 @@
 #include "libtrainsim_config.hpp"
 #include "input_axis.hpp"
 #include "keymap.hpp"
+#include "glfwKeyTranslation.hpp"
 
 #ifdef HAS_VIDEO_SUPPORT
     #if __has_include("video.hpp")

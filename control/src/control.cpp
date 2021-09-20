@@ -50,6 +50,17 @@ std::string libtrainsim::control::input_handler::getKeyFunction() {
                 if (glfwWindowShouldClose(_window)){
                     return "CLOSE";
                 }
+                
+                glfwWaitEventsTimeout(0.001);
+                
+                auto keyList = keys.getAllKeys();
+                for (auto key: keyList){
+                    auto glfwKey = glfwKeyTranslation::getCharAsKey(key);
+                    if (glfwGetKey(_window, glfwKey) == GLFW_PRESS){
+                        return keys.getFunction(key);
+                    }
+                }
+                
             }
         #endif
 

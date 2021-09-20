@@ -34,6 +34,14 @@ namespace libtrainsim {
             std::vector<char> getKeyList(const std::string& function) const;
             
             /**
+             * @brief Get a list of all of the keys that have a function.
+             * This returns any keys that have a functions assigned to them.
+             * 
+             * @return std::vector<char> the list with all of the keys
+             */
+            std::vector<char> getAllKeys() const;
+            
+            /**
              * @brief add a key to the keymap.
              * @note if the key is already added, this will assign it a new function
              * @param key the key that should be added.

@@ -18,6 +18,17 @@ std::vector<char> libtrainsim::control::keymap::getKeyList(const std::string& ke
     return keys;
 }
 
+std::vector<char> libtrainsim::control::keymap::getAllKeys() const{
+    std::vector<char> keys;
+    keys.reserve(_keymap.size());
+    
+    for (auto x : _keymap){
+        keys.emplace_back(x.first);
+    }
+    
+    return keys;
+}
+
 void libtrainsim::control::keymap::add(char key, const std::string& function){
     _keymap.insert({key,function});
 }
