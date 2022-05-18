@@ -12,6 +12,7 @@ incdir = include_directories('include','..')
 control_deps = [
     dependency('threads'),
     dependency('libtrainsim-core', required: true),
+    dependency('rs232', required: true),
 ]
 
 video_dep = dependency('libtrainsim-video', required: false)

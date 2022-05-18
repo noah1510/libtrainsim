@@ -53,11 +53,10 @@ void serialcontrol::openCOMPort(){
     if(RS232_OpenComport(cport_nr, bdrate, mode, 0))
     {
         serialcontrol::serialflag = false;
-    }
-    else
-    {
-    serialcontrol::serialflag = true;
-    std::cout << "Opened comport" << std::endl;
+        std::cerr << "Error while opening COM Port " << comports[cport_nr] << std::endl;
+    } else{
+        serialcontrol::serialflag = true;
+        std::cout << "Opened comport" << std::endl;
     }
     std::cout << "serial flag: " << serialcontrol::serialflag << std::endl;
 }

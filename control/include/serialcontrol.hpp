@@ -45,7 +45,7 @@ namespace libtrainsim{
             /**
             * @brief public flag true if COMPort successfully opened.
             */
-            bool serialflag;
+            bool serialflag = false;
 
             static bool emergency_flag;
 
