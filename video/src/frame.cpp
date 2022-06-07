@@ -15,10 +15,6 @@ bool Frame::isEmpty() const {
             case(renderer_ffmpeg):
                 return frameDataFF==nullptr;
         #endif
-        #ifdef HAS_OPENCV_SUPPORT
-            case(renderer_opencv):
-                return frameDataCV.empty();
-        #endif // HAS_OPENCV_SUPPORT
 
         case(renderer_none):
         default:
@@ -43,13 +39,6 @@ Frame::~Frame(){
 
 void Frame::clear(){
     if(currentBackend == renderer_none){return;};
-    
-    #ifdef HAS_OPENCV_SUPPORT
-    if(currentBackend == renderer_opencv){
-        clearCV();
-        return;
-    }
-    #endif
     
     #ifdef HAS_FFMPEG_SUPPORT
     if(currentBackend == renderer_ffmpeg){

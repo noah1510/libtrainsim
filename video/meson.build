@@ -11,7 +11,6 @@ video_deps = [
     dependency('threads', required: true),
 ]
 
-enable_opencv = false
 enable_ffmpeg = false
 enable_sdl = false
 
@@ -57,21 +56,6 @@ if target_machine.system() == 'emscripten'
 else
     #handle normal builds 
 
-    #try to find opencv backend dependencies
-    opencv_dep = dependency('opencv4', required : false)
-    if not opencv_dep.found()
-        opencv_dep = dependency('opencv3', required : false)
-        if not opencv_dep.found()
-            opencv_dep = dependency('opencv2', required : false, version: '>=2.4.0')
-            if not opencv_dep.found()
-                opencv_dep = dependency('opencv', required : false, version: '>=2.4.0')
-            endif
-        endif
-    endif
-
-    #set enable_opencv to the correct value
-    enable_opencv = get_option('video_backend_opencv') and opencv_dep.found()
-
     #try to find sdl2 dependnecies and enable sources
     enable_sdl = get_option('video_backend_sdl')
     
@@ -109,16 +93,6 @@ else
         endif
     endforeach
     enable_ffmpeg = get_option('video_backend_ffmpeg') and ffmpeg_found and (enable_sdl)
-    
-    #enable opencv if needed
-    if enable_opencv
-        video_deps += opencv_dep
-        sources += 'src/backends/openCVFrame.cpp'
-        sources += 'src/backends/openCVRenderer.cpp'
-        sources += 'src/backends/openCVWindowManager.cpp'
-        sources += 'src/backends/openCVBackend.cpp'
-        message('compiling with opencv enabled')
-    endif
 
     #enable ffmpeg if needed
     if enable_ffmpeg
@@ -165,7 +139,6 @@ endif
 
 #create the video configuration file
 video_conf_data = configuration_data()
-video_conf_data.set('HAS_OPENCV_SUPPORT', enable_opencv)
 video_conf_data.set('HAS_FFMPEG_SUPPORT', enable_ffmpeg)
 video_conf_data.set('HAS_SDL_SUPPORT', enable_sdl)
 video_conf_data.set('HAS_GLFW_SUPPORT', enable_glfw3)

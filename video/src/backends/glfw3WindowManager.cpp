@@ -14,7 +14,8 @@ static const char *vertexShaderSource = "#version 330 core\n"
                                      "out vec2 TexCoord;\n"
                                      "void main()\n"
                                      "{\n"
-                                     "    TexCoord = aTexCoord;\n"
+                                     "    gl_Position = vec4(aPos.xy, 0.0, 1.0);\n"
+                                     "    TexCoord = gl_Position.xy;\n"
                                      "}\0";
 
 static const char *fragmentShaderSource = "#version 330 core\n"
@@ -23,7 +24,8 @@ static const char *fragmentShaderSource = "#version 330 core\n"
                                     "uniform sampler2D Frame;\n"
                                     "void main()\n"
                                     "{\n"
-                                    "    FragColor = texture(Frame, TexCoord);\n"
+                                    "    //FragColor = vec4(TexCoord.x, TexCoord.y, 1.0, 1.0);\n"
+                                    "    FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n"
                                     "}\0";
 
 libtrainsim::Video::glfw3WindowManager::glfw3WindowManager ( libtrainsim::Video::genericRenderer& _renderer ) : genericWindowManager{_renderer} {
@@ -33,7 +35,10 @@ libtrainsim::Video::glfw3WindowManager::glfw3WindowManager ( libtrainsim::Video:
 };
 
 glfw3WindowManager::~glfw3WindowManager(){
-    
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteProgram(shaderProgram);
     glfwTerminate();
 }
 
@@ -46,8 +51,8 @@ void glfw3WindowManager::createWindow(const std::string& windowName){
     currentWindowName = windowName;
     std::cout << currentWindowName << std::endl;
     
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
     if(_width == 0){_width = 1280;};
@@ -69,10 +74,37 @@ void glfw3WindowManager::createWindow(const std::string& windowName){
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
-
+    
     //generate Video Buffers
-    glGenBuffers(1, &VBO);
     glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    //create the rectangle data
+    float vertices[16];
+    for(unsigned int i = 0; i < 4;i++){
+        vertices[4*i] = coords[i].x;
+        vertices[4*i+1] = coords[i].y;
+        vertices[4*i+2] = texels[i].x;
+        vertices[4*i+3] = texels[i].y;
+    }
+    
+    //send the data to the gpu
+    glBindVertexArray(VAO);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    
+    // position attribute
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // texel attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
     
     //compile and link the shaders
     unsigned int vertexShader;
@@ -121,40 +153,23 @@ void glfw3WindowManager::createWindow(const std::string& windowName){
 
     glUseProgram(shaderProgram);
     
+    //enable texture filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-    /*screen = SDL_CreateWindow(
-        currentWindowName.c_str(),
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
-        renderer.getWidth()/2,
-        renderer.getHight()/2,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE
-    );
-
-    if (!screen){
-        std::cerr << "SDL: could not set video mode - exiting." << std::endl;
-        return;
-    }
+    //enable mipmaps
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-    SDL_GL_SetSwapInterval(1);
-    auto renderFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
-    #ifdef ENDABLE_VSYNC
-    if(true){renderFlags |= SDL_RENDERER_PRESENTVSYNC;};
-    #endif
-    sdl_renderer = SDL_CreateRenderer(screen, -1, renderFlags);
-    
-    texture = SDL_CreateTexture(
-        sdl_renderer,
-        SDL_PIXELFORMAT_YV12,
-        SDL_TEXTUREACCESS_STREAMING,
-        renderer.getWidth(),
-        renderer.getHight()
-    );*/
+    //generate the opengl texture
+    glGenTextures(1, &texture);
+    //glBindTexture(GL_TEXTURE_2D, texture);
     
     renderer.initFrame(pict);
     
     lastFrame.reset();
     lastFrame = renderer.getNextFrame();
+    
     
     windowFullyCreated = true;
 }
@@ -164,10 +179,32 @@ void glfw3WindowManager::refreshWindow(){
         return;
     }
     
+    int _width = 0;
+    int _height = 0;
+    glfwGetFramebufferSize(_window, &_width, &_height);
+    glViewport(0, 0, _width, _height);
+    
+    //clear the opengl buffer
+    glClearColor(0.2f,0.3f,0.3f,1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    //get the new frame
     pict.reset();
     pict = renderer.scaleFrame(lastFrame);
-
-    glClear(GL_COLOR_BUFFER_BIT);
+    
+    //load the frame to the gpu
+    //TODO convert the image to rgb
+    //glBindTexture(GL_TEXTURE_2D, texture);
+    
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pict->dataFF()->width, pict->dataFF()->height, 0, GL_RED, GL_UNSIGNED_BYTE, pict->dataFF()->data[0]);
+    //glGenerateMipmap(GL_TEXTURE_2D);
+    
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    
+    glUseProgram(shaderProgram);
+    
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     
     glfwSwapBuffers(_window);
     glfwPollEvents();  

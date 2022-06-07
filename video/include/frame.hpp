@@ -3,16 +3,6 @@
 #include "video_config.hpp"
 #include <iostream>
 
-#ifdef HAS_OPENCV_SUPPORT
-    #if __has_include("opencv2/opencv.hpp")
-        #include "opencv2/opencv.hpp"
-    #elif __has_include("opencv4/opencv2/opencv.hpp")
-        #include "opencv4/opencv2/opencv.hpp"
-    #else
-        #undef HAS_OPENCV_SUPPORT
-    #endif
-#endif
-
 #ifdef HAS_FFMPEG_SUPPORT
     #if __has_include("libavcodec/avcodec.h") && __has_include("libavutil/imgutils.h") && __has_include("libavformat/avformat.h") && __has_include("libswscale/swscale.h")
         extern "C"{
@@ -37,11 +27,6 @@ namespace libtrainsim {
             /// No selected backend
             renderer_none = 0,
             
-            #ifdef HAS_OPENCV_SUPPORT
-            /// use opencv as video backend
-            renderer_opencv = 1,
-            #endif
-            
             #ifdef HAS_FFMPEG_SUPPORT
             ///use ffmpeg with any found windowing system
             renderer_ffmpeg = 2,
@@ -61,20 +46,6 @@ namespace libtrainsim {
              * 
              */
             Video::RendererBackends currentBackend = Video::renderer_none;
-
-            #ifdef HAS_OPENCV_SUPPORT
-
-            /**
-             * @brief the actual data of the frame for the opencv backend
-             * 
-             */
-            cv::UMat frameDataCV;
-            
-            /**
-             * delete the contents of the opencv frame container
-             */
-            void clearCV();
-            #endif
             
             #ifdef HAS_FFMPEG_SUPPORT
             
@@ -94,27 +65,6 @@ namespace libtrainsim {
             void createEmptyFF();
             #endif
         public:
-            #ifdef HAS_OPENCV_SUPPORT
-            /**
-             * @brief Construct a new Frame from given data.
-             * 
-             * @param frameDat the data this frame contains.
-             */
-            Frame(const cv::UMat& frameDat);
-
-            /**
-             * @brief retrive the internal frame data for the opencv backend.
-             * 
-             * @return cv::UMat* the internal frame data 
-             */
-            cv::UMat dataCV() const;
-            
-            /**
-             * Convert a frame to an cv::UMat without needing to call dataFF
-             * 
-             */
-            operator cv::UMat();
-            #endif
             
             #ifdef HAS_FFMPEG_SUPPORT
             /**

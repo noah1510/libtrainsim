@@ -27,23 +27,30 @@ namespace libtrainsim {
                 
                 unsigned int VBO = 0;
                 unsigned int VAO = 0;
+                unsigned int EBO = 0;
                 unsigned int shaderProgram = 0;
                 
-                const std::array<glm::vec2, 4> coords = {
+                unsigned int texture = 0;
+                
+                unsigned int textureY = 0;
+                unsigned int textureU = 0;
+                unsigned int textureV = 0;
+                
+                const glm::vec2 coords[4] = {
                     glm::vec2{-1.0f,1.0f},
                     glm::vec2{1.0f,1.0f},
                     glm::vec2{1.0f,-1.0f},
                     glm::vec2{-1.0f,-1.0f}
                 };
                 
-                const std::array<glm::vec2, 4> texels = {
+                const glm::vec2 texels[4] = {
                     glm::vec2{0.0f,0.0f},
                     glm::vec2{1.0f,0.0f},
                     glm::vec2{1.0f,1.0f},
                     glm::vec2{0.0f,1.0f}
                 };
                 
-                const std::array<unsigned int, 6> indicies{
+                const unsigned int indices[6]{
                     0,1,2,
                     0,2,3
                 };

@@ -4,8 +4,6 @@
 #include <string>
 #include <filesystem>
 
-#include "backends/openCVRenderer.hpp"
-#include "backends/openCVWindowManager.hpp"
 #include "frame.hpp"
 #include "genericBackend.hpp"
 #include "VideoBackends.hpp"
