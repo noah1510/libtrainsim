@@ -63,10 +63,6 @@ namespace libtrainsim {
             #ifdef HAS_SDL_SUPPORT
             void initSDL2();
             #endif
-            
-            #ifdef HAS_GLFW_SUPPORT
-            void initGLFW3();
-            #endif
 
             /**
              * @brief the used video backend
@@ -91,28 +87,10 @@ namespace libtrainsim {
             static void checkBackend_impl(){
                 if(getInstance().currentBackend_impl == nullptr){
 
-                    #ifdef HAS_OPENCV_SUPPORT
-                        if(getInstance().currentBackend == Video::VideoBackends::openCV){
-                            
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoOpenCV>();
-
-                            return;
-                        }
-                    #endif
-
                     #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
                         if(getInstance().currentBackend == Video::VideoBackends::ffmpeg_SDL2){
                             getInstance().initSDL2();
                             getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoFF_SDL>();
-
-                            return;
-                        }
-                    #endif
-                    
-                    #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_GLFW_SUPPORT)
-                        if(getInstance().currentBackend == Video::VideoBackends::ffmpeg_glfw){
-                            getInstance().initGLFW3();
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoFF_glfw3>();
 
                             return;
                         }
@@ -209,15 +187,8 @@ namespace libtrainsim {
                     #ifdef HAS_SDL_SUPPORT
                     return Video::VideoBackends::ffmpeg_SDL2;
                     #endif
-                    
-                    #ifdef HAS_GLFW_SUPPORT
-                    return Video::VideoBackends::ffmpeg_glfw;
-                    #endif
                 #endif
                 
-                #ifdef HAS_OPENCV_SUPPORT
-                return Video::VideoBackends::openCV;
-                #endif
 
                 return Video::VideoBackends::none;
             }
@@ -255,48 +226,7 @@ namespace libtrainsim {
                 return getInstance().currentBackend_impl->getRenderer().reachedEndOfFile();
             }
             
-            //glfw backend specific options
-            #ifdef HAS_GLFW_SUPPORT
-            static GLFWwindow* getGLFWwindow(){
-                checkBackend_impl();
-                if(getInstance().currentBackend.windowType == Video::WindowingBackends::window_glfw){
-                    return dynamic_cast<Video::videoFF_glfw3*>(getInstance().currentBackend_impl.get())->getGLFWwindow();
-                }
-                return nullptr;
-            }
-            #endif
             
-            //opencv backend specifc options
-            #ifdef HAS_OPENCV_SUPPORT
-
-            /**
-             * @brief Set the Backend of the opencv video capture
-             * @warning this is useless if called after load 
-             * 
-             * @param newBackend 
-             */
-            static void setCVBackend(cv::VideoCaptureAPIs newBackend){
-                checkBackend_impl();
-                if(getInstance().currentBackend == Video::VideoBackends::openCV){
-                    dynamic_cast<Video::videoOpenCV*>(getInstance().currentBackend_impl.get())->setBackend(newBackend);
-                }
-            }
-
-            /**
-             * @brief Get the Backend of the video capture
-             * 
-             * @return cv::VideoCaptureAPIs the video capture backend
-             */
-            static cv::VideoCaptureAPIs getCVBackend(){
-                checkBackend_impl();
-                if(getInstance().currentBackend == Video::VideoBackends::openCV){
-                    return dynamic_cast<Video::videoOpenCV*>(getInstance().currentBackend_impl.get())->getBackend();
-                }
-                return cv::CAP_ANY;
-            }
-
-            #endif
-
     };
 }
 

@@ -2,7 +2,6 @@
 
 #include "genericBackend.hpp"
 #include "backends/ffmpeg_sdl.hpp"
-#include "backends/ffmpeg_glfw3.hpp"
 
 namespace libtrainsim {
     
@@ -14,11 +13,6 @@ namespace libtrainsim {
             #ifdef HAS_SDL_SUPPORT
             ///use ffmpeg with any found windowing system
             window_sdl = 2,
-            #endif
-            
-            #ifdef HAS_GLFW_SUPPORT
-            ///use ffmpeg with any found windowing system
-            window_glfw = 3,
             #endif
         };
 
@@ -37,10 +31,6 @@ namespace libtrainsim {
 
             #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
             const VideoBackendDefinition ffmpeg_SDL2{window_sdl,renderer_ffmpeg};
-            #endif
-            
-            #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_GLFW_SUPPORT)
-            const VideoBackendDefinition ffmpeg_glfw{window_glfw,renderer_ffmpeg};
             #endif
         }
     }

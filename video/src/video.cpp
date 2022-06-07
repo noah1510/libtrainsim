@@ -25,12 +25,6 @@ std::string libtrainsim::video::hello_impl() const{
 void libtrainsim::video::reset(){
     currentBackend_impl = nullptr;
     
-    #ifdef HAS_OPENCV_SUPPORT
-    if (currentBackend == libtrainsim::Video::VideoBackends::openCV){
-        cv::destroyAllWindows();
-    }
-    #endif
-    
     #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
     if(currentBackend == libtrainsim::Video::VideoBackends::ffmpeg_SDL2){
         SDL_Quit();
