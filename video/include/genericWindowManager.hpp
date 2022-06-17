@@ -12,8 +12,7 @@ namespace libtrainsim {
          */
         class genericWindowManager{
         protected:
-            genericRenderer& renderer;
-            
+            std::shared_ptr<genericRenderer> renderer;
             
             /**
             * @brief the frame that was displayed last.
@@ -37,7 +36,7 @@ namespace libtrainsim {
             bool windowFullyCreated = false;
                 
         public:
-            genericWindowManager(genericRenderer& _renderer);
+            genericWindowManager(std::shared_ptr<genericRenderer> _renderer);
             
             virtual ~genericWindowManager();
             

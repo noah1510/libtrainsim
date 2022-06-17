@@ -1,7 +1,7 @@
 #pragma once
 
 #include "genericRenderer.hpp"
-#include "frame.hpp"
+#include "backends/ffmpegFrame.hpp"
 #include <filesystem>
 #include <string>
 

@@ -1,45 +1,44 @@
-#include "frame.hpp"
-
-using namespace libtrainsim;
-using namespace libtrainsim::Video;
+#include "backends/ffmpegFrame.hpp"
 
 #ifdef HAS_FFMPEG_SUPPORT
 
-Frame::Frame(AVFrame* dat){
-    currentBackend = renderer_ffmpeg;
+libtrainsim::ffmpegFrame::ffmpegFrame(AVFrame* dat){
     frameDataFF = dat;
 }
 
-AVFrame* Frame::dataFF() const{
-    if(currentBackend < 2 || currentBackend > 3){return nullptr;};
-
+AVFrame* libtrainsim::ffmpegFrame::dataFF() const{
     return frameDataFF;
 }
 
-void Frame::clearFF(){
-    if(currentBackend < 2 || currentBackend > 3){return;};
-    av_frame_free(&frameDataFF);
-    av_free(frameDataFF);
-}
-
-void Frame::createEmptyFF(){
+libtrainsim::ffmpegFrame::ffmpegFrame() {
     frameDataFF = av_frame_alloc();
 }
 
-Frame::operator AVFrame*(){
-    if(currentBackend < 2 || currentBackend > 3){return nullptr;};
+libtrainsim::ffmpegFrame::operator AVFrame*(){
     return frameDataFF;
 }
 
-Frame& Frame::operator=(AVFrame* x){
-    currentBackend = renderer_ffmpeg;
+libtrainsim::ffmpegFrame& libtrainsim::ffmpegFrame::operator=(AVFrame* x){
+    
     if (x == frameDataFF){return *this;};
     if(frameDataFF != nullptr){
         av_frame_free(&frameDataFF);
         av_free(frameDataFF);
     }
+    
     frameDataFF = x;
     return *this;
 }
+
+bool libtrainsim::ffmpegFrame::isEmpty() const {
+    return frameDataFF==nullptr;
+}
+
+void libtrainsim::ffmpegFrame::clear(){
+    av_frame_free(&frameDataFF);
+    av_free(frameDataFF);
+    frameDataFF = av_frame_alloc();
+}
+
 
 #endif

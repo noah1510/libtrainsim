@@ -3,7 +3,7 @@
 
 using namespace libtrainsim::Video;
 
-genericWindowManager::genericWindowManager(genericRenderer& _renderer): renderer{_renderer}{};
+genericWindowManager::genericWindowManager(std::shared_ptr<genericRenderer> _renderer): renderer{_renderer}{};
 
 genericWindowManager::~genericWindowManager(){
     
@@ -32,6 +32,6 @@ void genericWindowManager::displayFrame(std::shared_ptr<libtrainsim::Frame> newF
 
 
 void genericWindowManager::gotoFrame(uint64_t frameNum){
-    return displayFrame(renderer.gotoFrame(frameNum));
+    return displayFrame(renderer->gotoFrame(frameNum));
 }
 

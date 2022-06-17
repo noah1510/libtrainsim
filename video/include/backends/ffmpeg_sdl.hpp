@@ -1,7 +1,6 @@
 #pragma once
 
 #include "genericBackend.hpp"
-#include "frame.hpp"
 #include "ffmpegRenderer.hpp"
 #include "SDL2WindowManager.hpp"
 
@@ -14,9 +13,6 @@ namespace libtrainsim{
         
         class videoFF_SDL : public videoGeneric{
             private:
-                ffmpegRenderer rendererFF{};
-                
-                SDL2WindowManager windowSDL{rendererFF};
 
             public:
 
@@ -27,7 +23,6 @@ namespace libtrainsim{
                 * 
                 */
                 ~videoFF_SDL();
-
         };
 
         #endif

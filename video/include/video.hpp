@@ -6,7 +6,7 @@
 
 #include "frame.hpp"
 #include "genericBackend.hpp"
-#include "VideoBackends.hpp"
+#include "backends/ffmpeg_sdl.hpp"
 
 namespace libtrainsim {    
 
@@ -20,7 +20,7 @@ namespace libtrainsim {
              * @brief Construct a new video object (must only be called by getInstance when necessary)
              * 
              */
-            video(Video::VideoBackendDefinition backend = getDefaultBackend());
+            video();
 
             /**
              * @brief Destroy the video object, on destruction everything will be reset.
@@ -60,15 +60,7 @@ namespace libtrainsim {
             ///The implementation for the getFilePath method
             const std::filesystem::path& getFilePath_impl() const;
 
-            #ifdef HAS_SDL_SUPPORT
             void initSDL2();
-            #endif
-
-            /**
-             * @brief the used video backend
-             * 
-             */
-            Video::VideoBackendDefinition currentBackend;
             
             /**
              * @brief the implementation of the current backend
@@ -81,22 +73,23 @@ namespace libtrainsim {
              */
             std::string windowName = "trainsim";
             
-            libtrainsim::Video::genericRenderer fallbackRenderer{};
-            libtrainsim::Video::genericWindowManager fallbackWindow{fallbackRenderer};
+            std::shared_ptr<libtrainsim::Video::genericRenderer> fallbackRenderer = std::make_shared<libtrainsim::Video::genericRenderer>();
+            std::shared_ptr<libtrainsim::Video::genericWindowManager> fallbackWindow = std::make_shared<libtrainsim::Video::genericWindowManager>(fallbackRenderer);
 
             static void checkBackend_impl(){
                 if(getInstance().currentBackend_impl == nullptr){
 
-                    #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
-                        if(getInstance().currentBackend == Video::VideoBackends::ffmpeg_SDL2){
-                            getInstance().initSDL2();
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoFF_SDL>();
+                    try{
+                        getInstance().initSDL2();
+                        getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoFF_SDL>();
 
-                            return;
-                        }
-                    #endif
+                        return;
 
-                    std::make_unique<libtrainsim::Video::videoGeneric>(getInstance().fallbackWindow, getInstance().fallbackRenderer);
+                        std::make_unique<libtrainsim::Video::videoGeneric>(getInstance().fallbackWindow, getInstance().fallbackRenderer);
+                    }catch(...){
+                        std::throw_with_nested(std::runtime_error("could not create instance"));
+                    }
+                    
                 }
             }
 
@@ -117,7 +110,11 @@ namespace libtrainsim {
              * @return false error while loading file
              */
             static bool load(const std::filesystem::path& uri){
-                return getInstance().load_impl(uri);
+                try{
+                    return getInstance().load_impl(uri);
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("error loading track config"));
+                }
             }
 
             /**
@@ -126,7 +123,11 @@ namespace libtrainsim {
              * @return std::filesystem::path the filepath to the current video file
              */
             static const std::filesystem::path& getFilePath(){
-                return getInstance().getFilePath_impl();
+                try{
+                    return getInstance().getFilePath_impl();
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("error getting file path"));
+                }
             }
 
             /**
@@ -135,26 +136,8 @@ namespace libtrainsim {
              * @param frame_num the number of the frame that should be displayed next
              */
             static void gotoFrame(double frame_num){
-                checkBackend_impl();
+                try{checkBackend_impl();} catch(...){std::throw_with_nested(std::runtime_error("error loading backend implementation"));};
                 getInstance().currentBackend_impl->gotoFrame(static_cast<uint64_t>(frame_num));
-            }
-
-            /**
-             * @brief Get the Backend used at the moment.
-             * 
-             * @return VideoBackends the currently used backend
-             */
-            static Video::VideoBackendDefinition getBackend(){
-                return getInstance().currentBackend;
-            }
-
-            /**
-             * @brief Set the video backend of the video singleton
-             * 
-             * @param backend the new backend to be used
-             */
-            static void setBackend(Video::VideoBackendDefinition backend){
-                getInstance().currentBackend = backend;
             }
 
             /**
@@ -163,7 +146,7 @@ namespace libtrainsim {
              * @return double 
              */
             static double getWidth(){
-                checkBackend_impl();
+                try{checkBackend_impl();} catch(...){std::throw_with_nested(std::runtime_error("error loading backend implementation"));};
                 return getInstance().currentBackend_impl->getWidth();
             }
 
@@ -173,24 +156,8 @@ namespace libtrainsim {
              * @return double 
              */
             static double getHight(){
-                checkBackend_impl();
+                try{checkBackend_impl();} catch(...){std::throw_with_nested(std::runtime_error("error loading backend implementation"));};
                 return getInstance().currentBackend_impl->getHight();
-            }
-
-            /**
-             * @brief Get backend that will be used by default
-             * 
-             * @return VideoBackends the backend to be used by default
-             */
-            static Video::VideoBackendDefinition getDefaultBackend(){
-                #ifdef HAS_FFMPEG_SUPPORT
-                    #ifdef HAS_SDL_SUPPORT
-                    return Video::VideoBackends::ffmpeg_SDL2;
-                    #endif
-                #endif
-                
-
-                return Video::VideoBackends::none;
             }
 
             /**
@@ -199,7 +166,7 @@ namespace libtrainsim {
              * @param windowName 
              */
             static void createWindow(const std::string& windowName){
-                checkBackend_impl();
+                try{checkBackend_impl();} catch(...){std::throw_with_nested(std::runtime_error("error loading backend implementation"));};
                 getInstance().currentBackend_impl->createWindow(windowName);
             }
 
@@ -209,7 +176,7 @@ namespace libtrainsim {
              * 
              */
             static void refreshWindow(){
-                checkBackend_impl();
+                try{checkBackend_impl();} catch(...){std::throw_with_nested(std::runtime_error("error loading backend implementation"));};
                 getInstance().currentBackend_impl->refreshWindow();
             }
             
@@ -222,8 +189,8 @@ namespace libtrainsim {
              * @return false The video file is not at the end yet
              */
             static bool reachedEndOfFile(){
-                checkBackend_impl();
-                return getInstance().currentBackend_impl->getRenderer().reachedEndOfFile();
+                try{checkBackend_impl();} catch(...){std::throw_with_nested(std::runtime_error("error loading backend implementation"));};
+                return getInstance().currentBackend_impl->getRenderer()->reachedEndOfFile();
             }
             
             

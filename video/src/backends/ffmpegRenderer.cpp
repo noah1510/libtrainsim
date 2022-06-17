@@ -1,5 +1,4 @@
 #include "backends/ffmpegRenderer.hpp"
-#include "frame.hpp"
 
 using namespace libtrainsim;
 using namespace libtrainsim::Video;
@@ -98,28 +97,29 @@ bool ffmpegRenderer::load(const std::filesystem::path& uri){
 }
 
 std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::getNextFrame(){
-    if(endOfFile){return std::make_shared<libtrainsim::Frame>();};
+    if(endOfFile){return std::make_shared<libtrainsim::ffmpegFrame>();};
     
     av_packet_unref(pPacket);
     
-    auto pFrame = std::make_shared<libtrainsim::Frame>();
-    pFrame->setBackend(renderer_ffmpeg);
+    auto pFrame = std::make_shared<libtrainsim::ffmpegFrame>();
     
     auto ret = av_read_frame(pFormatCtx, pPacket);
     if(ret < 0 || pPacket->stream_index != videoStream){
-        return std::make_shared<libtrainsim::Frame>();
+        throw std::runtime_error("ffmpeg error");
     };
     
     ret = avcodec_send_packet(pCodecCtx, pPacket);
     if (ret < 0){
-        std::cerr << "Error sending packet for decoding." << std::endl;
-        return std::make_shared<libtrainsim::Frame>();
+        throw std::runtime_error("Error sending packet for decoding.");
     }
     
     ret = avcodec_receive_frame(pCodecCtx, pFrame->dataFF());
-    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0){
-        if(ret == AVERROR_EOF){endOfFile = true;};
-        return std::make_shared<libtrainsim::Frame>();
+    if (ret == AVERROR_EOF){
+        endOfFile = true;
+        return std::make_shared<libtrainsim::ffmpegFrame>();
+    }
+    if (ret == AVERROR(EAGAIN) || ret < 0){
+        throw std::runtime_error("error receiving next frame");
     }
     
     currentFrameNumber++;
@@ -128,7 +128,7 @@ std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::getNextFrame(){
 
 
 std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::gotoFrame(uint64_t frameNum){
-    if(endOfFile){return std::make_shared<libtrainsim::Frame>();};
+    if(endOfFile){return std::make_shared<libtrainsim::ffmpegFrame>();};
     //double fps = static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.num) / static_cast<double>(pFormatCtx->streams[videoStream]->r_frame_rate.den);
     //int64_t _time = static_cast<int64_t>( static_cast<double>(frameNum)*fps);
     //av_seek_frame(pFormatCtx, videoStream, frameNum, AVSEEK_FLAG_ANY);
@@ -140,7 +140,7 @@ std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::gotoFrame(uint64_t frameNum)
         return getNextFrame();
     };
     
-    return std::make_shared<libtrainsim::Frame>();
+    return std::make_shared<libtrainsim::ffmpegFrame>();
 }
 
 uint64_t ffmpegRenderer::getFrameCount(){
@@ -157,10 +157,13 @@ double ffmpegRenderer::getWidth(){
     return pCodecCtx->width;
 }
 
-std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::scaleFrame(std::shared_ptr<libtrainsim::Frame> frame){
-    if(pCodecCtx == nullptr || endOfFile){return std::make_shared<libtrainsim::Frame>();};
-    auto retval = std::make_shared<libtrainsim::Frame>(); 
+std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::scaleFrame(std::shared_ptr<libtrainsim::Frame> _frame){
+    if(pCodecCtx == nullptr || endOfFile){return std::make_shared<libtrainsim::ffmpegFrame>();};
+    auto retval = std::make_shared<libtrainsim::ffmpegFrame>(); 
     initFrame(retval);
+    
+    auto frame = dynamic_cast<libtrainsim::ffmpegFrame* >(_frame.get());
+    if (frame == nullptr){return std::make_shared<libtrainsim::ffmpegFrame>(); };
     
     sws_scale(
         sws_ctx,
@@ -175,10 +178,12 @@ std::shared_ptr<libtrainsim::Frame> ffmpegRenderer::scaleFrame(std::shared_ptr<l
     return retval;
 }
 
-void ffmpegRenderer::initFrame(std::shared_ptr<libtrainsim::Frame> frame){
-    if(pCodecCtx == nullptr || endOfFile || frame == nullptr){return;};
+void ffmpegRenderer::initFrame(std::shared_ptr<libtrainsim::Frame> _frame){
+    if(pCodecCtx == nullptr || endOfFile || _frame == nullptr){return;};
     
-    frame->setBackend(renderer_ffmpeg);
+    auto frame = dynamic_cast<libtrainsim::ffmpegFrame* >(_frame.get());
+    if (frame == nullptr){return; };
+    
     av_image_fill_arrays(
         frame->dataFF()->data,
         frame->dataFF()->linesize,

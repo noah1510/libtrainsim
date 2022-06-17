@@ -22,10 +22,12 @@ namespace libtrainsim{
         class videoGeneric {
         protected:
             ///The underlying renderer
-            genericRenderer& renderer;
+            std::shared_ptr<genericRenderer> renderer;
             
             ///THe underlying window manager
-            genericWindowManager& window;
+            std::shared_ptr<genericWindowManager> window;
+            
+            videoGeneric();
 
         public:
 
@@ -41,21 +43,21 @@ namespace libtrainsim{
              * @param _window the window manager to be used in this backend
              * @param _renderer the renderer to be used in this backend
              */
-            videoGeneric(libtrainsim::Video::genericWindowManager& _window, libtrainsim::Video::genericRenderer& _renderer);
+            videoGeneric(std::shared_ptr<libtrainsim::Video::genericWindowManager> _window, std::shared_ptr<libtrainsim::Video::genericRenderer> _renderer);
 
             /**
              * @brief Get a reference to the underlying renderer
              * 
              * @return genericRenderer&  a reference to the renderer used in this backend
              */
-            genericRenderer& getRenderer();
+            std::shared_ptr<libtrainsim::Video::genericRenderer> getRenderer();
 
             /**
              * @brief Get a reference to the underlying window manager
              * 
              * @return genericWindowManager& a reference to the window manager used in this backend
              */
-            genericWindowManager& getWindowManager();
+            std::shared_ptr<libtrainsim::Video::genericWindowManager> getWindowManager();
 
             /**
             * @brief Load a video file into the video management.
@@ -64,47 +66,47 @@ namespace libtrainsim{
             * @return true file sucessfully loaded
             * @return false error while loading file
             */
-            bool load(const std::filesystem::path& uri);
+            virtual bool load(const std::filesystem::path& uri);
 
             /**
             * @brief Create a Window with a given name
             *
             * @param windowName the name of the window
             */
-            void createWindow(const std::string& windowName);
+            virtual void createWindow(const std::string& windowName);
 
             /**
             * @brief refresh the window but do not display something new
             *
             */
-            void refreshWindow();
+            virtual void refreshWindow();
 
             /**
             * @brief jump to the given frame number and refresh the window
             * @param frameNum the frame that will be displayed
             */
-            void gotoFrame(uint64_t frameNum);
+            virtual void gotoFrame(uint64_t frameNum);
 
             /**
             * @brief get the total number of frames for the loaded video file
             * @return the total number of frames
             *
             */
-            uint64_t getFrameCount();
+            virtual uint64_t getFrameCount();
 
             /**
             * @brief Get the Height of the video in pixels
             *
             * @return double
             */
-            double getHight();
+            virtual double getHight();
 
             /**
             * @brief Get the Width of the video in pixels
             *
             * @return double
             */
-            double getWidth();
+            virtual double getWidth();
 
             /**
             * @brief get the currently loaded File.

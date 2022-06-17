@@ -4,7 +4,6 @@ sources = [
     'src/genericBackend.cpp',
     'src/genericRenderer.cpp',
     'src/genericWindowManager.cpp',
-    'src/VideoBackends.cpp',
 ]
 
 video_deps = [
