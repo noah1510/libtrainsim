@@ -4,6 +4,7 @@
 #include "common.hpp"
 #include "core/include/input_axis.hpp"
 #include "physics/include/physics.hpp"
+#include <rs232.hpp>
 
 namespace libtrainsim{
     class serial_channels{
@@ -40,14 +41,23 @@ namespace libtrainsim{
             */
             std::string filename = "data/production_data/config_serial_input.json";
 
-        public:
+            /**
+            * @brief flag, true if COMPort successfully opened.
+            */
+            static int serialflag;
 
             /**
-            * @brief public flag true if COMPort successfully opened.
+            * @brief flag, true if emergency-brake-button was pressed until train has stopped.
             */
-            bool serialflag = false;
-
             static bool emergency_flag;
+
+            std::unique_ptr<sakurajin::RS232> rs232_obj;
+            
+        public:
+        
+            serialcontrol();
+            
+            serialcontrol(int test);
 
             /**
             * @brief The array containing all decoded data recieved by the serial input.
@@ -76,11 +86,6 @@ namespace libtrainsim{
             int get_portnumber(char int1, char int2);
 
             /**
-            * @brief This funciton open COM-Port for serial input.
-            */
-            void openCOMPort();
-
-            /**
             * @brief This function updates the serial status, reads and analyses new incoming telegrams.
             */
             void updateSerial();
@@ -101,9 +106,44 @@ namespace libtrainsim{
             static int get_serial(int i);
 
             /**
-            * @brief This function sests the value for port[i].channel_value.
+            * @brief This function sets the value for port[i].channel_value.
             */
             void set_serial(int i, int value);
+
+            /**
+            * @brief This function returns the value of serial_flag.
+            */
+            static int get_serialflag();
+
+            /**
+            * @brief This function sets the value for serial_flag.
+            */
+            void set_serialflag(int value);
+
+            /**
+            * @brief This function returns the value of emergency_flag.
+            */
+            static int get_emergencyflag();
+
+            /**
+            * @brief This function sets the value for emergency_flag.
+            */
+            static void set_emergencyflag(int value);
+
+            /**
+            * @brief This function creates an array filled with the data of the config-file.
+            */
+            static void read_config();
+
+            /**
+            * @brief This function sets the value for the config-array.
+            */
+            static void set_config(int value);
+
+            /**
+            * @brief This function returns the value of config array.
+            */
+            static int get_config(int value);
 
             /**
             * @brief This function gets the speedlevel calculated as difference between acceleration and brake. 
