@@ -44,25 +44,26 @@ namespace libtrainsim{
             /**
             * @brief flag, true if COMPort successfully opened.
             */
-            static int serialflag;
+            int serialflag;
 
             /**
             * @brief flag, true if emergency-brake-button was pressed until train has stopped.
             */
-            static bool emergency_flag;
+            bool emergency_flag;
 
+            /**
+            * @brief object which handels the communication with the COM-Port.
+            */
             std::unique_ptr<sakurajin::RS232> rs232_obj;
             
         public:
-        
-            serialcontrol();
-            
+
             serialcontrol(int test);
 
             /**
             * @brief The array containing all decoded data recieved by the serial input.
             */
-            static libtrainsim::serial_channels port[14];
+            libtrainsim::serial_channels port[14];
     
 
             /**
@@ -93,7 +94,7 @@ namespace libtrainsim{
             /**
             * @brief This function reads from a given filename given integers.
             */
-            static int get_json_data(std::string filename, std::string name);
+            int get_json_data(std::string filename, std::string name);
 
             /**
             * @brief This function initializes the array of port[15] and fills it with starter elements.
@@ -103,7 +104,7 @@ namespace libtrainsim{
             /**
             * @brief This function returns the value of port[i].channel_value.
             */
-            static int get_serial(int i);
+            int get_serial(int i);
 
             /**
             * @brief This function sets the value for port[i].channel_value.
@@ -113,7 +114,7 @@ namespace libtrainsim{
             /**
             * @brief This function returns the value of serial_flag.
             */
-            static int get_serialflag();
+            int get_serialflag();
 
             /**
             * @brief This function sets the value for serial_flag.
@@ -123,34 +124,34 @@ namespace libtrainsim{
             /**
             * @brief This function returns the value of emergency_flag.
             */
-            static int get_emergencyflag();
+            int get_emergencyflag();
 
             /**
             * @brief This function sets the value for emergency_flag.
             */
-            static void set_emergencyflag(int value);
+            void set_emergencyflag(int value);
 
             /**
             * @brief This function creates an array filled with the data of the config-file.
             */
-            static void read_config();
+            void read_config();
 
             /**
             * @brief This function sets the value for the config-array.
             */
-            static void set_config(int value);
+            void set_config(int value);
 
             /**
             * @brief This function returns the value of config array.
             */
-            static int get_config(int value);
+            int get_config(int value);
 
             /**
             * @brief This function gets the speedlevel calculated as difference between acceleration and brake. 
             */
-            static libtrainsim::core::input_axis get_slvl();
+            libtrainsim::core::input_axis get_slvl();
 
-            static std::chrono::time_point<std::chrono::high_resolution_clock> now(){
+            std::chrono::time_point<std::chrono::high_resolution_clock> now(){
                 return std::chrono::high_resolution_clock::now();
             }
     };

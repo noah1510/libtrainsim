@@ -11,18 +11,12 @@ using namespace libtrainsim;
 using json = nlohmann::json;
 
 //*********************serialcontrol*****************************************
-libtrainsim::serial_channels libtrainsim::serialcontrol::port[14] = {};
-int libtrainsim::serialcontrol::serialflag;
-bool libtrainsim::serialcontrol::emergency_flag;
-
-
-serialcontrol::serialcontrol(){
-    
-};
 
 serialcontrol::serialcontrol(int test){
     std::string serialPort = "\\\\.\\COM3";
     rs232_obj = std::make_unique<sakurajin::RS232>(serialPort, sakurajin::baud9600);
+    serialflag = 0;
+    emergency_flag = 0;
 };
 
 int serialcontrol::hex2int(char hex){
