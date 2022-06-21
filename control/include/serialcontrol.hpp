@@ -10,12 +10,13 @@ namespace libtrainsim{
     class serial_channels{
         private :
 
+                /**
+            * @brief These variables save the individual channel-numbers.
+            */
             std::string comport;
             sakurajin::Baudrate baudrate;
-
             int analog_drive,
             analog_brake,
-
             count_digital,
             drivemode_r,
             drivemode_0,
@@ -52,17 +53,23 @@ namespace libtrainsim{
             libtrainsim::core::input_axis effective_slvl; 
 
             /**
-            * @brief This function creates an array filled with the data of the config-file.
+            * @brief This function filles the variables with the data of the config-file.
             */
             void read_config();
 
             /**
-            * @brief This function returns the value of config array.
+            * @brief This function returns the value of config, value specifies what the function gives back.
             */
             int get_config(std::string value);
 
+            /**
+            * @brief This function returns the baudrate.
+            */
             sakurajin::Baudrate get_baud();
 
+            /**
+            * @brief This function returns the name of the COM-Port as string.
+            */
             std::string get_cport();
      
     };
@@ -90,6 +97,9 @@ namespace libtrainsim{
             */
             std::unique_ptr<sakurajin::RS232> rs232_obj;
 
+            /**
+            * @brief object which handels the serial_channels class.
+            */
             std::unique_ptr<serial_channels> serial_channels_obj;
             
         public:
