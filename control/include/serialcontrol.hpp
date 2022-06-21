@@ -3,89 +3,67 @@
 #include <chrono>
 #include "common.hpp"
 #include "core/include/input_axis.hpp"
-#include "physics/include/physics.hpp"
 #include <rs232.hpp>
+#include <memory>
+#include <vector>
 
 namespace libtrainsim{
-    class serial_channels{
+    /**
+    * @brief This class contains all parameter the serial telegram sends.
+    */
+    class serial_channel{
         private :
-
-                /**
-            * @brief These variables save the individual channel-numbers.
-            */
-            std::string comport;
-            sakurajin::Baudrate baudrate;
-            int analog_drive,
-            analog_brake,
-            count_digital,
-            drivemode_r,
-            drivemode_0,
-            drivemode_x,
-            drivemode_v,
-            sifa,
-            n_max,
-            digital_drive,
-            digital_brake,
-            emergency_brake,
-            door_r,
-            door_l,
-            door_release;
-
-            /**
-            * @brief The filename of configuration.
-            */
-            std::string filename = "data/production_data/config_serial_input.json";
 
         public :
 
+            serial_channel(std::string n, int ch, std::string t);
+
             /**
-            * @brief This class contains all parameter the serial telegram sends.
+            * @brief channel-function.
             */
+            std::string name;
+
+            /**
+            * @brief channel-number.
+            */
+            int channel;
+
+            /**
+            * @brief channel-type (analog/digital).
+            */
+            std::string type;
 
             /**
             * @brief The channel value 0/1 digital; 0-255 analog.
             */
-            int channel_value;
-
-            /**
-            * @brief The effective speedlevel calculated as difference between acceleration and brake.
-            */ 
-            libtrainsim::core::input_axis effective_slvl; 
-
-            /**
-            * @brief This function filles the variables with the data of the config-file.
-            */
-            void read_config();
+            int value;
 
             /**
             * @brief This function returns the value of config, value specifies what the function gives back.
             */
-            int get_config(std::string value);
-
-            /**
-            * @brief This function returns the baudrate.
-            */
-            sakurajin::Baudrate get_baud();
-
-            /**
-            * @brief This function returns the name of the COM-Port as string.
-            */
-            std::string get_cport();
-     
+            int get_config(std::string value);     
     };
 
+    /**
+    * @brief This class contains all variables and functions to handle hardware input.
+    */
     class serialcontrol{
         private:
 
             /**
-            * @brief The portnumber, the serial controller is connected to.
-            */ 
-            int cport_nr;
+            * @brief comport given by config-file.
+            */
+            std::string comport;
+
+            /**
+            * @brief baudrate given by config-file.
+            */
+            sakurajin::Baudrate baudrate;
 
             /**
             * @brief flag, true if COMPort successfully opened.
             */
-            int serialflag;
+            bool isConnected;
 
             /**
             * @brief flag, true if emergency-brake-button was pressed until train has stopped.
@@ -100,17 +78,7 @@ namespace libtrainsim{
             /**
             * @brief object which handels the serial_channels class.
             */
-            std::unique_ptr<serial_channels> serial_channels_obj;
-            
-        public:
-
-            serialcontrol();
-
-            /**
-            * @brief The array containing all decoded data recieved by the serial input.
-            */
-            libtrainsim::serial_channels port[14];
-    
+            std::vector<serial_channel> serial_channels;
 
             /**
             * @brief This function converts a given hexadecimal value into an integer.
@@ -133,39 +101,48 @@ namespace libtrainsim{
             int get_portnumber(char int1, char int2);
 
             /**
+            * @brief This function sets the value for searched channelnumber i.
+            */
+            void set_serial(int i, int value, bool isAnalog);
+            
+        public:
+
+            serialcontrol(std::string filename);
+
+            /**
+            * @brief This function filles the variables with the data of the config-file.
+            */
+            void read_config(std::string filename);
+
+            /**
+            * @brief This function returns the baudrate.
+            */
+            sakurajin::Baudrate get_baud();
+
+            /**
+            * @brief This function returns the name of the COM-Port as string.
+            */
+            std::string get_cport();
+
+            /**
             * @brief This function updates the serial status, reads and analyses new incoming telegrams.
             */
-            void updateSerial();
+            void update();
 
             /**
-            * @brief This function reads from a given filename given integers.
+            * @brief This function returns the value of searched channel.
             */
-            int get_json_data(std::string filename, std::string name);
+            int get_serial(std::string name);
 
             /**
-            * @brief This function initializes the array of port[15] and fills it with starter elements.
+            * @brief This function returns the value of isConnected.
             */
-            void startup();
+            bool get_isConnected();
 
             /**
-            * @brief This function returns the value of port[i].channel_value.
+            * @brief This function sets the value for isConnected.
             */
-            int get_serial(int i);
-
-            /**
-            * @brief This function sets the value for port[i].channel_value.
-            */
-            void set_serial(int i, int value);
-
-            /**
-            * @brief This function returns the value of serial_flag.
-            */
-            int get_serialflag();
-
-            /**
-            * @brief This function sets the value for serial_flag.
-            */
-            void set_serialflag(int value);
+            void set_isConnected(bool value);
 
             /**
             * @brief This function returns the value of emergency_flag.
@@ -173,17 +150,8 @@ namespace libtrainsim{
             int get_emergencyflag();
 
             /**
-            * @brief This function sets the value for emergency_flag.
-            */
-            void set_emergencyflag(int value);
-
-            /**
             * @brief This function gets the speedlevel calculated as difference between acceleration and brake. 
             */
             libtrainsim::core::input_axis get_slvl();
-
-            std::chrono::time_point<std::chrono::high_resolution_clock> now(){
-                return std::chrono::high_resolution_clock::now();
-            }
     };
 }
