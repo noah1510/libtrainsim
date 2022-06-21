@@ -8,9 +8,34 @@
 
 namespace libtrainsim{
     class serial_channels{
-        private:
+        private :
 
-        public:
+            std::string comport;
+            sakurajin::Baudrate baudrate;
+
+            int analog_drive,
+            analog_brake,
+
+            count_digital,
+            drivemode_r,
+            drivemode_0,
+            drivemode_x,
+            drivemode_v,
+            sifa,
+            n_max,
+            digital_drive,
+            digital_brake,
+            emergency_brake,
+            door_r,
+            door_l,
+            door_release;
+
+            /**
+            * @brief The filename of configuration.
+            */
+            std::string filename = "data/production_data/config_serial_input.json";
+
+        public :
 
             /**
             * @brief This class contains all parameter the serial telegram sends.
@@ -18,13 +43,27 @@ namespace libtrainsim{
 
             /**
             * @brief The channel value 0/1 digital; 0-255 analog.
-            */ 
+            */
             int channel_value;
 
             /**
             * @brief The effective speedlevel calculated as difference between acceleration and brake.
             */ 
             libtrainsim::core::input_axis effective_slvl; 
+
+            /**
+            * @brief This function creates an array filled with the data of the config-file.
+            */
+            void read_config();
+
+            /**
+            * @brief This function returns the value of config array.
+            */
+            int get_config(std::string value);
+
+            sakurajin::Baudrate get_baud();
+
+            std::string get_cport();
      
     };
 
@@ -35,11 +74,6 @@ namespace libtrainsim{
             * @brief The portnumber, the serial controller is connected to.
             */ 
             int cport_nr;
-
-            /**
-            * @brief The filename of configuration.
-            */
-            std::string filename = "data/production_data/config_serial_input.json";
 
             /**
             * @brief flag, true if COMPort successfully opened.
@@ -55,10 +89,12 @@ namespace libtrainsim{
             * @brief object which handels the communication with the COM-Port.
             */
             std::unique_ptr<sakurajin::RS232> rs232_obj;
+
+            std::unique_ptr<serial_channels> serial_channels_obj;
             
         public:
 
-            serialcontrol(int test);
+            serialcontrol();
 
             /**
             * @brief The array containing all decoded data recieved by the serial input.
@@ -130,21 +166,6 @@ namespace libtrainsim{
             * @brief This function sets the value for emergency_flag.
             */
             void set_emergencyflag(int value);
-
-            /**
-            * @brief This function creates an array filled with the data of the config-file.
-            */
-            void read_config();
-
-            /**
-            * @brief This function sets the value for the config-array.
-            */
-            void set_config(int value);
-
-            /**
-            * @brief This function returns the value of config array.
-            */
-            int get_config(int value);
 
             /**
             * @brief This function gets the speedlevel calculated as difference between acceleration and brake. 
