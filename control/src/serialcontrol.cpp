@@ -15,16 +15,13 @@ using json = nlohmann::json;
 
 serialcontrol::serialcontrol(std::string filename){
     std::cout << "starte startup..." << std::endl;
-    isConnected = false;
     read_config(filename);
-    rs232_obj = std::make_unique<sakurajin::RS232>(get_cport(), get_baud());    
+    rs232_obj = std::make_unique<sakurajin::RS232>(comport, baudrate);    
     if(!rs232_obj->IsAvailable()){
         std::cerr << "serialPort" << rs232_obj->GetDeviceName() << " is not available!" << std::endl;
-        isConnected = false;
         return;
     }
     isConnected = true;
-    std::cout << "IsConnected: " << IsConnected() << std::endl;
     emergency_flag = false;
     std::cout << "beende startup..." << std::endl;
 };
@@ -42,7 +39,7 @@ int serialcontrol::get_value_analog (char v1, char v2){
     v1 = hex2int(v1);
     if (v1 < 0) return -1;
     v2 = hex2int(v2);
-    if (v2 < 0) return -1;
+    if (v2 < 0) return -2;
     value = v1*16 + v2;
     return value;
 }
@@ -89,15 +86,15 @@ void serialcontrol::update(){
 
 int serialcontrol::get_serial(std::string name){
     for (size_t i = 0; i < serial_channels.size(); i++){
-            if (serial_channels[i].name == name){
-                return serial_channels[i].value;
-            }
+        if (serial_channels[i].name == name){
+            return serial_channels[i].value;
         }
+    }
     return -1;
 }
 
 void serialcontrol::set_serial(int i, int value, bool isAnalog){
-    if(isAnalog == true){
+    if(isAnalog){
         for (size_t n = 0; n < serial_channels.size(); n++){
             if (serial_channels[n].type == "analog" && serial_channels[n].channel == i){
                 serial_channels[n].value = value;
@@ -116,7 +113,7 @@ libtrainsim::core::input_axis serialcontrol::get_slvl(){
     if (get_serial("emergency_brake") == 1){
         emergency_flag = true;         
         return -1.0;
-    }else if (get_emergencyflag() == true){
+    }else if (get_emergencyflag()){
         if (get_serial("analog_drive") < 2){
             emergency_flag = false;
         }else {
@@ -230,19 +227,6 @@ void serialcontrol::read_config(std::string filename){
     }
 }
 
-sakurajin::Baudrate serialcontrol::get_baud(){
-    return baudrate;
-}
-
-std::string serialcontrol::get_cport(){
-    return comport;
-}
-
 //*********************serial_channel*****************************************
 
-serial_channel::serial_channel(std::string n, int ch, std::string t){
-    name = n;
-    channel = ch;
-    type = t;
-    value = 0;
-}
+serial_channel::serial_channel(std::string n, int ch, std::string t): name{n},channel{ch},type{t},value{0} {}

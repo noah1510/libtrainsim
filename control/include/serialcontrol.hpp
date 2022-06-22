@@ -16,6 +16,9 @@ namespace libtrainsim{
 
         public :
 
+            /**
+            * @brief constructor asigns given variables to class-members.
+            */
             serial_channel(std::string n, int ch, std::string t);
 
             /**
@@ -104,16 +107,6 @@ namespace libtrainsim{
             * @brief This function filles the variables with the data of the config-file.
             */
             void read_config(std::string filename);
-
-            /**
-            * @brief This function returns the baudrate.
-            */
-            sakurajin::Baudrate get_baud();
-
-            /**
-            * @brief This function returns the name of the COM-Port as string.
-            */
-            std::string get_cport();
             
         public:
 
