@@ -1,6 +1,6 @@
 #include "serialcontrol.hpp"
-#include "physics/include/physics.hpp"
 #include <rs232.hpp>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -15,20 +15,16 @@ using json = nlohmann::json;
 
 serialcontrol::serialcontrol(std::string filename){
     std::cout << "starte startup..." << std::endl;
-
-    set_isConnected(false);
+    isConnected = false;
     read_config(filename);
     rs232_obj = std::make_unique<sakurajin::RS232>(get_cport(), get_baud());    
-
     if(!rs232_obj->IsAvailable()){
         std::cerr << "serialPort" << rs232_obj->GetDeviceName() << " is not available!" << std::endl;
-        set_isConnected(false);
-    }else{
-        std::cout << "opened comport" << std::endl;
-        set_isConnected(true);
+        isConnected = false;
+        return;
     }
-    std::cout << "serial_isConnected: " << get_isConnected() << std::endl;
-
+    isConnected = true;
+    std::cout << "IsConnected: " << IsConnected() << std::endl;
     emergency_flag = false;
     std::cout << "beende startup..." << std::endl;
 };
@@ -38,15 +34,15 @@ int serialcontrol::hex2int(char hex){
         return hex - '0';
     if (hex >= 'A' && hex <= 'F')
         return hex - 'A' + 10;
-    return -1;
+    return 999;
 }
 
 int serialcontrol::get_value_analog (char v1, char v2){
     int value;
     v1 = hex2int(v1);
-        if (v1 == -1) return 999;
+    if (v1 < 0) return 999;
     v2 = hex2int(v2);
-        if (v2 == -1) return 999;
+    if (v2 < 0) return 999;
     value = v1*16 + v2;
     return value;
 }
@@ -69,32 +65,30 @@ void serialcontrol::update(){
     int i;
 
     auto buffer = rs232_obj->ReadNextChar();
-    if(std::get<0>(buffer) == 'X'){
-      i=0;
-      telegram[0] = std::get<0>(buffer);
-      do{
+    if(std::get<0>(buffer) != 'X')
+        return;
+    i=0;
+    telegram[0] = std::get<0>(buffer);
+    do{
         i++;
         buffer = rs232_obj->ReadNextChar();
         telegram[i] = std::get<0>(buffer);
         if (i >= 9) break;
-      } while (std::get<0>(buffer) != 'Y');
+    } while (std::get<0>(buffer) != 'Y');
 
-      if (telegram[0] == 'X' && telegram[8] == 'Y'){
-        if (telegram[1] == 'V'){            //analog
-            port_number = get_portnumber(telegram[2], telegram[3]);
-            set_serial(port_number, get_value_analog(telegram[6], telegram[7]), true);
-        } else if (telegram [1] == 'U'){    //digital
-            port_number = get_portnumber(telegram[2], telegram[3]);
-            set_serial(port_number, get_value_digital(telegram[7]), false);
-        }
-      }
+    if (telegram[0] != 'X' || telegram[8] != 'Y')
+        return;
+    if (telegram[1] == 'V'){            //analog
+        port_number = get_portnumber(telegram[2], telegram[3]);
+        set_serial(port_number, get_value_analog(telegram[6], telegram[7]), true);
+    } else if (telegram [1] == 'U'){    //digital
+        port_number = get_portnumber(telegram[2], telegram[3]);
+        set_serial(port_number, get_value_digital(telegram[7]), false);
     }
-    std::chrono::milliseconds dura (10);
-    std::this_thread::sleep_for(dura);
 }
 
 int serialcontrol::get_serial(std::string name){
-    for (long long unsigned int i = 0; i < serial_channels.size(); i++){
+    for (size_t i = 0; i < serial_channels.size(); i++){
             if (serial_channels[i].name == name){
                 return serial_channels[i].value;
             }
@@ -127,18 +121,18 @@ libtrainsim::core::input_axis serialcontrol::get_slvl(){
     if (get_serial("emergency_brake") == 1){
         emergency_flag = true;         
         return -1.0;
-    }else if (get_emergencyflag() == 1){
-            if (get_serial("analog_drive") < 2){
-                emergency_flag = false;
-            }else {
-                return 0.0;
-            }
-    }else if (get_emergencyflag() == 0){
+    }else if (get_emergencyflag() == true){
+        if (get_serial("analog_drive") < 2){
+            emergency_flag = false;
+        }else {
+            return 0.0;
+        }
+    }else if (!get_emergencyflag()){
         acc = get_serial("analog_drive");
         dec = get_serial("analog_brake");
 
         acc = acc / 255;
-        dec = dec / 260;
+        dec = dec / 255;
 
         slvl = acc - dec;
 
@@ -147,15 +141,11 @@ libtrainsim::core::input_axis serialcontrol::get_slvl(){
     return 0.0;
 }
 
-bool serialcontrol::get_isConnected(){
+bool serialcontrol::IsConnected(){
     return isConnected;
 }
 
-void serialcontrol::set_isConnected(bool value){
-    isConnected = value;
-}
-
-int serialcontrol::get_emergencyflag(){
+bool serialcontrol::get_emergencyflag(){
     return emergency_flag;
 }
 
@@ -168,8 +158,13 @@ void serialcontrol::read_config(std::string filename){
 
     auto dat = data_json["comport"];
     if(!dat.is_string()){
-        comport = "\\\\.\\COM3";
-        std::cout << "nutze Standard-Port!" << std::endl;
+        #if defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
+            comport = "/dev/ttyACM0";
+            std::cout << "nutze Standard-Port! \"/dev/ttyACM0\"" << std::endl;
+        #else
+            comport = "\\\\.\\COM3";
+            std::cout << "nutze Standard-Port! \"\\\\.\\COM3\"" << std::endl;
+        #endif
     }else{
         comport = dat.get<std::string>();
     }
@@ -177,6 +172,7 @@ void serialcontrol::read_config(std::string filename){
     dat = data_json["baudrate"];
     if(!dat.is_number_integer()){
         baudrate = sakurajin::baud9600;
+        std::cout << "nutze Standard-Baud 9600!" << std::endl;
     }else{
         switch (dat.get<int>()){
             case 110:
@@ -224,8 +220,9 @@ void serialcontrol::read_config(std::string filename){
     }
 
     dat = data_json["channels"];
-    if (!dat.is_array() == true){
+    if (!dat.is_array()){
         std::cerr <<  "channels is not an array" << std::endl;
+        return;
     }
     serial_channels.reserve(dat.size());
     for(auto _dat:dat){

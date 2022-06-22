@@ -63,12 +63,12 @@ namespace libtrainsim{
             /**
             * @brief flag, true if COMPort successfully opened.
             */
-            bool isConnected;
+            bool isConnected = false;
 
             /**
             * @brief flag, true if emergency-brake-button was pressed until train has stopped.
             */
-            bool emergency_flag;
+            bool emergency_flag = false;
 
             /**
             * @brief object which handels the communication with the COM-Port.
@@ -130,24 +130,19 @@ namespace libtrainsim{
             void update();
 
             /**
-            * @brief This function returns the value of searched channel.
+            * @brief This function returns the value of searched channel. Returns current value as integer.
             */
             int get_serial(std::string name);
 
             /**
             * @brief This function returns the value of isConnected.
             */
-            bool get_isConnected();
-
-            /**
-            * @brief This function sets the value for isConnected.
-            */
-            void set_isConnected(bool value);
+            bool IsConnected();
 
             /**
             * @brief This function returns the value of emergency_flag.
             */
-            int get_emergencyflag();
+            bool get_emergencyflag();
 
             /**
             * @brief This function gets the speedlevel calculated as difference between acceleration and brake. 
