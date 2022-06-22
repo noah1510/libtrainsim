@@ -34,15 +34,15 @@ int serialcontrol::hex2int(char hex){
         return hex - '0';
     if (hex >= 'A' && hex <= 'F')
         return hex - 'A' + 10;
-    return 999;
+    return -1;
 }
 
 int serialcontrol::get_value_analog (char v1, char v2){
     int value;
     v1 = hex2int(v1);
-    if (v1 < 0) return 999;
+    if (v1 < 0) return -1;
     v2 = hex2int(v2);
-    if (v2 < 0) return 999;
+    if (v2 < 0) return -1;
     value = v1*16 + v2;
     return value;
 }
@@ -76,7 +76,7 @@ void serialcontrol::update(){
         if (i >= 9) break;
     } while (std::get<0>(buffer) != 'Y');
 
-    if (telegram[0] != 'X' || telegram[8] != 'Y')
+    if (telegram[8] != 'Y')
         return;
     if (telegram[1] == 'V'){            //analog
         port_number = get_portnumber(telegram[2], telegram[3]);
@@ -98,13 +98,13 @@ int serialcontrol::get_serial(std::string name){
 
 void serialcontrol::set_serial(int i, int value, bool isAnalog){
     if(isAnalog == true){
-        for (long long unsigned int n = 0; n < serial_channels.size(); n++){
+        for (size_t n = 0; n < serial_channels.size(); n++){
             if (serial_channels[n].type == "analog" && serial_channels[n].channel == i){
                 serial_channels[n].value = value;
             }
         }
     }else{
-        for (long long unsigned int n = 0; n < serial_channels.size(); n++){
+        for (size_t n = 0; n < serial_channels.size(); n++){
             if (serial_channels[n].type == "digital" && serial_channels[n].channel == i){
                 serial_channels[n].value = value;
             }
@@ -113,11 +113,6 @@ void serialcontrol::set_serial(int i, int value, bool isAnalog){
 }
 
 libtrainsim::core::input_axis serialcontrol::get_slvl(){
-
-    libtrainsim::core::input_axis slvl;
-
-    double acc, dec;
-    
     if (get_serial("emergency_brake") == 1){
         emergency_flag = true;         
         return -1.0;
@@ -128,13 +123,13 @@ libtrainsim::core::input_axis serialcontrol::get_slvl(){
             return 0.0;
         }
     }else if (!get_emergencyflag()){
-        acc = get_serial("analog_drive");
-        dec = get_serial("analog_brake");
+        double acc = get_serial("analog_drive");
+        double dec = get_serial("analog_brake");
 
         acc = acc / 255;
         dec = dec / 260;    //different divisors needed; max brake is -0.98, -1.0 can only be archieved via emergency_brake
 
-        slvl = acc - dec;
+        libtrainsim::core::input_axis slvl = acc - dec;
 
         return slvl;
     }

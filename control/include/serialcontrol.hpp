@@ -36,12 +36,7 @@ namespace libtrainsim{
             /**
             * @brief The channel value 0/1 digital; 0-255 analog.
             */
-            int value;
-
-            /**
-            * @brief This function returns the value of config, value specifies what the function gives back.
-            */
-            int get_config(std::string value);     
+            int value;  
     };
 
     /**
@@ -104,10 +99,6 @@ namespace libtrainsim{
             * @brief This function sets the value for searched channelnumber i.
             */
             void set_serial(int i, int value, bool isAnalog);
-            
-        public:
-
-            serialcontrol(std::string filename);
 
             /**
             * @brief This function filles the variables with the data of the config-file.
@@ -123,6 +114,14 @@ namespace libtrainsim{
             * @brief This function returns the name of the COM-Port as string.
             */
             std::string get_cport();
+            
+        public:
+
+
+            /**
+            * @brief constructor creates an object with all needed parts to handle hardware input.
+            */
+            serialcontrol(std::string filename);
 
             /**
             * @brief This function updates the serial status, reads and analyses new incoming telegrams.
@@ -130,7 +129,7 @@ namespace libtrainsim{
             void update();
 
             /**
-            * @brief This function returns the value of searched channel. Returns current value as integer.
+            * @brief This function returns the value of searched channel by name / funciton. Return value is the current value of searched channel. Can be used to get the last known value of different functions the hardware input has.
             */
             int get_serial(std::string name);
 
