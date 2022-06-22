@@ -132,7 +132,7 @@ libtrainsim::core::input_axis serialcontrol::get_slvl(){
         dec = get_serial("analog_brake");
 
         acc = acc / 255;
-        dec = dec / 255;
+        dec = dec / 260;    //different divisors needed; max brake is -0.98, -1.0 can only be archieved via emergency_brake
 
         slvl = acc - dec;
 
