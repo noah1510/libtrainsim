@@ -36,6 +36,7 @@ namespace libtrainsim {
         *   * OTHER -> some other random event
         *   * BREAK -> indicates the train should break
         *   * ACCELERATE -> indicates the train should accelerate
+        *   * EMERGENCY_BREAK -> indicated the emergency break should be activated
         *
         * Using the Keymap() function you can get a reference to the keymap of the input_handler and register addtional keys and functions,
         * that can be handled by an implementation of the simulator.
@@ -82,14 +83,6 @@ namespace libtrainsim {
                  * @return keymap& a reference to the internal keymap
                  */
                 keymap& Keymap();
-                
-                /**
-                * @brief Get the action that is currently performed.
-                * @deprecated use the getKeyFunction() function since this will be removed in a future version.
-                * 
-                * @return core::actions the current action
-                */
-                core::actions getCurrentAction();
                 
                 /**
                  * @brief Get the Speed Axis of the current input.

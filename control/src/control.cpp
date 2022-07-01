@@ -71,33 +71,6 @@ std::string libtrainsim::control::input_handler::getKeyFunction() {
     return keyFunction;
 }
 
-libtrainsim::core::actions libtrainsim::control::input_handler::getCurrentAction(){
-    using namespace libtrainsim::core;
-    auto keyFunction = getKeyFunction();
-    
-    if(keyFunction == "NONE"){
-        return ACTION_NONE;
-    }
-    
-    if(keyFunction == "CLOSE"){
-        return ACTION_CLOSE;
-    }
-    
-    if(keyFunction == "ACCELERATE"){
-        return ACTION_ACCELERATE;
-    }
-    
-    if(keyFunction == "BREAK"){
-        return ACTION_BREAK;
-    }
-    
-    if(keyFunction == "OTHER"){
-        return ACTION_OTHER;
-    }
-
-    return ACTION_NONE;
-}
-
 libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis(){
     //if there is harware input return the scaled acceleration
     #ifdef HAS_HW_INPUT_SUPPORT
@@ -105,6 +78,7 @@ libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis(
     #endif
 
     auto function = getKeyFunction();
+    if (function == "EMERGENCY_BREAK"){return core::input_axis{-1.0};};
     if (function == "ACCELERATE"){return core::input_axis{1.0};};
     if (function == "BREAK"){return core::input_axis{-1.0};};
 
