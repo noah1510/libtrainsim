@@ -95,6 +95,10 @@ libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis(
     if(function == "CLOSE"){
         shouldClose = true;
     }
+    
+    if(function == "EMERGENCY_BREAK"){
+        shouldEmergencyBreak = true;
+    }
 
     return currentInputAxis;
 }
@@ -102,4 +106,9 @@ libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis(
 bool libtrainsim::control::input_handler::closingFlag() const {
     return shouldClose;
 }
+
+bool libtrainsim::control::input_handler::emergencyFlag() const {
+    return shouldEmergencyBreak;
+}
+
 

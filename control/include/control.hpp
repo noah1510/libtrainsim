@@ -63,6 +63,11 @@ namespace libtrainsim {
                  * @brief a bool to indicate if the window should be closed
                  */
                 bool shouldClose = false;
+                
+                /**
+                 * @brief a bool to indicate if the emergency break should activate
+                 */
+                bool shouldEmergencyBreak = false;
 
             public:
                 /**
@@ -98,6 +103,11 @@ namespace libtrainsim {
                  * @brief return true if getSpeedAxis came across a close command
                  */
                 bool closingFlag() const;
+                
+                /**
+                 * @brief return true if getSpeedAxis came across a emergency break command
+                 */
+                bool emergencyFlag() const;
                 
                 /**
                  * @brief Get the Speed Axis of the current input.
