@@ -75,6 +75,10 @@ namespace libtrainsim{
             * This function is not implemented yet and it will return 0 by using it.
             */
             sakurajin::unit_system::common::force calcDrag();
+            
+            //true if the emergency break is activated.
+            //the train has to break full until it is stopped, after that it is allowed to accellerate again.
+            bool isEmergencyBreaking = false;
 
         public:
 
@@ -116,7 +120,13 @@ namespace libtrainsim{
             */
             sakurajin::unit_system::common::power getCurrPower();
 
-
+            /**
+             * @brief activate the emergency break
+             * 
+             * This causes the train to break until it comes to a stop.
+             */
+            void emergencyBreak();
+            
             bool reachedEnd();
 
             /**
