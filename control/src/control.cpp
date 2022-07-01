@@ -78,9 +78,28 @@ libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis(
     #endif
 
     auto function = getKeyFunction();
-    if (function == "EMERGENCY_BREAK"){return core::input_axis{-1.0};};
-    if (function == "ACCELERATE"){return core::input_axis{1.0};};
-    if (function == "BREAK"){return core::input_axis{-1.0};};
+    
+    if (function == "ACCELERATE"){
+        currentInputAxis += 0.1;
+        if(abs(currentInputAxis.get()) < 0.07){
+            currentInputAxis = 0.0;
+        }
+        
+    } else if (function == "BREAK"){
+        currentInputAxis -= 0.1;
+        if(abs(currentInputAxis.get()) < 0.07){
+            currentInputAxis = 0.0;
+        }
+    }
+    
+    if(function == "CLOSE"){
+        shouldClose = true;
+    }
 
-    return core::input_axis{0.0};
+    return currentInputAxis;
 }
+
+bool libtrainsim::control::input_handler::closingFlag() const {
+    return shouldClose;
+}
+

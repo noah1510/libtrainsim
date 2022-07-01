@@ -53,6 +53,16 @@ namespace libtrainsim {
                  * 
                  */
                 control::keymap keys;
+            
+                /**
+                 * @brief the current speed level for keyboard controls
+                 */
+                libtrainsim::core::input_axis currentInputAxis = 0.0;
+                
+                /**
+                 * @brief a bool to indicate if the window should be closed
+                 */
+                bool shouldClose = false;
 
             public:
                 /**
@@ -83,6 +93,11 @@ namespace libtrainsim {
                  * @return keymap& a reference to the internal keymap
                  */
                 keymap& Keymap();
+                
+                /**
+                 * @brief return true if getSpeedAxis came across a close command
+                 */
+                bool closingFlag() const;
                 
                 /**
                  * @brief Get the Speed Axis of the current input.
