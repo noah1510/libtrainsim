@@ -81,22 +81,13 @@ namespace libtrainsim{
             /**
             * @brief This function converts a given hexadecimal value into an integer.
             */
-            int hex2int(char hex);
-
+            int hex2int(char hex) const;
+            
             /**
-            * @brief This function returns the analog value which gets extracted out of a given telegram-array.
+             * @brief returns the decoded telegram:
+             * @return std::tuple<uint8_t, uint8_t, bool, int> {port, value, isDigital, error code}
             */
-            int get_value_analog (char v1, char v2);
-
-            /**
-            * @brief This function returns the digital value which gets extracted out of a given telegram-array.
-            */
-            int get_value_digital (char x);
-
-            /**
-            * @brief This function returns the portnumber which gets extracted out of a given telegram-array.
-            */
-            int get_portnumber(char int1, char int2);
+            std::tuple<uint8_t, uint8_t, bool, int> decodeTelegram(const std::string& telegram) const;
 
             /**
             * @brief This function sets the value for searched channelnumber i.
