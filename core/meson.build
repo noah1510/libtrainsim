@@ -6,6 +6,7 @@ sources = [
     'src/track_configuration.cpp',
     'src/types.cpp',
     'src/input_axis.cpp',
+    'src/simulator_config.cpp',
 ]
 
 cxx_header_list = [
