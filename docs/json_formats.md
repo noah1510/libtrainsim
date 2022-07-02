@@ -8,5 +8,6 @@ The following json format pages exist:
 * @ref track_data_format
 * @ref train_properties_format
 * @ref stops_data_format
+* @ref serial_config_format
 
 The track format descibes the file format for the Track class, which loads the track_data and train_properties.
