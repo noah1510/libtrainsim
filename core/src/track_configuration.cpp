@@ -51,27 +51,33 @@ Track::Track(const std::filesystem::path& URI){
         return;
     }
     
-    dat = data_json["data"];
-    if(dat.is_string()){
-        auto da = p / dat.get<std::string>();
-        track_dat = Track_data(da);
-    }else if(dat.is_array()){
-        track_dat = Track_data(dat);
-    }else{
-        return;
+    try{
+        dat = data_json["data"];
+        if(dat.is_string()){
+            std::filesystem::path da = p / dat.get<std::string>();
+            track_dat = Track_data(da);
+        }else if(dat.is_array()){
+            track_dat = Track_data(dat);
+        }else{
+            throw std::runtime_error("invalid track data format");
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error constructing the track object"));
     }
     
-    dat = data_json["train"];
-    if(dat.is_string()){
-        const auto tr = p / dat.get<std::string>();
-        train_dat = train_properties(tr);
-    }else if(dat.is_object()){
-        train_dat = train_properties(dat);
-    }else{
-        return;
+    try{
+        dat = data_json["train"];
+        if(dat.is_string()){
+            std::filesystem::path tr = p / dat.get<std::string>();
+            train_dat = train_properties(tr);
+        }else if(dat.is_object()){
+            train_dat = train_properties(dat);
+        }else{
+            throw std::runtime_error("invalid train in track file");
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error constructing the train object"));
     }
-    
-    if(!track_dat.isValid() || !train_dat.isValid()){return;};
     
     dat = data_json["startingPoint"];
     if(dat.is_number_float()){

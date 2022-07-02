@@ -17,7 +17,6 @@
 #include "length.hpp"
 
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 namespace libtrainsim {
     namespace core {
@@ -75,13 +74,7 @@ namespace libtrainsim {
              * @brief This saves the last value returned by getFrame to speed the binary search up.
              *
              */
-            int64_t last_frame_index = 0;
-
-            /**
-             * @brief is true when the json file was loaded correctly
-             *
-             */
-            bool m_isValid = false;
+            uint64_t last_frame_index = 0;
             
             /**
              * @brief Parses the track data json format into the data array.
@@ -89,7 +82,7 @@ namespace libtrainsim {
              * @return bool true The parsed data was valid
              * @return bool false The parsed data was not valid
              */
-            bool parseJsonData(const json& data_json);
+            void parseJsonData(const nlohmann::json& data_json);
 
             /**
              * @brief this is the binary search to find the frame of a given location, between the lower and upper bound with the a given starting index.
@@ -102,7 +95,7 @@ namespace libtrainsim {
              * @param upper the upper serch bound
              * @return int64_t the nearest frame to that location
              */
-            int64_t getFrame_c(sakurajin::unit_system::base::length location, int64_t index, int64_t lower, int64_t upper) const;
+            uint64_t getFrame_c(sakurajin::unit_system::base::length location, uint64_t index, uint64_t lower, uint64_t upper) const;
 
         public:
 
@@ -115,28 +108,12 @@ namespace libtrainsim {
             Track_data(const std::filesystem::path& URI);
 
             /**
-             * @brief This constructor loads a track file into its data storage while creating a new Track_data object.
-             * The file needs to be a json file with the [format](@ref track_data_format), also specified in the [format converter](https://git.thm.de/bahn-simulator/format-converter).
-             *
-             * @param URI The location of the File
-             */
-            Track_data(const std::string& URI);
-
-            /**
-             * @brief This constructor loads a track file into its data storage while creating a new Track_data object.
-             * The file needs to be a json file with the [format](@ref track_data_format), also specified in the [format converter](https://git.thm.de/bahn-simulator/format-converter).
-             *
-             * @param URI The location of the File
-             */
-            Track_data(const char* URI);
-
-            /**
              * @brief This constructor uses given json data to create a new Track_data object.
              * The data needs to be in the correct [format](@ref track_data_format).
              *
              * @param data
              */
-            explicit Track_data(const json& data_json);
+            explicit Track_data(const nlohmann::json& data_json);
 
             /**
              * @brief Destroy the Track_data object
@@ -151,7 +128,7 @@ namespace libtrainsim {
              * @param location the location on the track in meters
              * @return int64_t the nearest frame to that location
              */
-            int64_t getFrame(sakurajin::unit_system::base::length location);
+            uint64_t getFrame(sakurajin::unit_system::base::length location);
 
             /**
              * @brief Get the Frame to the given location.
@@ -161,22 +138,14 @@ namespace libtrainsim {
              * @param location the location on the track in meters
              * @return int64_t the nearest frame to that location
              */
-            int64_t getFrame(sakurajin::unit_system::base::length location) const;
+            uint64_t getFrame(sakurajin::unit_system::base::length location) const;
 
             /**
              * @brief Get the number of elements in the loaded json file
              *
              * @return int64_t the number of elements
              */
-            int64_t getSize() const;
-
-            /**
-             * @brief checks if the everything was loaded correctly
-             *
-             * @return true the data is valid
-             * @return false there was a problem loading the data
-             */
-            bool isValid() const;
+            uint64_t getSize() const;
 
             /**
              * @brief returns the last location in the dataset
