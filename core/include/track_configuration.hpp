@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file track_configuration.hpp
  * @author Noah Kirschmann (noah.kirschmann@mnd.thm.de)
@@ -9,16 +10,15 @@
  * 
  */
 
-#pragma once
-
 #include "track_data.hpp"
 #include "train_properties.hpp"
 
 #include "length.hpp"
+#include "helper.hpp"
 
 #include <filesystem>
+#include <optional>
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 namespace libtrainsim{
     namespace core {
@@ -26,30 +26,23 @@ namespace libtrainsim{
         /**
          * @brief This class is used to load a track json file containing the definition of the [track](@ref track_format).
          * @todo implement the class.
-         * @warning Nothing here soes what it should at the moment so so not use this class.
          */
         class Track {
         private:
-
-            /**
-             * @brief This object contains the json data of the current track.
-             *
-             */
-            json data_json;
 
             /**
              * @brief The data points of the track.
              * This maps locations to frames.
              *
              */
-            Track_data track_dat = Track_data(std::filesystem::path(""));
+            std::optional<Track_data> track_dat;
 
             /**
              * @brief The train data of the track.
              * This specifies all relevant information about the train used on this track.
              *
              */
-            train_properties train_dat = train_properties(std::filesystem::path(""));
+            std::optional<train_properties> train_dat;
 
             /**
              * @brief The location where the train should start in the beginning.
@@ -68,11 +61,11 @@ namespace libtrainsim{
              *
              */
             std::string name;
-
+            
             /**
-             * @brief true if an error has happened.
+             * @brief parse the given json data into all of the class variables
              */
-            bool hasError = true;
+            void parseJsonData(const nlohmann::json& data_json, const std::filesystem::path& p);
 
             /**
              * @brief The location of the video file for this track
@@ -105,14 +98,6 @@ namespace libtrainsim{
              * @return const train_properties& the train data of this track
              */
             const train_properties& train() const;
-
-            /**
-             * @brief returns if the track was loaded correctly
-             *
-             * @return true everything was loaded correctly
-             * @return false there was an error while loading the track or its data
-             */
-            bool isValid() const;
 
             /**
              * @brief returns the last location of the track.
