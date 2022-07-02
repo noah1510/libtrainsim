@@ -8,7 +8,6 @@
 #include <exception>
 
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 namespace libtrainsim{
     namespace core {

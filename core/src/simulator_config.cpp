@@ -41,7 +41,8 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     for(auto _dat : dat){
         try{
             if(_dat.is_string()){
-                tracks.emplace_back( libtrainsim::core::Track(_dat.get<std::string>()) );
+                std::filesystem::path loc{_dat.get<std::string>()};
+                tracks.emplace_back( libtrainsim::core::Track(loc) );
             }else if(_dat.is_object()){
                 //construct track from json object
             }else{
@@ -60,7 +61,8 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     for(auto _dat : dat){
         try{
             if(_dat.is_string()){
-                extraTrains.emplace_back( libtrainsim::core::train_properties(_dat.get<std::string>()) );
+                std::filesystem::path loc{_dat.get<std::string>()};
+                extraTrains.emplace_back( libtrainsim::core::train_properties(loc) );
             }else if(_dat.is_object()){
                 extraTrains.emplace_back( libtrainsim::core::train_properties(_dat) );
             }else{
