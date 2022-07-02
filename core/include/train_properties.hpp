@@ -17,7 +17,6 @@
 
 #include <filesystem>
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 namespace libtrainsim {
     namespace core {
@@ -28,11 +27,6 @@ namespace libtrainsim {
          */
         class train_properties {
         private:
-
-            /**
-             * @brief The loaded json data, read the docs for more details on the format of the train_properties.
-             */
-            json data_json;
 
             /**
              * @brief True if an error has happened causing the props to be invalid.
@@ -72,7 +66,7 @@ namespace libtrainsim {
             /**
              * @brief Loads the data_json into the other menbers;
              */
-            void loadJsonData();
+            void loadJsonData(const nlohmann::json& data_json);
 
         public:
             /**
@@ -83,26 +77,12 @@ namespace libtrainsim {
             train_properties(const std::filesystem::path& URI);
 
             /**
-             * @brief Construct a new train properties object from a given json file.
-             * @note The data needs the correct [format](@ref train_properties_format).
-             * @param URI The location of the json file.
-             */
-            train_properties(const std::string& URI);
-
-            /**
-             * @brief Construct a new train properties object from a given json file.
-             * @note The data needs the correct [format](@ref train_properties_format).
-             * @param URI The location of the json file.
-             */
-            train_properties(const char* URI);
-
-            /**
              * @brief Construct a new train properties object from json data
              * @note The data needs the correct [format](@ref train_properties_format).
              *
              * @param data The json data.
              */
-            explicit train_properties(const json& data);
+            explicit train_properties(const nlohmann::json& data);
 
             /**
              * @brief checks if the object contains valid data.
