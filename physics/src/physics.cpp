@@ -8,7 +8,6 @@ using namespace sakurajin::unit_system::common::literals;
 using namespace sakurajin::unit_system;
 
 physics::physics(const Track& conf, bool _autoTick):config(conf),autoTick(_autoTick){
-    if(!config.isValid()){return;};
 
     std::scoped_lock<std::shared_mutex> lock1(mutex_data);
     velocity = 0.0_mps;

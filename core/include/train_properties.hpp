@@ -14,6 +14,7 @@
 #include "types.hpp"
 
 #include "common.hpp"
+#include "helper.hpp"
 
 #include <filesystem>
 #include <nlohmann/json.hpp>

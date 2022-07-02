@@ -7,6 +7,7 @@ sources = [
     'src/types.cpp',
     'src/input_axis.cpp',
     'src/simulator_config.cpp',
+    'src/helper.cpp',
 ]
 
 cxx_header_list = [

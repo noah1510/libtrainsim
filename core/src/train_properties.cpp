@@ -95,9 +95,16 @@ void train_properties::loadJsonData(const nlohmann::json& data_json){
         track_drag = _dat.get<double>();
     }
 
-    _dat = data_json["airDrag"];
-    if(!_dat.empty() && _dat.is_number_float()){
-        air_drag = _dat.get<double>();
+
+    auto loc = data_json.find("airDrag");
+    if(loc != data_json.end()){
+        _dat = data_json["airDrag"];
+        if(!_dat.empty() && _dat.is_number_float()){
+            air_drag = _dat.get<double>();
+        }else{
+            throw std::runtime_error("invalid air drag value");
+        }
+        
     }
 
     hasError = false;
