@@ -30,11 +30,6 @@ namespace libtrainsim {
         private:
 
             /**
-             * @brief True if an error has happened causing the props to be invalid.
-             */
-            bool hasError = true;
-
-            /**
              * @brief The name of the train model
              */
             std::string name;
@@ -56,13 +51,13 @@ namespace libtrainsim {
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
              */
 
-            long double air_drag = 0.0;
+            std::optional<double> air_drag = 0.0;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
              * The default value is 0.02.
              */
-            long double track_drag = 0.02;
+            double track_drag = 0.02;
 
             /**
              * @brief Loads the data_json into the other menbers;
@@ -86,14 +81,6 @@ namespace libtrainsim {
             explicit train_properties(const nlohmann::json& data);
 
             /**
-             * @brief checks if the object contains valid data.
-             *
-             * @return true the object is loaded with valid data.
-             * @return false there was an error while loading the data.
-             */
-            bool isValid() const;
-
-            /**
              * @brief The name of the train model
              */
             const std::string& getName() const;
@@ -115,13 +102,13 @@ namespace libtrainsim {
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
              */
-            long double getAirDrag() const;
+            std::optional<double> getAirDrag() const;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
              * The default value is 0.002.
              */
-            long double getTrackDrag() const;
+            double getTrackDrag() const;
 
             /**
              * @brief This function calculates the drag force based on the current velocity.

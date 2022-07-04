@@ -49,74 +49,75 @@ void train_properties::loadJsonData(const nlohmann::json& data_json){
         throw std::invalid_argument("json data is not an object");
     }
 
-    auto _dat = data_json["formatVersion"];
-    if(!_dat.empty() && _dat.is_string()){
-        version ver = _dat.get<std::string>();
-        if(version::compare(format_version,ver) < 0){
-            throw std::runtime_error(
-                "libtrainsim format version not high enough.\nneeds at least:" + 
-                format_version.print() + " but got:" + format_version.print()
-            );
-        };
-    };
-
-    _dat = data_json["name"];
-    if(!_dat.is_string()){
-        throw std::runtime_error("name is not a string");
+    try{
+        auto str = Helper::getOptionalJsonField<std::string>(data_json, "formatVersion");
+        if(str.has_value()){
+            version ver = str.value();
+            if(version::compare(format_version,ver) < 0){
+                throw std::runtime_error(
+                    "libtrainsim format version not high enough.\nneeds at least:" + 
+                    format_version.print() + " but got:" + ver.print()
+                );
+            };
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("format version too old"));
     }
-    name = _dat.get<std::string>();
-
-    _dat = data_json["mass"];
-    if(!_dat.is_number_float()){
-        throw std::runtime_error("mass is not a float");
+    
+    try{
+        name = Helper::getJsonField<std::string>(data_json,"name");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not read name"));
     }
-    mass = base::mass{_dat.get<double>()};
+
+    try{
+        mass = sakurajin::unit_system::base::mass{ Helper::getJsonField<double>(data_json,"mass") };
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not read mass"));
+    }
 
     long double powerUnit = 1.0;
-    _dat = data_json["powerUnit"];
-    if(!_dat.empty() && _dat.is_string()){
-        auto unit = _dat.get<std::string>();
-        if(unit == "kW"){
-            powerUnit = 1000.0;
-        }else{
-            throw std::runtime_error("unknown power unit given");
+    try{
+        auto unit = Helper::getOptionalJsonField<std::string>(data_json, "powerUnit");
+        if(unit.has_value()){
+            if(unit.value() == "kW"){
+                powerUnit = 1000.0;
+            }else{
+                throw std::runtime_error("unknown power unit given");
+            }
         }
+    }catch(...){
+        std::throw_with_nested("error reading power unit");
     }
 
-    _dat = data_json["maxPower"];
-    if(!_dat.is_number_float()){
-        throw std::runtime_error("power is not a float");
+    try{
+        maxPower = sakurajin::unit_system::common::power{ Helper::getJsonField<double>(data_json, "maxPower"), powerUnit };
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error reading max power"));
+    }
+    
+    try{
+        track_drag = Helper::getJsonField<double>(data_json,"trackDrag");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error reading track drag"));
     }
 
-    maxPower = common::power{_dat.get<double>(),powerUnit};
-
-    _dat = data_json["trackDrag"];
-    if(!_dat.empty() && _dat.is_number_float()){
-        track_drag = _dat.get<double>();
+    try{
+        air_drag = Helper::getOptionalJsonField<double>(data_json, "airDrag");
+    }catch(...){
+        std::throw_with_nested("error reading air drag");
     }
 
-
-    auto loc = data_json.find("airDrag");
-    if(loc != data_json.end()){
-        _dat = data_json["airDrag"];
-        if(!_dat.empty() && _dat.is_number_float()){
-            air_drag = _dat.get<double>();
-        }else{
-            throw std::runtime_error("invalid air drag value");
-        }
-        
-    }
-
-    hasError = false;
 }
 
 force train_properties::calulateDrag(speed currentVelocity) const{
     currentVelocity = unit_cast(currentVelocity,1);
-    return (mass * 1_G) * track_drag + 1_N * 0.5 * currentVelocity.value * currentVelocity.value * airDensity * air_drag;
-}
-
-bool train_properties::isValid() const{
-    return !hasError;
+    auto t_drag = (mass * 1_G) * track_drag;
+    if(!air_drag.has_value()){
+        return t_drag;
+    }
+    auto a_drag = 1_N * 0.5 * currentVelocity.value * currentVelocity.value * airDensity * air_drag.value();
+    return t_drag + a_drag;
 }
 
 const std::string& train_properties::getName() const{
@@ -131,10 +132,10 @@ common::power train_properties::getMaxPower() const{
     return maxPower;
 }
 
-long double train_properties::getAirDrag() const{
+std::optional<double> train_properties::getAirDrag() const{
     return air_drag;
 }
 
-long double train_properties::getTrackDrag() const{
+double train_properties::getTrackDrag() const{
     return track_drag;
 }
