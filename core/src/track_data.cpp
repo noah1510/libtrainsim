@@ -73,7 +73,6 @@ void Track_data::parseJsonData(const nlohmann::json& data_json){
         std::throw_with_nested(std::runtime_error("error reading track data values"));
     }
     
-    
 }
 
 Track_data::~Track_data(){}
