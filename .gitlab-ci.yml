@@ -1,27 +1,10 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/#customizing-settings
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 variables:
   CONTAINER_PREFIX: git-registry.thm.de/bahn-simulator/docker-containers
-build:fedora-full:
+build:ubuntu-sdl-ffmpeg:
   stage: build
   image: "$CONTAINER_PREFIX/libtrainsim:ubuntu"
   script:
-  - meson setup build
-  - meson compile -C build
-  - meson test -C build
-  only:
-  - merge_requests
-  - main
-build:fedora-opencv:
-  stage: build
-  image: "$CONTAINER_PREFIX/libtrainsim:ubuntu"
-  script:
-  - meson setup -Dvideo_backend_glfw3=false -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false
-    build
+  - meson setup -Dvideo_backend_opencv=false -Dvideo_backend_glfw3=false build
   - meson compile -C build
   - meson test -C build
   only:
@@ -29,7 +12,7 @@ build:fedora-opencv:
   - main
 build:fedora-sdl-ffmpeg:
   stage: build
-  image: "$CONTAINER_PREFIX/libtrainsim:ubuntu"
+  image: "$CONTAINER_PREFIX/libtrainsim:fedora"
   script:
   - meson setup -Dvideo_backend_opencv=false -Dvideo_backend_glfw3=false build
   - meson compile -C build
@@ -79,5 +62,3 @@ pages:
     - public
   only:
   - main
-include:
-- template: Auto-DevOps.gitlab-ci.yml
