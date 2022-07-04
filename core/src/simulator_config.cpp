@@ -16,61 +16,77 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     
     in >> data_json;
     
-    auto dat = data_json["formatVersion"];
-    if(!dat.empty() && dat.is_string()){
-        version ver = dat.get<std::string>();
-        if(version::compare(format_version,ver) < 0){
-            throw std::runtime_error(
-                "libtrainsim format version not high enough.\nneeds at least:" + 
-                format_version.print() + " but got:" + format_version.print()
-            );
-        };
-    };
-    
-    dat = data_json["serialConfig"];
-    if(dat.empty() || !dat.is_string()){
-        throw std::runtime_error("invalid serialConfig field");
+    try{
+        auto str = Helper::getOptionalJsonField<std::string>(data_json, "formatVersion");
+        if(str.has_value()){
+            version ver = str.value();
+            if(version::compare(format_version,ver) < 0){
+                throw std::runtime_error(
+                    "libtrainsim format version not high enough.\nneeds at least:" + 
+                    format_version.print() + " but got:" + ver.print()
+                );
+            };
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("format version too old"));
     }
-    serialConfigLocation = dat.get<std::string>();
     
-    dat = data_json["tracks"];
-    if(dat.empty() || !dat.is_array()){
-        throw std::runtime_error("invalid tracks field");
+    auto p = URI.parent_path();
+    try{
+        serialConfigLocation = p / Helper::getJsonField<std::string>(data_json,"serialConfig");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error getting serial config location"));
     }
-    tracks.reserve(dat.size());
-    for(auto _dat : dat){
-        try{
+    
+    try{
+        auto dat = Helper::getJsonField(data_json,"tracks");
+        if(!dat.is_array()){
+            throw std::runtime_error("tracks json filed is not an array");
+        }
+        
+        tracks.reserve(dat.size());
+        for(auto _dat : dat){
             if(_dat.is_string()){
                 std::filesystem::path loc{_dat.get<std::string>()};
-                tracks.emplace_back( libtrainsim::core::Track(loc) );
+                tracks.emplace_back( libtrainsim::core::Track(p/loc) );
             }else if(_dat.is_object()){
                 //construct track from json object
             }else{
                 throw std::runtime_error("not a valid track format");
             }
-        }catch(...){
-            std::throw_with_nested(std::runtime_error("error when constructing a Track object"));
         }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error reading tracks"));
     }
-    
-    dat = data_json["trains"];
-    if(dat.empty() || !dat.is_array()){
-        throw std::runtime_error("invalid trains field");
-    }
-    extraTrains.reserve(dat.size());
-    for(auto _dat : dat){
-        try{
+
+    try{
+        auto dat = Helper::getJsonField(data_json,"trains");
+        if(!dat.is_array()){
+            throw std::runtime_error("trains json filed is not an array");
+        }
+        
+        extraTrains.reserve(dat.size());
+        for(auto _dat : dat){
             if(_dat.is_string()){
                 std::filesystem::path loc{_dat.get<std::string>()};
-                extraTrains.emplace_back( libtrainsim::core::train_properties(loc) );
+                extraTrains.emplace_back( libtrainsim::core::train_properties(p/loc) );
             }else if(_dat.is_object()){
                 extraTrains.emplace_back( libtrainsim::core::train_properties(_dat) );
             }else{
-                throw std::runtime_error("not a valid train format");
+                throw std::runtime_error("not a valid track format");
             }
-        }catch(...){
-            std::throw_with_nested(std::runtime_error("error when constructing a Train object"));
         }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error reading trains"));
+    }
+    
+    if(tracks.empty()){
+        throw std::runtime_error("no track specified in simulator configuration");
     }
     
 }
+
+const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getSerialConfigLocation() const {
+    return serialConfigLocation;
+}
+

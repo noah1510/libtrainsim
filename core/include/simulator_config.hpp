@@ -19,6 +19,8 @@ namespace libtrainsim{
             
             std::filesystem::path serialConfigLocation;
             
+            simulatorConfiguration() = delete;
+            
         public:
             
             /**
@@ -28,6 +30,8 @@ namespace libtrainsim{
              * @param URI The location of the File
              */
             simulatorConfiguration(const std::filesystem::path& URI);
+            
+            const std::filesystem::path& getSerialConfigLocation() const;
         };
     }
 }
