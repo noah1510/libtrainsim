@@ -17,12 +17,18 @@ using namespace std::literals;
 
 serialcontrol::serialcontrol(std::string filename){
     std::cout << "starte startup..." << std::endl;
-    read_config(filename);
+    try{
+        read_config(filename);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not read config"));
+    }
+    
     rs232_obj = std::make_unique<sakurajin::RS232>(comport, baudrate);    
     if(!rs232_obj->IsAvailable()){
         std::cerr << "serialPort" << rs232_obj->GetDeviceName() << " is not available!" << std::endl;
         return;
     }
+    
     isConnected = true;
     emergency_flag = false;
     std::cout << "beende startup..." << std::endl;
@@ -165,25 +171,15 @@ void serialcontrol::read_config(std::string filename){
     auto in = std::ifstream(filename);
     in >> data_json;
 
-    auto dat = data_json["comport"];
-    if(!dat.is_string()){
-        #if defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
-            comport = "/dev/ttyACM0";
-            std::cout << "nutze Standard-Port! \"/dev/ttyACM0\"" << std::endl;
-        #else
-            comport = "\\\\.\\COM3";
-            std::cout << "nutze Standard-Port! \"\\\\.\\COM3\"" << std::endl;
-        #endif
-    }else{
-        comport = dat.get<std::string>();
+    try{
+        comport = core::Helper::getJsonField<std::string>(data_json,"comport");
+    }catch(...){
+        std::throw_with_nested("error reading the comport");
     }
 
-    dat = data_json["baudrate"];
-    if(!dat.is_number_integer()){
-        baudrate = sakurajin::baud9600;
-        std::cout << "nutze Standard-Baud 9600!" << std::endl;
-    }else{
-        switch (dat.get<int>()){
+    try{
+        auto baud = core::Helper::getJsonField<int>(data_json,"baudrate");
+        switch (baud){
             case 110:
                 baudrate = sakurajin::baud110;
                 break;
@@ -220,24 +216,33 @@ void serialcontrol::read_config(std::string filename){
             default:
                 baudrate = sakurajin::baud9600;
         }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error reading baudrate"));
     }
 
-    dat = data_json["channels"];
-    if (!dat.is_array()){
-        std::cerr <<  "channels is not an array" << std::endl;
-        return;
-    }
-    serial_channels.reserve(dat.size());
-    for(auto _dat:dat){
-        std::string name{_dat["name"].get<std::string>()};
-        int channel{_dat["channel"].get<int>()};
-        std::string type{_dat["type"].get<std::string>()};
+    try{
+        auto dat = core::Helper::getJsonField(data_json,"channels");
+        if (!dat.is_array()){
+            throw std::runtime_error("channels is not an array");
+        }
+        serial_channels.reserve(dat.size());
+        for(auto _dat:dat){
+            auto name = core::Helper::getJsonField<std::string>(_dat, "name");
+            auto channel = core::Helper::getJsonField<int>(_dat, "channel");
+            auto type = core::Helper::getJsonField<std::string>(_dat, "type");
+            auto dir = core::Helper::getJsonField<std::string>(_dat, "direction");
 
-        serial_channel channel_obj{name, channel, type};
-        serial_channels.emplace_back(channel_obj);
+            serial_channel channel_obj{name, channel, type, dir};
+            serial_channels.emplace_back(channel_obj);
+        }
+        
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error parsing channels"));
     }
+    
+    
 }
 
 //*********************serial_channel*****************************************
 
-serial_channel::serial_channel(std::string n, int ch, std::string t): name{n},channel{ch},type{t},value{0} {}
+serial_channel::serial_channel(const std::string& n, int ch, const std::string& t, const std::string& dir): name{n},channel{ch},type{t},value{0},direction{dir} {}

@@ -3,6 +3,7 @@
 #include <chrono>
 #include "common.hpp"
 #include "core/include/input_axis.hpp"
+#include "helper.hpp"
 #include <rs232.hpp>
 #include <memory>
 #include <vector>
@@ -19,7 +20,7 @@ namespace libtrainsim{
             /**
             * @brief constructor asigns given variables to class-members.
             */
-            serial_channel(std::string n, int ch, std::string t);
+            serial_channel(const std::string& n, int ch, const std::string& t, const std::string& dir);
 
             /**
             * @brief channel-function.
@@ -40,6 +41,11 @@ namespace libtrainsim{
             * @brief The channel value 0/1 digital; 0-255 analog.
             */
             int value;  
+            
+            /**
+             * @brief the direction of the data transfer (input or output)
+             */
+            std::string direction;
     };
 
     /**
