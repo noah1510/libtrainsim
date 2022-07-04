@@ -197,7 +197,3 @@ install_subdir('include', install_dir : 'include/libtrainsim', strip_directory :
 
 pkg = import('pkgconfig')
 pkg.generate(libtrainsim_video)
-
-if get_option('force_build_tests') or (get_option('build_tests') and not meson.is_subproject())
-    subdir('tests')
-endif
