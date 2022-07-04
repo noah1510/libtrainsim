@@ -1,19 +1,24 @@
-#include <catch2/catch.hpp>
+#include <gtest/gtest.h>
 
 #include "input_axis.hpp"
 
 using namespace libtrainsim::core;
 
-TEST_CASE( "Checking if the input-axis behaves correctly works", "[vector]" ) {
-
+TEST(InputAxisTest, CheckCompare){
+    
     const input_axis ax1 = 2.0;
-    REQUIRE(ax1.get() == 1.0);
+    EXPECT_TRUE(ax1.get() == 1.0);
 
     const input_axis ax2 = -2.0;
-    REQUIRE(ax2.get() == -1.0);
+    EXPECT_TRUE(ax2.get() == -1.0);
 
     const input_axis ax3 = 0.0;
-    REQUIRE( (ax1+ax2).get() == 0.0 );
-    REQUIRE( (ax1+ax2) == ax3 );
+    EXPECT_TRUE( (ax1+ax2).get() == 0.0 );
+    EXPECT_TRUE( (ax1+ax2) == ax3 );
     
+}
+
+int main(int argc, char **argv){
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
