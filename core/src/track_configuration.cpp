@@ -42,14 +42,16 @@ void Track::parseJsonData(const nlohmann::json& data_json, const std::filesystem
     }
     
     try{
-        version ver = Helper::getJsonField<std::string>(data_json, "formatVersion");
-        if(version::compare(format_version,ver) < 0){
-            throw std::runtime_error(
-                "libtrainsim format version not high enough.\nneeds at least:" + 
-                format_version.print() + " but got:" + format_version.print()
-            );
-        };
-    }catch(const nlohmann::json::exception& ){
+        auto str = Helper::getOptionalJsonField<std::string>(data_json, "formatVersion");
+        if(str.has_value()){
+            version ver = str.value();
+            if(version::compare(format_version,ver) < 0){
+                throw std::runtime_error(
+                    "libtrainsim format version not high enough.\nneeds at least:" + 
+                    format_version.print() + " but got:" + ver.print()
+                );
+            };
+        }
     }catch(...){
         std::throw_with_nested(std::runtime_error("format version too old"));
     }
@@ -67,9 +69,9 @@ void Track::parseJsonData(const nlohmann::json& data_json, const std::filesystem
     }
     
     try{
-        auto dat = data_json["data"];
+        auto dat = Helper::getJsonField(data_json,"data");
         if(dat.is_string()){
-            std::filesystem::path da = p/dat.get<std::string>();
+            std::filesystem::path da = p / dat.get<std::string>();
             track_dat = Track_data(da);
         }else if(dat.is_array()){
             track_dat = Track_data(dat);
@@ -81,7 +83,7 @@ void Track::parseJsonData(const nlohmann::json& data_json, const std::filesystem
     }
     
     try{
-        auto dat = data_json["train"];
+        auto dat = Helper::getJsonField(data_json,"train");
         if(dat.is_string()){
             std::filesystem::path tr = p/dat.get<std::string>();
             train_dat = train_properties(tr);
