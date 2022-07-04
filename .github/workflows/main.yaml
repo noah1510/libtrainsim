@@ -120,7 +120,7 @@ jobs:
       - name: compile libtrainsim 
         shell: msys2 {0}
         run: |
-          meson setup  -Dlibtrainsim:video_backend_glfw3=false -Ddefault_library=static -Db_lto=false -Dlibtrainsim:video_backend_opencv=false build
+          meson setup  -Dvideo_backend_glfw3=false -Ddefault_library=static -Db_lto=false -Dvideo_backend_opencv=false build
           meson compile -C build
           meson test -C build
 
@@ -141,7 +141,7 @@ jobs:
           action: test
           directory: build
           options: --verbose
-          setup-options: -Dlibtrainsim:video_backend_glfw3=false -Dlibtrainsim:video_backend_opencv=false
+          setup-options: -Dvideo_backend_glfw3=false -Dvideo_backend_opencv=false
           meson-version: 0.56.1
       - name: clearing build directory
         run: rm -rf build
