@@ -61,13 +61,18 @@ void Track_data::parseJsonData(const nlohmann::json& data_json){
     }
     
     data.reserve(data_json.size());
-    for (auto dat:data_json){
-        length location{dat["location"].get<double>()};
-        uint64_t frame = dat["frame"].get<uint64_t>();
-        
-        libtrainsim::core::Track_data_point point{frame,location};
-        data.emplace_back(point);
+    try{
+        for (auto dat:data_json){
+            length location{ Helper::getJsonField<double>(dat,"location")};
+            auto frame = Helper::getJsonField<uint64_t>(dat, "frame");
+            
+            libtrainsim::core::Track_data_point point{frame,location};
+            data.emplace_back(point);
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error reading track data values"));
     }
+    
     
 }
 

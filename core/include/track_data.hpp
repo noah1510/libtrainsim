@@ -15,6 +15,7 @@
 #include <algorithm>
 
 #include "length.hpp"
+#include "helper.hpp"
 
 #include <nlohmann/json.hpp>
 
