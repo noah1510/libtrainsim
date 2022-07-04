@@ -27,6 +27,7 @@ cxx_header_list = [
     'chrono',
     'ratio',
     'map',
+    'optional',
 ]
 
 foreach header_name : cxx_header_list
