@@ -115,12 +115,12 @@ jobs:
         run: git clone https://git.thm.de/bahn-simulator/setup-scripts.git
         shell: msys2 {0}
       - name: install dependencies in msys2
-        run: bash ./setup-scripts/user/msys2_install_only.sh
+        run: bash ./setup-scripts/user/msys2_install_clang64.sh
         shell: msys2 {0}
       - name: compile libtrainsim 
         shell: msys2 {0}
         run: |
-          meson setup -Ddefault_library=static -Db_lto=false build
+          meson setup  -Dlibtrainsim:video_backend_glfw3=false -Ddefault_library=static -Db_lto=false -Dlibtrainsim:video_backend_opencv=false build
           meson compile -C build
           meson test -C build
 
@@ -140,7 +140,7 @@ jobs:
         with:
           action: test
           directory: build
-          options: --verbose
+          options: --verbose -Dlibtrainsim:video_backend_glfw3=false -Dlibtrainsim:video_backend_opencv=false
           meson-version: 0.56.1
       - name: clearing build directory
         run: rm -rf build

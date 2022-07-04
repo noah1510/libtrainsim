@@ -26,7 +26,7 @@ wiki:
   variables:
     DOXYBOOK_VERSION: v1.3.5
   script:
-  - echo 'echo $K8S_SECRET_GITLAB_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
+  - echo 'echo $K8S_SECRET_WIKI_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
   - export GIT_ASKPASS=$HOME/.git-askpass
   - git config --global url."https://api@git.thm.de/".insteadOf "https://git.thm.de/"
   - git config --global url."https://ssh@git.thm.de/".insteadOf "ssh://git@git.thm.de/"
