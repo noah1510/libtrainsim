@@ -23,12 +23,12 @@ namespace libtrainsim{
             static nlohmann::json getJsonField(const nlohmann::json& data_json, const std::string& location){
                 auto it = data_json.find(location);
                 if(it == data_json.end()){
-                    throw nlohmann::json::out_of_range::create(1001, "field does not exist");
+                    throw nlohmann::json::out_of_range::create(1001, "field does not exist", nlohmann::basic_json());
                 }
                 
                 auto val = data_json[location];
                 if(val.empty()){
-                    throw nlohmann::json::invalid_iterator::create(1002, "field exists but is empty");
+                    throw nlohmann::json::invalid_iterator::create(1002, "field exists but is empty", nlohmann::basic_json());
                 }
                 
                 return val;
@@ -40,14 +40,14 @@ namespace libtrainsim{
                 try{
                     val = getJsonField(data_json,location);
                 }catch(const nlohmann::json::exception& e){
-                    throw nlohmann::json::out_of_range::create(e.id, e.what());
+                    throw nlohmann::json::other_error::create(e.id, e.what(), nlohmann::basic_json());
                 }
                 
                 T retval;
                 try{
                     retval = val.get<T>();
                 }catch(...){
-                    std::throw_with_nested( nlohmann::json::type_error::create(1003, "wrong field type") );
+                    std::throw_with_nested( nlohmann::json::type_error::create(1003, "wrong field type", nlohmann::basic_json()) );
                 }
                 
                 return retval;
