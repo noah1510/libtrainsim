@@ -21,6 +21,8 @@ namespace libtrainsim{
             
             simulatorConfiguration() = delete;
             
+            uint64_t currentTrack = 0;
+            
         public:
             
             /**
@@ -29,9 +31,14 @@ namespace libtrainsim{
              *
              * @param URI The location of the File
              */
-            simulatorConfiguration(const std::filesystem::path& URI);
+            simulatorConfiguration(const std::filesystem::path& URI) noexcept(false);
             
-            const std::filesystem::path& getSerialConfigLocation() const;
+            const std::filesystem::path& getSerialConfigLocation() const noexcept;
+            
+            void selectTrack(uint64_t index) noexcept(false);
+            uint64_t getTrackCount() const noexcept;
+            const libtrainsim::core::Track& getTrack(uint64_t index) const noexcept(false);
+            const libtrainsim::core::Track& getCurrentTrack() const noexcept;
         };
     }
 }

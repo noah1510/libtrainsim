@@ -86,7 +86,34 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     
 }
 
-const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getSerialConfigLocation() const {
+const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getSerialConfigLocation() const noexcept{
     return serialConfigLocation;
 }
+
+const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getCurrentTrack() const noexcept{
+    return tracks[currentTrack];
+}
+
+uint64_t libtrainsim::core::simulatorConfiguration::getTrackCount() const noexcept {
+    return tracks.size();
+}
+
+void libtrainsim::core::simulatorConfiguration::selectTrack ( uint64_t index ) {
+    if(index > getTrackCount()){
+        throw std::out_of_range("track index too high");
+    }
+    
+    currentTrack = index;
+}
+
+const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getTrack ( uint64_t index ) const {
+    if(index > getTrackCount()){
+        throw std::out_of_range("track index too high");
+    }
+    
+    return tracks[index];
+}
+
+
+
 
