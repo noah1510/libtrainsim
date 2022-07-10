@@ -11,7 +11,10 @@
 
 namespace libtrainsim{
     namespace core {
-        
+        /**
+         * @brief A general configuration class for the simulator
+         * 
+         */
         class simulatorConfiguration{
         private:
             /**

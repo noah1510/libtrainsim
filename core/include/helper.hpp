@@ -7,6 +7,10 @@
 
 namespace libtrainsim{
     namespace core{
+        /**
+         * @brief A Helper class for Functionality needed across all classes and components
+         * 
+         */
         class Helper{
         private:
             /**
