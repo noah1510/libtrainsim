@@ -8,7 +8,6 @@ using namespace sakurajin::unit_system::common::literals;
 using namespace sakurajin::unit_system;
 
 physics::physics(const Track& conf, bool _autoTick):config(conf),autoTick(_autoTick){
-    if(!config.isValid()){return;};
 
     std::scoped_lock<std::shared_mutex> lock1(mutex_data);
     velocity = 0.0_mps;
@@ -27,6 +26,11 @@ physics::physics(const Track& conf, bool _autoTick):config(conf),autoTick(_autoT
 physics::~physics(){
 
 };
+
+void physics::emergencyBreak(){
+    std::scoped_lock<std::shared_mutex> lock(mutex_data);
+    isEmergencyBreaking = true;
+}
 
 common::speed physics::getVelocity(){
     if(autoTick){tick();};
@@ -106,12 +110,18 @@ void physics::tick(){
     MaxForce = calcMaxForce(mass,1_G,train_drag);
     MaxPower = config.train().getMaxPower();
 
+    if(isEmergencyBreaking){
+      speedlevel = -1.0;
+      if(velocity < 0.007_mps){
+        isEmergencyBreaking = false;
+      }
+    }
+    
     currPower = speedlevel*MaxPower;
 
     //Handling the different possibilities for Speedlevel
     //only calculating the current Force
-    if (speedlevel > 0.007)
-    {
+    if (speedlevel > 0.007){
       if (abs(velocity) < 0.007_mps){
         currTraction = MaxForce;
       }else{

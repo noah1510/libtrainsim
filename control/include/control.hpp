@@ -9,6 +9,7 @@
 #include "libtrainsim_config.hpp"
 #include "input_axis.hpp"
 #include "keymap.hpp"
+#include "serialcontrol.hpp"
 
 #ifdef HAS_VIDEO_SUPPORT
     #if __has_include("video.hpp")
@@ -35,6 +36,7 @@ namespace libtrainsim {
         *   * OTHER -> some other random event
         *   * BREAK -> indicates the train should break
         *   * ACCELERATE -> indicates the train should accelerate
+        *   * EMERGENCY_BREAK -> indicated the emergency break should be activated
         *
         * Using the Keymap() function you can get a reference to the keymap of the input_handler and register addtional keys and functions,
         * that can be handled by an implementation of the simulator.
@@ -42,7 +44,6 @@ namespace libtrainsim {
         * @warning this interface is only really useful is you use libtrainsim::video to handle window management otherwise
         * it is not possible to retrieve the currently pressed keys. You can use this a a base to implement you own input_handler
         * if you some other window management.
-        * @todo implment input from (analog) hardware controls.
         */
         class input_handler{
             private:
@@ -51,28 +52,45 @@ namespace libtrainsim {
                  * 
                  */
                 control::keymap keys;
-
-            public:
+            
                 /**
-                * @brief Construct a new input_handler object.
-                * By default w accelerates, s breaks and ESC closes the program.
-                * 
-                */
-                input_handler();
+                 * @brief the current speed level for keyboard controls
+                 */
+                libtrainsim::core::input_axis currentInputAxis = 0.0;
                 
                 /**
-                * @brief return a string to test if the singleton works correctly
+                 * @brief a bool to indicate if the window should be closed
+                 */
+                bool shouldClose = false;
+                
+                /**
+                 * @brief a bool to indicate if the emergency break should activate
+                 */
+                bool shouldEmergencyBreak = false;
+
+                /**
+                 * @brief the serial interface to the connected hardware input
+                 * 
+                 */
+                serialcontrol serial;
+
+            public:
+
+               /**
+                * @brief Construct a new input handler object
+                * By default w accelerates, s breaks, p sets the emergency break and ESC closes the program.
+                * If hardware input is available it will be used by default instead of keyboard accelleration and breaking.
                 * 
-                * @return std::string the starting message
+                * @param URI The location of the serial configuration file (should be given by the settings)
                 */
-                std::string hello() const;
+                input_handler(const std::filesystem::path& URI) noexcept(false);
 
                 /**
                  * @brief Get the function of the currently pressed key.
                  * 
                  * @return std::string the function that should be performed.
                  */
-                std::string getKeyFunction();
+                std::string getKeyFunction() noexcept;
                 
                 /**
                  * @brief access the internal keymap to change the input configuration.
@@ -80,15 +98,17 @@ namespace libtrainsim {
                  * 
                  * @return keymap& a reference to the internal keymap
                  */
-                keymap& Keymap();
+                keymap& Keymap() noexcept;
                 
                 /**
-                * @brief Get the action that is currently performed.
-                * @deprecated use the getKeyFunction() function since this will be removed in a future version.
-                * 
-                * @return core::actions the current action
-                */
-                core::actions getCurrentAction();
+                 * @brief return true if getSpeedAxis came across a close command
+                 */
+                bool closingFlag() const noexcept;
+                
+                /**
+                 * @brief return true if getSpeedAxis came across a emergency break command
+                 */
+                bool emergencyFlag() const noexcept;
                 
                 /**
                  * @brief Get the Speed Axis of the current input.
@@ -96,10 +116,15 @@ namespace libtrainsim {
                  * Hardware controls can provide any value between -1.0 and 1.0.
                  * This input axis can be passed directly to the physics component.
                  * 
-                 * @todo implement the step by step increments that the simulator does in this function for keyboard inputs.
                  * @return core::input_axis The input axis which desribes how much the train should accelerate/break.
                  */
-                core::input_axis getSpeedAxis();
+                core::input_axis getSpeedAxis() const noexcept;
+
+                /**
+                 * @brief update all of the flags and the speed axis value
+                 * 
+                 */
+                void update() noexcept;
         };
     }
 }

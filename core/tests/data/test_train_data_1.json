@@ -1,7 +1,8 @@
 {
     "name":"DB-Baureihe 423/433",
     "mass":119400.0,
+    "formatVersion":"0.6.0",
     "maxPower":2350.0,
     "powerUnit":"kW",
-    "formatVersion":"0.6.0"
+    "trackDrag":0.1
 }

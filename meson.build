@@ -3,7 +3,7 @@ project(
     'cpp',
     'c',
     default_options : ['cpp_std=c++17'],
-    version : '0.9.2'
+    version : '0.10.0'
 )
 
 #set the configuration

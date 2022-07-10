@@ -14,10 +14,10 @@
 #include "types.hpp"
 
 #include "common.hpp"
+#include "helper.hpp"
 
 #include <filesystem>
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 namespace libtrainsim {
     namespace core {
@@ -28,16 +28,6 @@ namespace libtrainsim {
          */
         class train_properties {
         private:
-
-            /**
-             * @brief The loaded json data, read the docs for more details on the format of the train_properties.
-             */
-            json data_json;
-
-            /**
-             * @brief True if an error has happened causing the props to be invalid.
-             */
-            bool hasError = true;
 
             /**
              * @brief The name of the train model
@@ -61,18 +51,18 @@ namespace libtrainsim {
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
              */
 
-            long double air_drag = 0.0;
+            std::optional<double> air_drag = 0.0;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
              * The default value is 0.02.
              */
-            long double track_drag = 0.02;
+            double track_drag = 0.02;
 
             /**
              * @brief Loads the data_json into the other menbers;
              */
-            void loadJsonData();
+            void loadJsonData(const nlohmann::json& data_json);
 
         public:
             /**
@@ -83,34 +73,12 @@ namespace libtrainsim {
             train_properties(const std::filesystem::path& URI);
 
             /**
-             * @brief Construct a new train properties object from a given json file.
-             * @note The data needs the correct [format](@ref train_properties_format).
-             * @param URI The location of the json file.
-             */
-            train_properties(const std::string& URI);
-
-            /**
-             * @brief Construct a new train properties object from a given json file.
-             * @note The data needs the correct [format](@ref train_properties_format).
-             * @param URI The location of the json file.
-             */
-            train_properties(const char* URI);
-
-            /**
              * @brief Construct a new train properties object from json data
              * @note The data needs the correct [format](@ref train_properties_format).
              *
              * @param data The json data.
              */
-            explicit train_properties(const json& data);
-
-            /**
-             * @brief checks if the object contains valid data.
-             *
-             * @return true the object is loaded with valid data.
-             * @return false there was an error while loading the data.
-             */
-            bool isValid() const;
+            explicit train_properties(const nlohmann::json& data);
 
             /**
              * @brief The name of the train model
@@ -134,13 +102,13 @@ namespace libtrainsim {
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
              */
-            long double getAirDrag() const;
+            std::optional<double> getAirDrag() const;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
              * The default value is 0.002.
              */
-            long double getTrackDrag() const;
+            double getTrackDrag() const;
 
             /**
              * @brief This function calculates the drag force based on the current velocity.

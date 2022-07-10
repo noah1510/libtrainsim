@@ -4,10 +4,11 @@ This repository contains several components that are useful if you want to simul
 
 To build this repository you need to install meson and a c++ compiler toolchain with support for C++17 (at least gcc-9.2.0 or clang-9).
 
-The documentation is generated using doxygen an should be published to the wiki on every commit.
+The documentation is generated using doxygen an should be published to the wiki and [gitlab pages](https://bahn-simulator.git-pages.thm.de/libtrainsim/) on every commit.
 German translations are coming soon feel free to contribute to them.
 
-**Please note that the windows build does not work at the moment. Look at issue #10 issue for more details.**
+**Please note that the windows build might not work at the moment.**
+**This is not a problem with the code but with microsofts terrible dependency management.**
 
 To see a basic reference implementation look at [this repository](https://git.thm.de/bahn-simulator/simulator).
 It uses all parts of libtrainsim to create a functional train simulator with just a small codebase.
@@ -15,7 +16,8 @@ It uses all parts of libtrainsim to create a functional train simulator with jus
 The main branch always contains the latest working code, while the stable branch contains the state of the last release.
 If you want to have the most recent version without needing to worry about possible build problems use the stable branch.
 Pull request should always be targeted at the main branch.
-
+***Before version 1.0.0 the API is subject to changes that break compatibility.***
+***Make sure to keep your application up to date to prevent it from breaking***
 
 ## Contributing
 
@@ -46,20 +48,17 @@ Look [here](@ref json_formats) for details on the formatting of the json files.
 ### Video
 
 The Video component handles video files and can be used for simple playback.
-It has two possible backends: sdl2/ffmpeg and opencv.
-By default all the backends that can be built will be built.
-You have to manually install ffmpeg or opencv to get the build working.
-The [setup-scripts](https://git.thm.de/bahn-simulator/setup-scripts) in the root folder automatically install all of the needed dependencies.
+It is based on sdl2 for window management/inputs and ffmpeg for the video decode.
+***The opencv and glfw backends are disabled by default since they will be removed in version 0.11.0***
+The [setup-scripts](https://git.thm.de/bahn-simulator/setup-scripts) automatically install all of the needed dependencies.
 
 ### Control
 
 The control component manages input from various sources and gives an easy interface to handle them.
-At the moment the only working input is the keyboard input privided by the current video backend.
-Because of that this component is useless unless you have enables libtransim::video (at least at the moment).
+If you have hardware controls connected via the serial interface they will be used by default
 
 ### Physics
 
 The physics component handles basic physics calculations.
 It only needs libtrainsim::core to work.
-At the moment things like drag are not included in the calculations and the speed is 'directly' controlled by providing the current accelleration.
-Feel free to contribute to improve this module as much work is needed for a more realistic physics calculation.
+The current speed and accelleration are calculated based on a given speed axis which defines how much of the maximum power should be used.

@@ -44,7 +44,7 @@ bool ffmpegRenderer::load(const std::filesystem::path& uri){
     }
 
     pCodec = NULL;
-    pCodec = avcodec_find_decoder(pFormatCtx->streams[videoStream]->codecpar->codec_id);
+    pCodec = const_cast<AVCodec*>( avcodec_find_decoder(pFormatCtx->streams[videoStream]->codecpar->codec_id) );
     if (pCodec == NULL){
         std::cerr << "Unsupported codec!" << std::endl;
         return false;

@@ -6,6 +6,8 @@ sources = [
     'src/track_configuration.cpp',
     'src/types.cpp',
     'src/input_axis.cpp',
+    'src/simulator_config.cpp',
+    'src/helper.cpp',
 ]
 
 cxx_header_list = [
@@ -25,6 +27,7 @@ cxx_header_list = [
     'chrono',
     'ratio',
     'map',
+    'optional',
 ]
 
 foreach header_name : cxx_header_list

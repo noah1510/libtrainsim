@@ -11,103 +11,116 @@ using namespace sakurajin::unit_system::base;
 Track::Track(const std::filesystem::path& URI){
         
     if(!std::filesystem::exists(URI)){
-        std::cerr << "The Track file location is empty:" << URI.string() << std::endl;
-        return;
+        throw std::invalid_argument("The Track file location is empty:" + URI.string());
     }
 
     if (URI.extension() != ".json" ){
-        std::cerr << "the file has no json extention" << std::endl;
-        return;
+        throw std::invalid_argument("the file has no json extention");
     }
 
-    auto in = std::ifstream(URI);
+    nlohmann::json data_json;
+    
+    try{
+        auto in = std::ifstream(URI);
+        in >> data_json;
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not read file into json structure"));
+    }
+    
+    try{
+        parseJsonData(data_json, URI.parent_path());
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not parse json data"));
+    }
+    
+}
 
-    in >> data_json;
+void Track::parseJsonData(const nlohmann::json& data_json, const std::filesystem::path& p){
     
-    auto dat = data_json["formatVersion"];
-    if(!dat.empty() && dat.is_string()){
-        version ver = dat.get<std::string>();
-        if(version::compare(format_version,ver) < 0){
-            std::cerr << "libtrainsim format version not high enough." << std::endl;
-            std::cerr << "needs at least:" << format_version.print() << " but got:" << format_version.print() << std::endl;
-            return;
-        };
-    };
-        
-    dat = data_json["name"];
-    if(!dat.is_string()){
-        return;
-    }
-    name = dat.get<std::string>();
-    
-    dat = data_json["videoFile"];
-    if(!dat.is_string()){
-        return;
-    }
-    const auto p = std::filesystem::absolute(URI.parent_path());
-    videoFile = p / dat.get<std::string>();
-    if(videoFile.empty()){
-        std::cerr << "The Video file location is empty:" << videoFile.string() << std::endl;
-        return;
+    if(!data_json.is_object()){
+        throw std::invalid_argument("the given data is not a json object");
     }
     
-    dat = data_json["data"];
-    if(dat.is_string()){
-        auto da = p / dat.get<std::string>();
-        track_dat = Track_data(da);
-    }else if(dat.is_array()){
-        track_dat = Track_data(dat);
-    }else{
-        return;
+    try{
+        auto str = Helper::getOptionalJsonField<std::string>(data_json, "formatVersion");
+        if(str.has_value()){
+            version ver = str.value();
+            if(version::compare(format_version,ver) < 0){
+                throw std::runtime_error(
+                    "libtrainsim format version not high enough.\nneeds at least:" + 
+                    format_version.print() + " but got:" + ver.print()
+                );
+            };
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("format version too old"));
     }
     
-    dat = data_json["train"];
-    if(dat.is_string()){
-        const auto tr = p / dat.get<std::string>();
-        train_dat = train_properties(tr);
-    }else if(dat.is_object()){
-        train_dat = train_properties(dat);
-    }else{
-        return;
+    try{
+        name = Helper::getJsonField<std::string>(data_json, "name");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not read name field"));
     }
     
-    if(!track_dat.isValid() || !train_dat.isValid()){return;};
-    
-    dat = data_json["startingPoint"];
-    if(dat.is_number_float()){
-        startingPoint =  length{dat.get<double>()};
-    }else{
-        startingPoint = track_dat.firstLocation();
+    try{
+        videoFile = p / Helper::getJsonField<std::string>(data_json, "videoFile");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not read video file field"));
     }
     
-    dat = data_json["endPoint"];
-    if(dat.is_number_float()){
-        endPoint = length{dat.get<double>()};
-    }else{
-        endPoint = track_dat.lastLocation();
+    try{
+        auto dat = Helper::getJsonField(data_json,"data");
+        if(dat.is_string()){
+            std::filesystem::path da = p / dat.get<std::string>();
+            track_dat = Track_data(da);
+        }else if(dat.is_array()){
+            track_dat = Track_data(dat);
+        }else{
+            throw std::runtime_error("invalid track data format");
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error constructing the track object"));
     }
     
-    startingPoint = std::clamp(startingPoint,track_dat.firstLocation(),track_dat.lastLocation());
-    endPoint = std::clamp(endPoint,track_dat.firstLocation(),track_dat.lastLocation());
+    try{
+        auto dat = Helper::getJsonField(data_json,"train");
+        if(dat.is_string()){
+            std::filesystem::path tr = p/dat.get<std::string>();
+            train_dat = train_properties(tr);
+        }else if(dat.is_object()){
+            train_dat = train_properties(dat);
+        }else{
+            throw std::runtime_error("invalid train in track file");
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error constructing the train object"));
+    }
+    
+    try{
+        startingPoint.value = Helper::getJsonField<double>(data_json,"startingPoint");
+    }catch(...){
+        startingPoint = track_dat->firstLocation();
+    }
+    
+    try{
+        endPoint.value = Helper::getJsonField<double>(data_json,"endPoint");
+    }catch(...){
+        endPoint = track_dat->lastLocation();
+    }
+    
+    startingPoint = std::clamp(startingPoint,track_dat->firstLocation(),track_dat->lastLocation());
+    endPoint = std::clamp(endPoint,track_dat->firstLocation(),track_dat->lastLocation());
     if(startingPoint > endPoint){
-        std::cerr << "the last location was smaller than the first position:" << startingPoint << " > " << endPoint << std::endl;
-        return;
+        throw std::runtime_error("the last location was smaller than the first position");
     };
-    
-    hasError = false;
-    return;
 }
 
 const Track_data& Track::data() const{
-    return track_dat;
+    return track_dat.value();
 }
             
 const train_properties& Track::train() const{
-    return train_dat;
-}
-
-bool Track::isValid() const{
-    return !hasError;
+    return train_dat.value();
 }
 
 length Track::lastLocation() const{
@@ -121,5 +134,5 @@ length Track::firstLocation() const{
 }
 
 std::filesystem::path Track::getVideoFilePath() const{
-    return isValid() ? videoFile : "";
+    return videoFile;
 }

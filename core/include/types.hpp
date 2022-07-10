@@ -148,26 +148,13 @@ namespace libtrainsim {
          * @brief the current version of the libtrainsim
          *
          */
-        const version lib_version(0,9,2);
+        const version lib_version(0,10,0);
 
         /**
          * @brief the current version of the json formats
          *
          */
-        const version format_version(0,6,0);
-
-        /**
-         * @brief This enum maps action names to values for use with the control
-         * @warning will be removed in the future. Look into using key functions of the keymap
-         *
-         */
-        enum actions {
-            ACTION_OTHER = -2,
-            ACTION_NONE = -1,
-            ACTION_CLOSE = 0,
-            ACTION_ACCELERATE = 1,
-            ACTION_BREAK = 2,
-        };
+        const version format_version(0,7,0);
 
     }
 }

@@ -1,81 +1,64 @@
 variables:
-  CONTAINER_PREFIX: "git-registry.thm.de/bahn-simulator/docker-containers"
-
-build:fedora-full:
+  CONTAINER_PREFIX: git-registry.thm.de/bahn-simulator/docker-containers
+build:ubuntu-sdl-ffmpeg:
   stage: build
-  image: $CONTAINER_PREFIX/libtrainsim:ubuntu
+  image: "$CONTAINER_PREFIX/libtrainsim:ubuntu"
   script:
-    - meson setup build
-    - meson compile -C build
-    - meson test -C build
+  - meson setup -Dvideo_backend_opencv=false -Dvideo_backend_glfw3=false build
+  - meson compile -C build
+  - meson test -C build
   only:
-    - merge_requests
-    - main
-
-build:fedora-opencv:
-  stage: build
-  image: $CONTAINER_PREFIX/libtrainsim:ubuntu
-  script:
-    - meson setup -Dvideo_backend_glfw3=false -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false build
-    - meson compile -C build
-    - meson test -C build
-  only:
-    - merge_requests
-    - main
-
+  - merge_requests
+  - main
 build:fedora-sdl-ffmpeg:
   stage: build
-  image: $CONTAINER_PREFIX/libtrainsim:ubuntu
+  image: "$CONTAINER_PREFIX/libtrainsim:fedora"
   script:
-    - meson setup -Dvideo_backend_opencv=false -Dvideo_backend_glfw3=false build
-    - meson compile -C build
-    - meson test -C build
+  - meson setup -Dvideo_backend_opencv=false -Dvideo_backend_glfw3=false build
+  - meson compile -C build
+  - meson test -C build
   only:
-    - merge_requests
-    - main
-
+  - merge_requests
+  - main
 wiki:
-  image: $CONTAINER_PREFIX/helper:wiki
+  image: "$CONTAINER_PREFIX/helper:wiki"
   stage: deploy
   variables:
-    DOXYBOOK_VERSION: "v1.3.5"
+    DOXYBOOK_VERSION: v1.3.5
   script:
-    - echo 'echo $K8S_SECRET_GITLAB_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
-    - export GIT_ASKPASS=$HOME/.git-askpass
-    - git config --global url."https://api@git.thm.de/".insteadOf "https://git.thm.de/"
-    - git config --global url."https://ssh@git.thm.de/".insteadOf "ssh://git@git.thm.de/"
-    - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
-    - git config --global user.email "noah.kirschmann@mnd.thm.de"
-    - git config --global user.name "Gitlab-Ci"
-    - wget https://github.com/matusnovak/doxybook2/releases/download/$DOXYBOOK_VERSION/doxybook2-linux-amd64-$DOXYBOOK_VERSION.zip
-    - unzip doxybook2-linux-amd64-$DOXYBOOK_VERSION.zip -d doxybook
-    - doxygen
-    - git clone git@git.thm.de:bahn-simulator/libtrainsim.wiki.git doc/md
-    - ./doxybook/bin/doxybook2 -i doc/xml -o doc/md -c docs/config.json
-    - cd doc/md
-    - git add .
-    - git commit -m "updated docs"
-    - git push -f
-    - cd ../latex
-    - make
-    - cd ../..
-    - mv doc/latex/refman.pdf reference_manual_en.pdf
+  - echo 'echo $K8S_SECRET_WIKI_TOKEN' > $HOME/.git-askpass && chmod +x $HOME/.git-askpass
+  - export GIT_ASKPASS=$HOME/.git-askpass
+  - git config --global url."https://api@git.thm.de/".insteadOf "https://git.thm.de/"
+  - git config --global url."https://ssh@git.thm.de/".insteadOf "ssh://git@git.thm.de/"
+  - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
+  - git config --global user.email "noah.kirschmann@mnd.thm.de"
+  - git config --global user.name "Gitlab-Ci"
+  - wget https://github.com/matusnovak/doxybook2/releases/download/$DOXYBOOK_VERSION/doxybook2-linux-amd64-$DOXYBOOK_VERSION.zip
+  - unzip doxybook2-linux-amd64-$DOXYBOOK_VERSION.zip -d doxybook
+  - doxygen
+  - git clone git@git.thm.de:bahn-simulator/libtrainsim.wiki.git doc/md
+  - "./doxybook/bin/doxybook2 -i doc/xml -o doc/md -c docs/config.json"
+  - cd doc/md
+  - git add .
+  - git commit -m "updated docs"
+  - git push -f
+  - cd ../latex
+  - make
+  - cd ../..
+  - mv doc/latex/refman.pdf reference_manual_en.pdf
   only:
-    - main
-
+  - main
   artifacts:
     paths:
-      - "reference_manual_en.pdf"
-
+    - reference_manual_en.pdf
 pages:
-  image: $CONTAINER_PREFIX/helper:pages
+  image: "$CONTAINER_PREFIX/helper:pages"
   stage: deploy
   script:
-    - doxygen Doxyfile
-    - mv doc/html/ public/
+  - doxygen Doxyfile
+  - mv doc/html/ public/
   artifacts:
     paths:
-      - public
+    - public
   only:
-    - main
-
+  - main

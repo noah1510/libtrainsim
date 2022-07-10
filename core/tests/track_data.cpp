@@ -1,52 +1,48 @@
-#include <catch2/catch.hpp>
+#include <gtest/gtest.h>
 
 #include <iostream>
 #include "track_data.hpp"
 
 using namespace sakurajin::unit_system::base::literals;
 
-void test_nearest_c(const libtrainsim::core::Track_data& dat){
-    REQUIRE(dat.isValid());
-    REQUIRE(dat.getSize() == 10);
+void test_nearest(const libtrainsim::core::Track_data& dat){
+    EXPECT_TRUE(dat.getSize() == 10);
 
-    REQUIRE(dat.getFrame(0.04264325_m) == 8);
-    REQUIRE(dat.getFrame(0.04264328_m) == 8);
-    REQUIRE(dat.getFrame(0.02132164_m) == 5);
+    EXPECT_TRUE(dat.getFrame(0.04264325_m) == 8);
+    EXPECT_TRUE(dat.getFrame(0.04264328_m) == 8);
+    EXPECT_TRUE(dat.getFrame(0.02132164_m) == 5);
 }
 
-void test_nearest(libtrainsim::core::Track_data* dat){
-    REQUIRE(dat->isValid());
-    REQUIRE(dat->getSize() == 10);
 
-    REQUIRE(dat->getFrame(0.04264325_m) == 8);
-    REQUIRE(dat->getFrame(0.04264328_m) == 8);
-    REQUIRE(dat->getFrame(0.02132164_m) == 4);
+TEST(TrackData, getNearestFrame){
+    
+    std::filesystem::path loc = "../core/tests/data/test_track_data.json";
+    std::optional<libtrainsim::core::Track_data> dat;
+    EXPECT_NO_THROW(dat = libtrainsim::core::Track_data{loc});
+
+    test_nearest(dat.value());
+
+};
+
+TEST(TrackData, InValidCheck){
+    std::filesystem::path loc1 = "";
+    std::filesystem::path loc2 = "meson.build";
+    
+    EXPECT_ANY_THROW(libtrainsim::core::Track_data{loc1});
+    EXPECT_ANY_THROW(libtrainsim::core::Track_data{loc2});
+};
+
+TEST(TrackData, ValidCheck){
+    std::filesystem::path loc = "../core/tests/data/test_track_data.json";
+    std::optional<libtrainsim::core::Track_data> dat;
+    EXPECT_NO_THROW(dat = libtrainsim::core::Track_data{loc});
+    
+    EXPECT_TRUE(dat->getSize() == 10);
+    EXPECT_TRUE(sakurajin::unit_system::unit_cast(dat->firstLocation(),1).value == 0.0);
+    EXPECT_TRUE(dat->lastLocation() == 0.04264326_m);
+};
+
+int main(int argc, char **argv){
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
-
-TEST_CASE( "Checking if getNearestFrame works", "[vector]" ) {
-    
-    libtrainsim::core::Track_data dat{"../core/tests/data/test_track_data.json"};
-    const libtrainsim::core::Track_data dat_c{"../core/tests/data/test_track_data.json"};
-
-    test_nearest_c(dat);
-    test_nearest_c(dat_c);
-
-    test_nearest(&dat);
-
-};
-
-TEST_CASE( "Checking if load track fails with invalid inputs", "[vector]" ) {
-    const libtrainsim::core::Track_data dat1{""};
-    const libtrainsim::core::Track_data dat2{"meson.build"};
-    REQUIRE_FALSE(dat1.isValid());
-    REQUIRE_FALSE(dat2.isValid());
-};
-
-TEST_CASE( "Checking if load track works with valid input", "[vector]" ) {
-    const libtrainsim::core::Track_data dat{"../core/tests/data/test_track_data.json"};
-    REQUIRE(dat.isValid());
-    
-    REQUIRE(dat.getSize() == 10);
-    REQUIRE(sakurajin::unit_system::unit_cast(dat.firstLocation(),1).value == 0.0);
-    REQUIRE(dat.lastLocation() == 0.04264326_m);
-};

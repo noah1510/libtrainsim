@@ -5,6 +5,7 @@ libtrainsim::control::keymap::keymap() {
     _keymap[static_cast<char>(27)] = "CLOSE";
     _keymap['w'] = "ACCELERATE";
     _keymap['s'] = "BREAK";
+    _keymap['p'] = "EMERGENCY_BREAK";
     _keymap['\0'] = "OTHER";
 };
 

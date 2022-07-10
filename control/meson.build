@@ -3,6 +3,7 @@ cc = meson.get_compiler('cpp')
 sources = [
     'src/control.cpp',
     'src/keymap.cpp',
+    'src/serialcontrol.cpp'
 ]
 
 incdir = include_directories('include','..')
@@ -10,6 +11,7 @@ incdir = include_directories('include','..')
 control_deps = [
     dependency('threads'),
     dependency('libtrainsim-core', required: true),
+    dependency('rs232', required: true),
 ]
 
 video_dep = dependency('libtrainsim-video', required: false)

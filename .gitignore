@@ -1,14 +1,10 @@
 build
 .cache
 doc
-subprojects/avcpp/
-subprojects/Catch2*/
-subprojects/packagecache/
-subprojects/nlohmann_json-*/
-subprojects/unit-system/
+subprojects/*
+!subprojects/*.wrap
 
 libtrainsim.kdev4
 
 doxybook/
 
-subprojects/SDL2-2.0.12/
