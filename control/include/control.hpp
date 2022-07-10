@@ -44,7 +44,6 @@ namespace libtrainsim {
         * @warning this interface is only really useful is you use libtrainsim::video to handle window management otherwise
         * it is not possible to retrieve the currently pressed keys. You can use this a a base to implement you own input_handler
         * if you some other window management.
-        * @todo implment input from (analog) hardware controls.
         */
         class input_handler{
             private:
@@ -76,13 +75,6 @@ namespace libtrainsim {
                 * 
                 */
                 input_handler();
-                
-                /**
-                * @brief return a string to test if the singleton works correctly
-                * 
-                * @return std::string the starting message
-                */
-                std::string hello() const;
 
                 /**
                  * @brief Get the function of the currently pressed key.
@@ -115,7 +107,6 @@ namespace libtrainsim {
                  * Hardware controls can provide any value between -1.0 and 1.0.
                  * This input axis can be passed directly to the physics component.
                  * 
-                 * @todo implement the step by step increments that the simulator does in this function for keyboard inputs.
                  * @return core::input_axis The input axis which desribes how much the train should accelerate/break.
                  */
                 core::input_axis getSpeedAxis();

@@ -4,10 +4,6 @@ libtrainsim::control::input_handler::input_handler(void){
     keys = libtrainsim::control::keymap();
 }
 
-std::string libtrainsim::control::input_handler::hello() const{
-    return "Hello from the control singleton";
-}
-
 libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap(){
     return keys;
 }

@@ -25,7 +25,6 @@ namespace libtrainsim{
 
         /**
          * @brief This class is used to load a track json file containing the definition of the [track](@ref track_format).
-         * @todo implement the class.
          */
         class Track {
         private:

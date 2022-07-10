@@ -61,7 +61,6 @@ namespace libtrainsim {
         /**
          * @brief This class stores the data of a given track.
          * For the format of the json files look [here](@ref track_data_format).
-         * @todo check if the correct format is actually used to prevent crashes.
          */
         class Track_data {
         private:
