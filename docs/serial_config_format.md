@@ -1,4 +1,4 @@
-The format of the serial configuration {serial_config_format}
+The format of the serial configuration {#serial_config_format}
 ========================
 
 The serial interface needs a few configuration options.
