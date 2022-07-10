@@ -10,6 +10,7 @@
 #include "input_axis.hpp"
 #include "keymap.hpp"
 #include "glfwKeyTranslation.hpp"
+#include "serialcontrol.hpp"
 
 #ifdef HAS_VIDEO_SUPPORT
     #if __has_include("video.hpp")
@@ -68,13 +69,27 @@ namespace libtrainsim {
                  */
                 bool shouldEmergencyBreak = false;
 
+                /**
+                 * @brief the serial interface to the connected hardware input
+                 * 
+                 */
+                serialcontrol serial;
+
             public:
                 /**
                 * @brief Construct a new input_handler object.
-                * By default w accelerates, s breaks and ESC closes the program.
+                * By default w accelerates, s breaks, p sets the emergency break and ESC closes the program.
                 * 
                 */
-                input_handler() noexcept(false);
+
+               /**
+                * @brief Construct a new input handler object
+                * By default w accelerates, s breaks, p sets the emergency break and ESC closes the program.
+                * If hardware input is available it will be used by default instead of keyboard accelleration and breaking.
+                * 
+                * @param URI The location of the serial configuration file (should be given by the settings)
+                */
+                input_handler(const std::filesystem::path& URI) noexcept(false);
 
                 /**
                  * @brief Get the function of the currently pressed key.

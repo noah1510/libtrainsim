@@ -1,6 +1,6 @@
 #include "control.hpp"
 
-libtrainsim::control::input_handler::input_handler() noexcept(false){
+libtrainsim::control::input_handler::input_handler(const std::filesystem::path& URI) noexcept(false): serial{URI}{
     keys = libtrainsim::control::keymap();
 }
 
