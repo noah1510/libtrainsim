@@ -76,11 +76,6 @@ namespace libtrainsim {
                 serialcontrol serial;
 
             public:
-                /**
-                * @brief Construct a new input_handler object.
-                * By default w accelerates, s breaks, p sets the emergency break and ESC closes the program.
-                * 
-                */
 
                /**
                 * @brief Construct a new input handler object
@@ -96,7 +91,7 @@ namespace libtrainsim {
                  * 
                  * @return std::string the function that should be performed.
                  */
-                std::string getKeyFunction();
+                std::string getKeyFunction() noexcept;
                 
                 /**
                  * @brief access the internal keymap to change the input configuration.
@@ -104,7 +99,7 @@ namespace libtrainsim {
                  * 
                  * @return keymap& a reference to the internal keymap
                  */
-                keymap& Keymap();
+                keymap& Keymap() noexcept;
                 
                 /**
                  * @brief return true if getSpeedAxis came across a close command
@@ -130,7 +125,7 @@ namespace libtrainsim {
                  * @brief update all of the flags and the speed axis value
                  * 
                  */
-                void update();
+                void update() noexcept;
         };
     }
 }

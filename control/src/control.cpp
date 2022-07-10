@@ -4,11 +4,11 @@ libtrainsim::control::input_handler::input_handler(const std::filesystem::path& 
     keys = libtrainsim::control::keymap();
 }
 
-libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap(){
+libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap() noexcept {
     return keys;
 }
 
-std::string libtrainsim::control::input_handler::getKeyFunction() {
+std::string libtrainsim::control::input_handler::getKeyFunction() noexcept {
     char pressedKey = '\0';
     
     #ifdef HAS_VIDEO_SUPPORT
@@ -79,32 +79,40 @@ bool libtrainsim::control::input_handler::emergencyFlag() const noexcept {
     return shouldEmergencyBreak;
 }
 
-void libtrainsim::control::input_handler::update(){
-    //if there is harware input update most flags from there
-
+void libtrainsim::control::input_handler::update() noexcept{
 
     auto function = getKeyFunction();
-    
-    if (function == "ACCELERATE"){
-        currentInputAxis += 0.1;
-        if(abs(currentInputAxis.get()) < 0.07){
-            currentInputAxis = 0.0;
-        }
-        
-    } else if (function == "BREAK"){
-        currentInputAxis -= 0.1;
-        if(abs(currentInputAxis.get()) < 0.07){
-            currentInputAxis = 0.0;
-        }
-    }
     
     if(function == "CLOSE"){
         shouldClose = true;
     }
-    
-    if(function == "EMERGENCY_BREAK"){
-        shouldEmergencyBreak = true;
-    }
+
+    //if there is harware input update most flags from there
+    if(serial.IsConnected()){
+        serial.update();
+
+        shouldEmergencyBreak = serial.get_emergencyflag();
+        currentInputAxis = serial.get_slvl();
+    }else{
+
+        if(function == "EMERGENCY_BREAK"){
+            shouldEmergencyBreak = true;
+        }
+
+        if (function == "ACCELERATE"){
+            currentInputAxis += 0.1;
+            if(abs(currentInputAxis.get()) < 0.07){
+                currentInputAxis = 0.0;
+            }
+            
+        } else if (function == "BREAK"){
+            currentInputAxis -= 0.1;
+            if(abs(currentInputAxis.get()) < 0.07){
+                currentInputAxis = 0.0;
+            }
+        }
+    }  
+
 }
 
 
