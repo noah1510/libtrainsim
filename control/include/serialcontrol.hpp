@@ -104,7 +104,7 @@ namespace libtrainsim{
                 /**
                 * @brief This function filles the variables with the data of the config-file.
                 */
-                void read_config(std::string filename);
+                void read_config(const std::filesystem::path& filename);
                 
             public:
 
@@ -112,7 +112,7 @@ namespace libtrainsim{
                 /**
                 * @brief constructor creates an object with all needed parts to handle hardware input.
                 */
-                serialcontrol(std::string filename);
+                serialcontrol(const std::filesystem::path& filename);
 
                 /**
                 * @brief This function updates the serial status, reads and analyses new incoming telegrams.

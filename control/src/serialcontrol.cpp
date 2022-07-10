@@ -16,12 +16,12 @@ using namespace std::literals;
 
 //*********************serialcontrol*****************************************
 
-serialcontrol::serialcontrol(std::string filename){
+serialcontrol::serialcontrol(const std::filesystem::path& filename){
     std::cout << "starte startup..." << std::endl;
     try{
         read_config(filename);
     }catch(...){
-        std::throw_with_nested(std::runtime_error("could not read config"));
+        std::throw_with_nested(std::runtime_error("could not read serial config"));
     }
     
     rs232_obj = std::make_unique<sakurajin::RS232>(comport, baudrate);    
@@ -165,7 +165,14 @@ bool serialcontrol::get_emergencyflag(){
     return emergency_flag;
 }
 
-void serialcontrol::read_config(std::string filename){
+void serialcontrol::read_config(const std::filesystem::path& filename){
+    if(!std::filesystem::exists(filename)){
+        throw std::runtime_error("serial config file does not exist! " + filename.string());
+    }
+
+    if(filename.extension() != ".json"){
+        throw std::runtime_error("serial config has wrong file type " + filename.extension().string());
+    }
 
     json data_json;
 
