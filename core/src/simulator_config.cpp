@@ -83,6 +83,15 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     if(tracks.empty()){
         throw std::runtime_error("no track specified in simulator configuration");
     }
+
+    try{
+        auto val = Helper::getOptionalJsonField<int>(data_json, "defaultTrack");
+        if(val.has_value()){
+            selectTrack(val.value());
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error setting the default track"));
+    }
     
 }
 
@@ -99,8 +108,8 @@ uint64_t libtrainsim::core::simulatorConfiguration::getTrackCount() const noexce
 }
 
 void libtrainsim::core::simulatorConfiguration::selectTrack ( uint64_t index ) {
-    if(index > getTrackCount()){
-        throw std::out_of_range("track index too high");
+    if(getTrackCount() <= index){
+        throw std::invalid_argument("track index too high");
     }
     
     currentTrack = index;
@@ -108,7 +117,7 @@ void libtrainsim::core::simulatorConfiguration::selectTrack ( uint64_t index ) {
 
 const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getTrack ( uint64_t index ) const {
     if(index > getTrackCount()){
-        throw std::out_of_range("track index too high");
+        throw std::invalid_argument("track index too high");
     }
     
     return tracks[index];
