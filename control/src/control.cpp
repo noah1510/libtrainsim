@@ -1,6 +1,6 @@
 #include "control.hpp"
 
-libtrainsim::control::input_handler::input_handler(void){
+libtrainsim::control::input_handler::input_handler() noexcept(false){
     keys = libtrainsim::control::keymap();
 }
 
@@ -67,11 +67,21 @@ std::string libtrainsim::control::input_handler::getKeyFunction() {
     return keyFunction;
 }
 
-libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis(){
-    //if there is harware input return the scaled acceleration
-    #ifdef HAS_HW_INPUT_SUPPORT
+libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis() const noexcept {
+    return currentInputAxis;
+}
 
-    #endif
+bool libtrainsim::control::input_handler::closingFlag() const noexcept {
+    return shouldClose;
+}
+
+bool libtrainsim::control::input_handler::emergencyFlag() const noexcept {
+    return shouldEmergencyBreak;
+}
+
+void libtrainsim::control::input_handler::update(){
+    //if there is harware input update most flags from there
+
 
     auto function = getKeyFunction();
     
@@ -95,16 +105,6 @@ libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis(
     if(function == "EMERGENCY_BREAK"){
         shouldEmergencyBreak = true;
     }
-
-    return currentInputAxis;
-}
-
-bool libtrainsim::control::input_handler::closingFlag() const {
-    return shouldClose;
-}
-
-bool libtrainsim::control::input_handler::emergencyFlag() const {
-    return shouldEmergencyBreak;
 }
 
 

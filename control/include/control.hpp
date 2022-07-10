@@ -74,7 +74,7 @@ namespace libtrainsim {
                 * By default w accelerates, s breaks and ESC closes the program.
                 * 
                 */
-                input_handler();
+                input_handler() noexcept(false);
 
                 /**
                  * @brief Get the function of the currently pressed key.
@@ -94,12 +94,12 @@ namespace libtrainsim {
                 /**
                  * @brief return true if getSpeedAxis came across a close command
                  */
-                bool closingFlag() const;
+                bool closingFlag() const noexcept;
                 
                 /**
                  * @brief return true if getSpeedAxis came across a emergency break command
                  */
-                bool emergencyFlag() const;
+                bool emergencyFlag() const noexcept;
                 
                 /**
                  * @brief Get the Speed Axis of the current input.
@@ -109,7 +109,13 @@ namespace libtrainsim {
                  * 
                  * @return core::input_axis The input axis which desribes how much the train should accelerate/break.
                  */
-                core::input_axis getSpeedAxis();
+                core::input_axis getSpeedAxis() const noexcept;
+
+                /**
+                 * @brief update all of the flags and the speed axis value
+                 * 
+                 */
+                void update();
         };
     }
 }
