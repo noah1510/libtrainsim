@@ -9,6 +9,7 @@
 #include <vector>
 
 using namespace libtrainsim;
+using namespace libtrainsim::control;
 using json = nlohmann::json;
 
 using namespace std::literals;
