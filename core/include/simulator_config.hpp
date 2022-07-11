@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <vector>
 #include <exception>
+#include <thread>
+#include <future>
 
 #include <nlohmann/json.hpp>
 

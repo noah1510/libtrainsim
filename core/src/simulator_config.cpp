@@ -45,16 +45,34 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
         }
         
         tracks.reserve(dat.size());
-        for(auto _dat : dat){
-            if(_dat.is_string()){
-                std::filesystem::path loc{_dat.get<std::string>()};
-                tracks.emplace_back( libtrainsim::core::Track(p/loc) );
-            }else if(_dat.is_object()){
+        
+        //unsigned int n_threads = std::thread::hardware_concurrency();
+        std::vector< std::future<libtrainsim::core::Track> > loadingQueue;
+        
+        for(size_t i = 0;i < dat.size();i++){
+                
+            if(dat[i].is_string()){
+                std::filesystem::path loc{dat[i].get<std::string>()};
+                loadingQueue.emplace_back( std::async(std::launch::async, [p,loc](){return libtrainsim::core::Track(p/loc);} ) );
+            }else if(dat[i].is_object()){
                 //construct track from json object
             }else{
                 throw std::runtime_error("not a valid track format");
             }
         }
+        
+        for(auto& v:loadingQueue){
+            if(!v.valid()){
+                throw std::runtime_error("got a non valid future 1");
+            }
+            v.wait();
+            if(!v.valid()){
+                throw std::runtime_error("got a non valid future 2");
+            }
+            auto val = v.get();
+            tracks.emplace_back(val);
+        }
+        
     }catch(...){
         std::throw_with_nested(std::runtime_error("error reading tracks"));
     }
