@@ -80,7 +80,7 @@ namespace libtrainsim {
             *
             * @return double
             */
-            virtual double getHight();
+            virtual double getHeight();
 
             /**
             * @brief Get the Width of the video in pixels

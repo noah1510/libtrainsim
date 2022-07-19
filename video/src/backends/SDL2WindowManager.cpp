@@ -31,7 +31,7 @@ void SDL2WindowManager::createWindow(const std::string& windowName){
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         renderer->getWidth()/2,
-        renderer->getHight()/2,
+        renderer->getHeight()/2,
         SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED
     );
 
@@ -51,7 +51,7 @@ void SDL2WindowManager::createWindow(const std::string& windowName){
         SDL_PIXELFORMAT_YV12,
         SDL_TEXTUREACCESS_STREAMING,
         renderer->getWidth(),
-        renderer->getHight()
+        renderer->getHeight()
     );
     
     lastFrame.reset();
@@ -79,7 +79,7 @@ void SDL2WindowManager::refreshWindow(){
     rect.x = 0;
     rect.y = 0;
     rect.w = renderer->getWidth();
-    rect.h = renderer->getHight();
+    rect.h = renderer->getHeight();
     
     SDL_UpdateYUVTexture(
         texture,

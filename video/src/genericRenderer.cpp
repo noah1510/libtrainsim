@@ -28,7 +28,7 @@ uint64_t genericRenderer::getCurrentFrameNumber(){
     return 0;
 }
 
-double genericRenderer::getHight(){
+double genericRenderer::getHeight(){
     return 0.0;
 }
 

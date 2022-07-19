@@ -36,7 +36,7 @@ namespace libtrainsim {
                 bool load(const std::filesystem::path& uri);
                 std::shared_ptr<libtrainsim::Frame> gotoFrame(uint64_t frameNum);
                 uint64_t getFrameCount();
-                double getHight();
+                double getHeight();
                 double getWidth();
                 std::shared_ptr<libtrainsim::Frame> getNextFrame();
                 std::shared_ptr<libtrainsim::Frame> scaleFrame(std::shared_ptr<libtrainsim::Frame> frame);

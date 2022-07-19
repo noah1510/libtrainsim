@@ -40,8 +40,8 @@ void videoGeneric::gotoFrame(uint64_t frameNum){
     return window->gotoFrame(frameNum);
 }
 
-double videoGeneric::getHight(){
-    return renderer->getHight();
+double videoGeneric::getHeight(){
+    return renderer->getHeight();
 }
 
 double videoGeneric::getWidth(){

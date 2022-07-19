@@ -147,7 +147,7 @@ uint64_t ffmpegRenderer::getFrameCount(){
     if(endOfFile){return 0;};
     return pCodecCtx->frame_number;
 }
-double ffmpegRenderer::getHight(){
+double ffmpegRenderer::getHeight(){
     if(pCodecCtx == nullptr || endOfFile){return 0.0;};
     return pCodecCtx->height;
 }
