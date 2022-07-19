@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <vector>
 #include <exception>
+#include <thread>
+#include <future>
 
 #include <nlohmann/json.hpp>
 
@@ -54,8 +56,9 @@ namespace libtrainsim{
              * @note The json file need the correct [format](@ref simulatorConfigurationFormat).
              *
              * @param URI The location of the File
+             * @param lazyLoad set to true if you only want to load tracks on demand
              */
-            simulatorConfiguration(const std::filesystem::path& URI) noexcept(false);
+            simulatorConfiguration(const std::filesystem::path& URI, bool lazyLoad = false) noexcept(false);
             
             /**
              * @brief Get the location of the serial config settings file
@@ -100,6 +103,12 @@ namespace libtrainsim{
              * @return const libtrainsim::core::Track& the currently selected track 
              */
             const libtrainsim::core::Track& getCurrentTrack() const noexcept;
+            
+            /**
+             * @brief ensures that the track with the given index is fully loaded
+             * 
+             */
+            void ensureTrack(uint64_t index) noexcept(false);
         };
     }
 }

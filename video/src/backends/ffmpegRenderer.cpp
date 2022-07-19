@@ -70,7 +70,7 @@ bool ffmpegRenderer::load(const std::filesystem::path& uri){
         pCodecCtx->width,
         pCodecCtx->height,
         AV_PIX_FMT_YUV420P,
-        SWS_GAUSS | SWS_ACCURATE_RND,
+        SWS_SINC | SWS_ACCURATE_RND,
         NULL,
         NULL,
         NULL

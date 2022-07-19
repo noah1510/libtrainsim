@@ -32,7 +32,7 @@ void SDL2WindowManager::createWindow(const std::string& windowName){
         SDL_WINDOWPOS_UNDEFINED,
         renderer->getWidth()/2,
         renderer->getHight()/2,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE
+        SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED
     );
 
     if (!screen){
