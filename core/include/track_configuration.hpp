@@ -123,6 +123,7 @@ namespace libtrainsim{
              */
             std::filesystem::path getVideoFilePath() const;
             
+            const std::string& getName() const;
             
             /**
              * @brief this function ensures that the data is fully loaded.

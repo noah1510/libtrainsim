@@ -157,6 +157,15 @@ length Track::firstLocation() const{
     }
 }
 
+const std::string & libtrainsim::core::Track::getName() const {
+    if(!track_dat.has_value()){
+        throw std::runtime_error("Track not loaded yet");
+    }
+    
+    return name;
+}
+
+
 std::filesystem::path Track::getVideoFilePath() const{
     return videoFile;
 }
