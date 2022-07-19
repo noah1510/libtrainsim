@@ -64,7 +64,7 @@ namespace libtrainsim{
             /**
              * @brief parse the given json data into all of the class variables
              */
-            void parseJsonData(const nlohmann::json& data_json, const std::filesystem::path& p);
+            void parseJsonData();
 
             /**
              * @brief The location of the video file for this track
@@ -73,6 +73,9 @@ namespace libtrainsim{
             std::filesystem::path videoFile;
 
             Track() = delete;
+            
+            std::filesystem::path parentPath;
+            std::optional<nlohmann::json> data_json;
 
         public:
 
@@ -81,8 +84,9 @@ namespace libtrainsim{
              * @note The json file need the correct [format](@ref track_format).
              *
              * @param URI The location of the File
+             * @param lazyLoad true if you only want to load the data on the first
              */
-            Track(const std::filesystem::path& URI);
+            Track(const std::filesystem::path& URI, bool lazyLoad = false);
 
             /**
              * @brief returning the Track_data of this track
@@ -118,6 +122,12 @@ namespace libtrainsim{
              * @return std::filesystem::path the path to the video file
              */
             std::filesystem::path getVideoFilePath() const;
+            
+            
+            /**
+             * @brief this function ensures that the data is fully loaded.
+             */
+            void ensure();
 
         };
     }

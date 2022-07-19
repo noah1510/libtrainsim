@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::filesystem::path& URI){
+libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::filesystem::path& URI, bool lazyLoad){
     if(!std::filesystem::exists(URI)){
         throw std::invalid_argument("The simulator config file location is empty:" + URI.string());
     }
@@ -50,10 +50,9 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
         std::vector< std::future<libtrainsim::core::Track> > loadingQueue;
         
         for(size_t i = 0;i < dat.size();i++){
-                
             if(dat[i].is_string()){
                 std::filesystem::path loc{dat[i].get<std::string>()};
-                loadingQueue.emplace_back( std::async(std::launch::async, [p,loc](){return libtrainsim::core::Track(p/loc);} ) );
+                loadingQueue.emplace_back( std::async(std::launch::async, [p,loc,lazyLoad](){return libtrainsim::core::Track(p/loc, lazyLoad);} ) );
             }else if(dat[i].is_object()){
                 //construct track from json object
             }else{
@@ -126,20 +125,35 @@ uint64_t libtrainsim::core::simulatorConfiguration::getTrackCount() const noexce
 }
 
 void libtrainsim::core::simulatorConfiguration::selectTrack ( uint64_t index ) {
-    if(getTrackCount() <= index){
-        throw std::invalid_argument("track index too high");
+    try{
+        ensureTrack(index);
+    }catch(...){
+        std::throw_with_nested("could not ensure availability of the given track");
     }
     
     currentTrack = index;
 }
 
-const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getTrack ( uint64_t index ) const {
+const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getTrack ( uint64_t index ) const noexcept(false) {
     if(index > getTrackCount()){
         throw std::invalid_argument("track index too high");
     }
     
     return tracks[index];
 }
+
+void libtrainsim::core::simulatorConfiguration::ensureTrack ( uint64_t index ) noexcept(false) {
+    if(getTrackCount() <= index){
+        throw std::invalid_argument("track index too high");
+    }
+    
+    try{
+        tracks[index].ensure();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error ensuring the availability of the selected track"));
+    }
+}
+
 
 
 
