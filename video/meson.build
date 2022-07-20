@@ -1,8 +1,8 @@
 sources = [
     'src/video.cpp',
     'src/frame.cpp',
-    'src/genericBackend.cpp',
-    'src/genericRenderer.cpp',
+    'src/videoDecoder.cpp',
+    'src/glad.c',
 ]
 
 video_deps = [
@@ -42,7 +42,7 @@ if target_machine.system() == 'emscripten'
     
     #video_deps += ffmpeg_dep
     video_deps += ffmpeg.get_variable('declared_dep')
-    sources += 'src/backends/ffmpegRenderer.cpp'
+    sources += 'src/backends/videoDecoder.cpp'
     sources += 'src/backends/ffmpegFrame.cpp'
     message('compiling with ffmpeg enabled')
     

@@ -3,10 +3,21 @@
 #include <memory>
 #include <string>
 #include <filesystem>
+#include <shared_mutex>
+#include <thread>
+#include <future>
+#include <iostream>
+#include <chrono>
 
 #include "frame.hpp"
-#include "genericBackend.hpp"
-#include "backends/ffmpeg_sdl.hpp"
+#include "videoDecoder.hpp"
+
+#if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
+    #include <SDL2/SDL.h>
+    #include <SDL2/SDL_thread.h>
+#else
+    #error "cannot include sdl2" 
+#endif
 
 namespace libtrainsim {
     namespace Video{
@@ -29,11 +40,24 @@ namespace libtrainsim {
                  */
                 void initSDL2();
                 
+                SDL_Window* screen = nullptr;
+                SDL_Renderer* sdl_renderer = nullptr;
+                SDL_Texture* texture = nullptr;
+                
+                std::string currentWindowName = "";
+                bool windowFullyCreated = false;
+                std::shared_ptr<Frame> lastFrame;
+                
+                std::shared_mutex videoMutex;
+                std::future<std::shared_ptr<libtrainsim::Video::Frame>> nextFrame;
+                bool fetchingFrame = false;
+                uint64_t nextFrameToGet = 0;
+                
                 /**
-                * @brief the implementation of the current backend
-                */
-                std::unique_ptr<Video::videoGeneric> currentBackend_impl;
-
+                 * @brief the decoder used to decode the video file into frames
+                 */
+                videoDecoder decode;
+                
                 /**
                 * @brief the name of the window for the simulator
                 * 
@@ -74,7 +98,7 @@ namespace libtrainsim {
                 * 
                 * @param frame_num the number of the frame that should be displayed next
                 */
-                void gotoFrame(double frame_num);
+                void gotoFrame(uint64_t frame_num);
 
                 /**
                 * @brief Get the Width of the video in pixels
