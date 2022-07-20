@@ -3,15 +3,11 @@ sources = [
     'src/frame.cpp',
     'src/genericBackend.cpp',
     'src/genericRenderer.cpp',
-    'src/genericWindowManager.cpp',
 ]
 
 video_deps = [
     dependency('threads', required: true),
 ]
-
-enable_ffmpeg = false
-enable_sdl = false
 
 #check if emscripten is used
 if target_machine.system() == 'emscripten'
@@ -47,17 +43,14 @@ if target_machine.system() == 'emscripten'
     #video_deps += ffmpeg_dep
     video_deps += ffmpeg.get_variable('declared_dep')
     sources += 'src/backends/ffmpegRenderer.cpp'
-    sources += 'src/backends/genericWindowManager.cpp'
     sources += 'src/backends/ffmpegFrame.cpp'
-    sources += 'src/backends/ffmpegSDL2Backend.cpp'
     message('compiling with ffmpeg enabled')
     
 else
     #handle normal builds 
 
-    #try to find sdl2 dependnecies and enable sources
-    enable_sdl = get_option('video_backend_sdl')
-
+    CC = meson.get_compiler('c')
+    
     #try to find ffmpeg dependencies
     ffmpeg_dep = []
     av_libs = [
@@ -72,61 +65,27 @@ else
     ]
 
     foreach lib : av_libs
-        ffmpeg_dep += [
+        video_deps += [
             dependency(
                 'lib@0@'.format(lib[0]),
-                required: false,
+                required: true,
                 #fallback : ['ffmpeg', 'lib@0@_dep'.format(lib[0])],
                 version : '>=@0@'.format(lib[1]))
         ]
     endforeach
-
-    #set enable_ffmpeg to the correct value
-    ffmpeg_found = true
-    foreach dep:ffmpeg_dep
-        if not dep.found()
-            ffmpeg_found = false
-        endif
-    endforeach
-    enable_ffmpeg = get_option('video_backend_ffmpeg') and ffmpeg_found and (enable_sdl)
-
-    #enable ffmpeg if needed
-    if enable_ffmpeg
-        video_deps += ffmpeg_dep
-        sources += 'src/backends/ffmpegRenderer.cpp'
-        sources += 'src/backends/ffmpegFrame.cpp'
-        
-        message('compiling with ffmpeg enabled')
-    endif
-
-    #enable sdl2 if needed
-    if enable_sdl
-        video_deps += dependency('sdl2', required : true, fallback: ['sdl2','sdl2_dep'])
-        
-        sources += 'src/backends/SDL2WindowManager.cpp'
-        
-        if enable_ffmpeg
-            sources += 'src/backends/ffmpegSDL2Backend.cpp'
-        endif
-        
-        message('compiling with sdl2 enabled')
-    endif
     
+    video_deps += dependency('sdl2', required : true, fallback: ['sdl2','sdl2_dep'])
+    video_deps += dependency('glm', required : true, fallback : ['glm','glm_dep'])
+    video_deps += dependency('gl', required : true)
+    video_deps += CC.find_library('dl', required : false)
     
-    #CC = meson.get_compiler('c')
-    
-    #video_deps += dependency('glm', required : true, fallback : ['glm','glm_dep'])
-    #video_deps += dependency('gl', required : true)
-    #video_deps += CC.find_library('dl', required : false)
-    
-    #sources += 'src/glad.c'
     
 endif
 
 #create the video configuration file
 video_conf_data = configuration_data()
-video_conf_data.set('HAS_FFMPEG_SUPPORT', enable_ffmpeg)
-video_conf_data.set('HAS_SDL_SUPPORT', enable_sdl)
+video_conf_data.set('HAS_FFMPEG_SUPPORT', true)
+video_conf_data.set('HAS_SDL_SUPPORT', true)
 video_conf_data.set('ENDABLE_VSYNC', get_option('video_use_vsync'))
 configure_file(output : 'video_config.hpp', configuration : video_conf_data, install: true, install_dir: 'include/libtrainsim')
 
