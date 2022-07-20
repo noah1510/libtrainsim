@@ -17,6 +17,7 @@ std::string libtrainsim::control::input_handler::getKeyFunction() noexcept {
         SDL_Event event;
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         SDL_PollEvent(&event);
+        ImGui_ImplSDL2_ProcessEvent(&event);
 
         if(event.type == SDL_QUIT){
             return "CLOSE";
