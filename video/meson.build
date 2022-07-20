@@ -3,6 +3,8 @@ sources = [
     'src/frame.cpp',
     'src/videoDecoder.cpp',
     'src/glad.c',
+    'src/imguiHandler.cpp',
+    'src/shader.cpp',
 ]
 
 video_deps = [
@@ -76,6 +78,7 @@ else
     
     video_deps += dependency('sdl2', required : true, fallback: ['sdl2','sdl2_dep'])
     video_deps += dependency('glm', required : true, fallback : ['glm','glm_dep'])
+    video_deps += dependency('imgui', required : true, fallback : ['imgui','imgui_dep'])
     video_deps += dependency('gl', required : true)
     video_deps += CC.find_library('dl', required : false)
     
