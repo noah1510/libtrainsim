@@ -13,20 +13,18 @@ std::string libtrainsim::control::input_handler::getKeyFunction() noexcept {
     
     #ifdef HAS_VIDEO_SUPPORT
 
-        #ifdef HAS_SDL_SUPPORT
 
-            SDL_Event event;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            SDL_PollEvent(&event);
+        SDL_Event event;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        SDL_PollEvent(&event);
 
-            if(event.type == SDL_QUIT){
-                return "CLOSE";
-            };
+        if(event.type == SDL_QUIT){
+            return "CLOSE";
+        };
 
-            if(event.type == SDL_KEYDOWN){
-                pressedKey = event.key.keysym.sym;
-            };
-        #endif
+        if(event.type == SDL_KEYDOWN){
+            pressedKey = event.key.keysym.sym;
+        };
 
     #endif
     
