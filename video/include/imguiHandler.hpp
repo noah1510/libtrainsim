@@ -3,6 +3,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 #include "imgui.h"
 
@@ -27,7 +28,7 @@ namespace libtrainsim{
     namespace Video{
         class imguiHandler{
           private:
-            std::string glsl_version = "#version 130";
+            std::string glsl_version = "#version 460 core";
             SDL_GLContext gl_context;
             SDL_Window* window = nullptr;
             ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -43,6 +44,9 @@ namespace libtrainsim{
             void init_impl();
             void startRender_impl();
             void endRender_impl();
+            void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture);
+            void loadFramebuffer_impl ( unsigned int buf );
+            void updateRenderThread_impl();
             
           public:
             static void init(){
@@ -55,6 +59,18 @@ namespace libtrainsim{
             
             static void endRender(){
                 getInstance().endRender_impl();
+            }
+            
+            static void initFramebuffer(unsigned int& FBO, unsigned int& texture){
+                getInstance().initFramebuffer_impl(FBO,texture);
+            }
+            
+            static void loadFramebuffer ( unsigned int buf ){
+                getInstance().loadFramebuffer_impl(buf);
+            }
+            
+            static void updateRenderThread(){
+                getInstance().updateRenderThread_impl();
             }
             
         };
