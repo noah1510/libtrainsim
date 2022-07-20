@@ -3,12 +3,14 @@ sources = [
     'src/frame.cpp',
     'src/videoDecoder.cpp',
     'src/glad.c',
+    'src/statusDisplay.cpp',
     'src/imguiHandler.cpp',
     'src/shader.cpp',
 ]
 
 video_deps = [
     dependency('threads', required: true),
+    dependency('libtrainsim-core', required: true),
 ]
 
 #check if emscripten is used
