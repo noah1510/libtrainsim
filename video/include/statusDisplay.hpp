@@ -8,6 +8,8 @@
 #include "acceleration.hpp"
 #include "prefix.hpp"
 
+#include <array>
+
 #include "input_axis.hpp"
 
 namespace libtrainsim{
