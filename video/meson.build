@@ -1,10 +1,10 @@
 sources = [
     'src/video.cpp',
     'src/frame.cpp',
-    'src/videoDecoder.cpp',
     'src/glad.c',
     'src/statusDisplay.cpp',
     'src/imguiHandler.cpp',
+    'src/video_reader.cpp',
     'src/shader.cpp',
 ]
 
