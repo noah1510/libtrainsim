@@ -3,6 +3,8 @@
 #include <exception>
 #include <iostream>
 #include <optional>
+#include <vector>
+#include <type_traits>
 #include <nlohmann/json.hpp>
 
 namespace libtrainsim{
@@ -127,6 +129,16 @@ namespace libtrainsim{
                 }
                 
                 return val;
+            }
+            
+            template<typename T>
+            static bool contains(const std::vector<T>& data, const T& key){
+                for(auto x : data){
+                    if(x == key){
+                        return true;
+                    }
+                }
+                return false;
             }
             
         };

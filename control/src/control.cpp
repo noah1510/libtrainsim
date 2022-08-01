@@ -8,63 +8,29 @@ libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap() noex
     return keys;
 }
 
-std::string libtrainsim::control::input_handler::getKeyFunction() noexcept {
-    char pressedKey = '\0';
+std::vector<std::string> libtrainsim::control::input_handler::getKeyFunctions() noexcept {
+    std::vector<std::string> functions;
     
     #ifdef HAS_VIDEO_SUPPORT
-    
-        auto backend = libtrainsim::video::getBackend().windowType;
 
-        #ifdef HAS_OPENCV_SUPPORT
-            if ( backend == libtrainsim::Video::window_opencv){
+        SDL_Event event;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        while(SDL_PollEvent(&event)){
+            
+            ImGui_ImplSDL2_ProcessEvent(&event);
 
-                pressedKey = cv::waitKey(1);
-            }
-        #endif
+            if(event.type == SDL_QUIT){
+                functions.emplace_back("CLOSE");
+            };
 
-        #ifdef HAS_SDL_SUPPORT
-            if ( backend == libtrainsim::Video::window_sdl){
-
-                SDL_Event event;
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                SDL_PollEvent(&event);
-
-                if(event.type == SDL_QUIT){
-                    return "CLOSE";
-                };
-
-                if(event.type == SDL_KEYDOWN){
-                    pressedKey = event.key.keysym.sym;
-                };
-            }
-        #endif
+            if(event.type == SDL_KEYDOWN){
+                functions.emplace_back(keys.getFunction(event.key.keysym.sym));
+            };
+        }
         
-        #ifdef HAS_GLFW_SUPPORT
-            if ( backend == libtrainsim::Video::window_glfw){
-                auto _window = video::getGLFWwindow();
-                
-                if (glfwWindowShouldClose(_window)){
-                    return "CLOSE";
-                }
-                
-                glfwWaitEventsTimeout(0.001);
-                
-                auto keyList = keys.getAllKeys();
-                for (auto key: keyList){
-                    auto glfwKey = glfwKeyTranslation::getCharAsKey(key);
-                    if (glfwGetKey(_window, glfwKey) == GLFW_PRESS){
-                        return keys.getFunction(key);
-                    }
-                }
-                
-            }
-        #endif
-
     #endif
     
-    auto keyFunction = keys.getFunction(pressedKey);
-    
-    return keyFunction;
+    return functions;
 }
 
 libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis() const noexcept {
@@ -81,9 +47,9 @@ bool libtrainsim::control::input_handler::emergencyFlag() const noexcept {
 
 void libtrainsim::control::input_handler::update() noexcept{
 
-    auto function = getKeyFunction();
+    auto function = getKeyFunctions();
     
-    if(function == "CLOSE"){
+    if(libtrainsim::core::Helper::contains<std::string>(function,"CLOSE")){
         shouldClose = true;
     }
 
@@ -95,17 +61,17 @@ void libtrainsim::control::input_handler::update() noexcept{
         currentInputAxis = serial.get_slvl();
     }else{
 
-        if(function == "EMERGENCY_BREAK"){
+        if(libtrainsim::core::Helper::contains<std::string>(function,"EMERGENCY_BREAK")){
             shouldEmergencyBreak = true;
         }
 
-        if (function == "ACCELERATE"){
+        if (libtrainsim::core::Helper::contains<std::string>(function,"ACCELERATE")){
             currentInputAxis += 0.1;
             if(abs(currentInputAxis.get()) < 0.07){
                 currentInputAxis = 0.0;
             }
             
-        } else if (function == "BREAK"){
+        } else if (libtrainsim::core::Helper::contains<std::string>(function,"BREAK")){
             currentInputAxis -= 0.1;
             if(abs(currentInputAxis.get()) < 0.07){
                 currentInputAxis = 0.0;

@@ -1,60 +1,44 @@
 #include "frame.hpp"
 
-using namespace libtrainsim;
-using namespace libtrainsim::Video;
-
-Frame::Frame(){};
-
-RendererBackends Frame::getBackend() const{
-    return currentBackend;
+libtrainsim::Video::Frame::~Frame() {
+    av_frame_free(&frameData);
+    av_free(frameData);
 }
 
-bool Frame::isEmpty() const {
-    switch (currentBackend){
-        #ifdef HAS_FFMPEG_SUPPORT
-            case(renderer_ffmpeg):
-                return frameDataFF==nullptr;
-        #endif
-        #ifdef HAS_OPENCV_SUPPORT
-            case(renderer_opencv):
-                return frameDataCV.empty();
-        #endif // HAS_OPENCV_SUPPORT
-
-        case(renderer_none):
-        default:
-            return true;
-    }
+libtrainsim::Video::Frame::Frame(AVFrame* dat){
+    frameData = dat;
 }
 
-void Frame::setBackend ( RendererBackends newBackend ) {
-    if(currentBackend == renderer_none){
-        #ifdef HAS_FFMPEG_SUPPORT
-        if (newBackend == renderer_ffmpeg){
-            createEmptyFF();
-        }
-        #endif
-        currentBackend = newBackend;
-    }
+AVFrame* libtrainsim::Video::Frame::data() const{
+    return frameData;
 }
 
-Frame::~Frame(){
-    clear();
+libtrainsim::Video::Frame::Frame() {
+    frameData = av_frame_alloc();
 }
 
-void Frame::clear(){
-    if(currentBackend == renderer_none){return;};
+libtrainsim::Video::Frame::operator AVFrame*(){
+    return frameData;
+}
+
+libtrainsim::Video::Frame& libtrainsim::Video::Frame::operator=(AVFrame* x){
     
-    #ifdef HAS_OPENCV_SUPPORT
-    if(currentBackend == renderer_opencv){
-        clearCV();
-        return;
+    if (x == frameData){return *this;};
+    if(frameData != nullptr){
+        av_frame_free(&frameData);
+        av_free(frameData);
     }
-    #endif
     
-    #ifdef HAS_FFMPEG_SUPPORT
-    if(currentBackend == renderer_ffmpeg){
-        clearFF();
-        return;
-    }
-    #endif
+    frameData = x;
+    return *this;
+}
+
+bool libtrainsim::Video::Frame::isEmpty() const {
+    return frameData==nullptr;
+}
+
+void libtrainsim::Video::Frame::clear(){
+    av_frame_free(&frameData);
+    av_free(frameData);
+    frameData = av_frame_alloc();
 }

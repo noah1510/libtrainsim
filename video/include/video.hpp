@@ -3,302 +3,150 @@
 #include <memory>
 #include <string>
 #include <filesystem>
+#include <shared_mutex>
+#include <thread>
+#include <future>
+#include <iostream>
+#include <chrono>
+#include <vector>
 
-#include "backends/openCVRenderer.hpp"
-#include "backends/openCVWindowManager.hpp"
-#include "frame.hpp"
-#include "genericBackend.hpp"
-#include "VideoBackends.hpp"
+#include "video_reader.hpp"
 
-namespace libtrainsim {    
+#include "imguiHandler.hpp"
+#include "shader.hpp"
+#include "helper.hpp"
 
-    /**
-     * @brief This class is resposiblie for managing all the video material.
-     * 
-     */
-    class video{
-        private:
-            /**
-             * @brief Construct a new video object (must only be called by getInstance when necessary)
-             * 
-             */
-            video(Video::VideoBackendDefinition backend = getDefaultBackend());
+namespace libtrainsim {
+    namespace Video{
 
-            /**
-             * @brief Destroy the video object, on destruction everything will be reset.
-             * 
-             */
-            ~video(){
-                reset();
-            }
-
-            /**
-             * @brief reset the singleton to the initial state
-             * 
-             */
-            void reset();
-
-            /**
-             * @brief Get the Instance of the singleton
-             * 
-             * @return video& a reference to the object
-             */
-            static video& getInstance(){
-                static video instance;
-                return instance;
-            };
-
-            /**
-             * @brief The implementation of hello()
-             * 
-             */
-            std::string hello_impl() const;
-
-            /**
-             * @brief The implementation of load look @load for details
-             */
-            bool load_impl(const std::filesystem::path& uri);
-
-            ///The implementation for the getFilePath method
-            const std::filesystem::path& getFilePath_impl() const;
-
-            #ifdef HAS_SDL_SUPPORT
-            void initSDL2();
-            #endif
-            
-            #ifdef HAS_GLFW_SUPPORT
-            void initGLFW3();
-            #endif
-
-            /**
-             * @brief the used video backend
-             * 
-             */
-            Video::VideoBackendDefinition currentBackend;
-            
-            /**
-             * @brief the implementation of the current backend
-             */
-            std::unique_ptr<Video::videoGeneric> currentBackend_impl;
-
-            /**
-             * @brief the name of the window for the simulator
-             * 
-             */
-            std::string windowName = "trainsim";
-            
-            libtrainsim::Video::genericRenderer fallbackRenderer{};
-            libtrainsim::Video::genericWindowManager fallbackWindow{fallbackRenderer};
-
-            static void checkBackend_impl(){
-                if(getInstance().currentBackend_impl == nullptr){
-
-                    #ifdef HAS_OPENCV_SUPPORT
-                        if(getInstance().currentBackend == Video::VideoBackends::openCV){
-                            
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoOpenCV>();
-
-                            return;
-                        }
-                    #endif
-
-                    #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_SDL_SUPPORT)
-                        if(getInstance().currentBackend == Video::VideoBackends::ffmpeg_SDL2){
-                            getInstance().initSDL2();
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoFF_SDL>();
-
-                            return;
-                        }
-                    #endif
-                    
-                    #if defined(HAS_FFMPEG_SUPPORT) && defined(HAS_GLFW_SUPPORT)
-                        if(getInstance().currentBackend == Video::VideoBackends::ffmpeg_glfw){
-                            getInstance().initGLFW3();
-                            getInstance().currentBackend_impl = std::make_unique<libtrainsim::Video::videoFF_glfw3>();
-
-                            return;
-                        }
-                    #endif
-
-                    std::make_unique<libtrainsim::Video::videoGeneric>(getInstance().fallbackWindow, getInstance().fallbackRenderer);
-                }
-            }
-
-        public:
-            /**
-             * @brief This function is used to test if libtrainsim::video was correctly linked and just prints hello world
-             * 
-             */
-            static std::string hello(){
-                return getInstance().hello_impl();
-            }
-
-            /**
-             * @brief Load a video file into the video management.
-             * 
-             * @param uri The uri of the file.
-             * @return true file sucessfully loaded
-             * @return false error while loading file
-             */
-            static bool load(const std::filesystem::path& uri){
-                return getInstance().load_impl(uri);
-            }
-
-            /**
-             * @brief Get the File Path of the loaded video file
-             * 
-             * @return std::filesystem::path the filepath to the current video file
-             */
-            static const std::filesystem::path& getFilePath(){
-                return getInstance().getFilePath_impl();
-            }
-
-            /**
-             * @brief jumps to a given frame in the video and display it
-             * 
-             * @param frame_num the number of the frame that should be displayed next
-             */
-            static void gotoFrame(double frame_num){
-                checkBackend_impl();
-                getInstance().currentBackend_impl->gotoFrame(static_cast<uint64_t>(frame_num));
-            }
-
-            /**
-             * @brief Get the Backend used at the moment.
-             * 
-             * @return VideoBackends the currently used backend
-             */
-            static Video::VideoBackendDefinition getBackend(){
-                return getInstance().currentBackend;
-            }
-
-            /**
-             * @brief Set the video backend of the video singleton
-             * 
-             * @param backend the new backend to be used
-             */
-            static void setBackend(Video::VideoBackendDefinition backend){
-                getInstance().currentBackend = backend;
-            }
-
-            /**
-             * @brief Get the Width of the video in pixels
-             * 
-             * @return double 
-             */
-            static double getWidth(){
-                checkBackend_impl();
-                return getInstance().currentBackend_impl->getWidth();
-            }
-
-            /**
-             * @brief Get the Height of the video in pixels
-             * 
-             * @return double 
-             */
-            static double getHight(){
-                checkBackend_impl();
-                return getInstance().currentBackend_impl->getHight();
-            }
-
-            /**
-             * @brief Get backend that will be used by default
-             * 
-             * @return VideoBackends the backend to be used by default
-             */
-            static Video::VideoBackendDefinition getDefaultBackend(){
-                #ifdef HAS_FFMPEG_SUPPORT
-                    #ifdef HAS_SDL_SUPPORT
-                    return Video::VideoBackends::ffmpeg_SDL2;
-                    #endif
-                    
-                    #ifdef HAS_GLFW_SUPPORT
-                    return Video::VideoBackends::ffmpeg_glfw;
-                    #endif
-                #endif
+        /**
+        * @brief This class is resposiblie for managing all the video material.
+        * 
+        */
+        class videoManager{
+            private:
                 
-                #ifdef HAS_OPENCV_SUPPORT
-                return Video::VideoBackends::openCV;
-                #endif
+                //the buffer and texture for the creation of the rgb video image
+                unsigned int outputFBO = 0;
+                unsigned int outputTexture = 0;
+                
+                uint64_t frameBufferWidth = 1280;
+                uint64_t frameBufferHeight = 720;
+                
+                //the individual textures for the image layers
+                unsigned int textureVideo = 0;
+                
+                //all of the other buffers needed for the shaders
+                unsigned int VBO = 0, VAO = 0, EBO = 0;
+                
+                std::shared_ptr<Shader> YUVShader = nullptr;
+                
+                std::string currentWindowName = "";
+                bool windowFullyCreated = false;
+                //std::shared_ptr<Frame> lastFrame;
+                
+                std::shared_mutex videoMutex;
+                //std::future<std::shared_ptr<libtrainsim::Video::Frame>> nextFrame;
+                std::future<bool> nextFrame;
+                bool fetchingFrame = false;
+                uint64_t nextFrameToGet = 0;
+                
+                /**
+                 * @brief the decoder used to decode the video file into frames
+                 */
+                std::unique_ptr<videoReader> decode = nullptr;
+                
+                /**
+                * @brief the name of the window for the simulator
+                * 
+                */
+                std::string windowName = "trainsim";
+                
+                /**
+                 * The raw pixel data of the decoded frame
+                 */
+                //std::vector<uint8_t> frame_data;
+                uint8_t* frame_data;
+                
+                void updateYUVImage();
+                
+                void initYUVTexture();
 
-                return Video::VideoBackends::none;
-            }
+            public:
+                /**
+                * @brief Construct a new video object (must only be called by getInstance when necessary)
+                * 
+                */
+                videoManager();
 
-            /**
-             * @brief Create a new window with a given name
-             * 
-             * @param windowName 
-             */
-            static void createWindow(const std::string& windowName){
-                checkBackend_impl();
-                getInstance().currentBackend_impl->createWindow(windowName);
-            }
+                /**
+                * @brief Destroy the video object, on destruction everything will be reset.
+                * 
+                */
+                ~videoManager();
 
-            /**
-             * @brief just refresh the window contents without changing the displayed content.
-             * This function has to be called to have working input on some backends.
-             * 
-             */
-            static void refreshWindow(){
-                checkBackend_impl();
-                getInstance().currentBackend_impl->refreshWindow();
-            }
-            
-            /**
-             * @brief check if the end of a video file is reached.
-             * Use this function to stop the simulator if the video file is over.
-             * The simulator will hang or crash once the end is reached and it still tries to render new frames.
-             * 
-             * @return true The end of the video file is reached
-             * @return false The video file is not at the end yet
-             */
-            static bool reachedEndOfFile(){
-                checkBackend_impl();
-                return getInstance().currentBackend_impl->getRenderer().reachedEndOfFile();
-            }
-            
-            //glfw backend specific options
-            #ifdef HAS_GLFW_SUPPORT
-            static GLFWwindow* getGLFWwindow(){
-                checkBackend_impl();
-                if(getInstance().currentBackend.windowType == Video::WindowingBackends::window_glfw){
-                    return dynamic_cast<Video::videoFF_glfw3*>(getInstance().currentBackend_impl.get())->getGLFWwindow();
-                }
-                return nullptr;
-            }
-            #endif
-            
-            //opencv backend specifc options
-            #ifdef HAS_OPENCV_SUPPORT
+                /**
+                * @brief Load a video file into the video management.
+                * 
+                * @param uri The uri of the file.
+                * @return true file sucessfully loaded
+                * @return false error while loading file
+                */
+                void load(const std::filesystem::path& uri);
 
-            /**
-             * @brief Set the Backend of the opencv video capture
-             * @warning this is useless if called after load 
-             * 
-             * @param newBackend 
-             */
-            static void setCVBackend(cv::VideoCaptureAPIs newBackend){
-                checkBackend_impl();
-                if(getInstance().currentBackend == Video::VideoBackends::openCV){
-                    dynamic_cast<Video::videoOpenCV*>(getInstance().currentBackend_impl.get())->setBackend(newBackend);
-                }
-            }
+                /**
+                * @brief Get the File Path of the loaded video file
+                * 
+                * @return std::filesystem::path the filepath to the current video file
+                */
+                const std::filesystem::path& getFilePath() const;
 
-            /**
-             * @brief Get the Backend of the video capture
-             * 
-             * @return cv::VideoCaptureAPIs the video capture backend
-             */
-            static cv::VideoCaptureAPIs getCVBackend(){
-                checkBackend_impl();
-                if(getInstance().currentBackend == Video::VideoBackends::openCV){
-                    return dynamic_cast<Video::videoOpenCV*>(getInstance().currentBackend_impl.get())->getBackend();
-                }
-                return cv::CAP_ANY;
-            }
+                /**
+                * @brief jumps to a given frame in the video and display it
+                * 
+                * @param frame_num the number of the frame that should be displayed next
+                */
+                void gotoFrame(uint64_t frame_num);
 
-            #endif
+                /**
+                * @brief Get the Width of the video in pixels
+                * 
+                * @return double 
+                */
+                double getWidth();
 
-    };
+                /**
+                * @brief Get the Height of the video in pixels
+                * 
+                * @return double 
+                */
+                double getHeight();
+
+                /**
+                * @brief Create a new window with a given name
+                * 
+                * @param windowName 
+                */
+                void createWindow(const std::string& windowName);
+
+                /**
+                * @brief just refresh the window contents without changing the displayed content.
+                * This function has to be called to have working input on some backends.
+                * 
+                */
+                void refreshWindow();
+                
+                /**
+                * @brief check if the end of a video file is reached.
+                * Use this function to stop the simulator if the video file is over.
+                * The simulator will hang or crash once the end is reached and it still tries to render new frames.
+                * 
+                * @return true The end of the video file is reached
+                * @return false The video file is not at the end yet
+                */
+                bool reachedEndOfFile();
+                
+        };
+    }
 }
 

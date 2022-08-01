@@ -3,7 +3,6 @@ cc = meson.get_compiler('cpp')
 sources = [
     'src/control.cpp',
     'src/keymap.cpp',
-    'src/glfwKeyTranslation.cpp',
     'src/serialcontrol.cpp'
 ]
 

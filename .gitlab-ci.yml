@@ -4,7 +4,7 @@ build:ubuntu-sdl-ffmpeg:
   stage: build
   image: "$CONTAINER_PREFIX/libtrainsim:ubuntu"
   script:
-  - meson setup -Dvideo_backend_opencv=false -Dvideo_backend_glfw3=false build
+  - meson setup build
   - meson compile -C build
   - meson test -C build
   only:
@@ -14,7 +14,7 @@ build:fedora-sdl-ffmpeg:
   stage: build
   image: "$CONTAINER_PREFIX/libtrainsim:fedora"
   script:
-  - meson setup -Dvideo_backend_opencv=false -Dvideo_backend_glfw3=false build
+  - meson setup build
   - meson compile -C build
   - meson test -C build
   only:

@@ -45,62 +45,6 @@ jobs:
       - name: clearing build directory
         run: rm -rf build
 
-      - uses: BSFishy/meson-build@v1.0.2
-        name: build witout opencv
-        with:
-          action: test
-          setup-options: -Dvideo_backend_opencv=false
-          directory: build
-          options: --verbose
-          meson-version: 0.56.1
-      - name: clearing build directory
-        run: rm -rf build
-
-      - uses: BSFishy/meson-build@v1.0.2
-        name: build witout ffmpeg
-        with:
-          action: test
-          setup-options: -Dvideo_backend_ffmpeg=false
-          directory: build
-          options: --verbose
-          meson-version: 0.56.1
-      - name: clearing build directory
-        run: rm -rf build
-
-      - uses: BSFishy/meson-build@v1.0.2
-        name: build without sdl
-        with:
-          action: test
-          setup-options: -Dvideo_backend_sdl=false
-          directory: build
-          options: --verbose
-          meson-version: 0.56.1
-      - name: clearing build directory
-        run: rm -rf build
-
-      - uses: BSFishy/meson-build@v1.0.2
-        name: build without sdl & ffmpeg
-        with:
-          action: test
-          setup-options: -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false
-          directory: build
-          options: --verbose
-          meson-version: 0.56.1
-      - name: clearing build directory
-        run: rm -rf build
-
-      - uses: BSFishy/meson-build@v1.0.2
-        name: build without sdl & ffmpeg & opencv
-        with:
-          action: test
-          setup-options: -Dvideo_backend_sdl=false -Dvideo_backend_ffmpeg=false -Dvideo_backend_opencv=false
-          directory: build
-          options: --verbose
-          meson-version: 0.56.1
-      - name: clearing build directory
-        run: rm -rf build
-
-
   windows:
     name: "windows compile and test"
     runs-on: "windows-latest"
@@ -125,7 +69,7 @@ jobs:
       - name: compile libtrainsim
         shell: msys2 {0}
         run: |
-          meson setup  -Dvideo_backend_glfw3=false -Ddefault_library=static -Db_lto=false -Dvideo_backend_opencv=false build
+          meson setup -Ddefault_library=static -Db_lto=false build
           meson compile -C build
           meson test -C build
 
@@ -146,7 +90,6 @@ jobs:
           action: test
           directory: build
           options: --verbose
-          setup-options: -Dvideo_backend_glfw3=false -Dvideo_backend_opencv=false
           meson-version: 0.56.1
       - name: clearing build directory
         run: rm -rf build
