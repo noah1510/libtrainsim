@@ -29,18 +29,37 @@ libtrainsim::Video::statusDisplay::~statusDisplay() {
 
 
 void libtrainsim::Video::statusDisplay::update() {
+    
+    //set size and pos on program start to initial values
+    static bool firstStart = true;
+    if(firstStart){
+        auto size = ImGui::GetIO().DisplaySize;
+        
+        ImVec2 initialSize {size.x,200};
+        //ImGui::SetNextWindowContentSize( initialSize );
+        ImVec2 size_min {1400,200};
+        ImVec2 size_max {1400,600};
+        ImGui::SetNextWindowSizeConstraints(size_min,size_max);
+        
+        ImVec2 initialPos {0,size.y-200};
+        ImGui::SetNextWindowPos(initialPos);
+        
+        firstStart = false;
+    }
+    
+    //actually start drawing th window
     ImGui::Begin("Status Window", &my_tool_active, ImGuiWindowFlags_MenuBar);
 
-    // Plot the frametimes
-    ImGui::PlotLines("Frame Times", frametimes.data(), frametimes.size());
-    
-    ImGui::BeginChild("Status Text");
-        ImGui::TextColored(textColor, "current Position: %Lfm / %LFm", currentPosition.value, endPosition.value);
-        ImGui::TextColored(textColor, "current Velocity: %Lf km/h", currentVelocity.value);
-        ImGui::TextColored(textColor, "current Acceleration: %Lf m/s²", currentAcceleration.value);
-        ImGui::TextColored(textColor, "current SpeedLevel: %Lf", currentSpeedLevel.get());
-        ImGui::TextColored(textColor, "current Frametime: %f", frametimes[99]);
-    ImGui::EndChild();
+        // Plot the frametimes
+        ImGui::PlotLines("Frame Times", frametimes.data(), frametimes.size());
+        
+        ImGui::BeginChild("Status Text");
+            ImGui::TextColored(textColor, "current Position: %Lfm / %LFm", currentPosition.value, endPosition.value);
+            ImGui::TextColored(textColor, "current Velocity: %Lf km/h", currentVelocity.value);
+            ImGui::TextColored(textColor, "current Acceleration: %Lf m/s²", currentAcceleration.value);
+            ImGui::TextColored(textColor, "current SpeedLevel: %Lf", currentSpeedLevel.get());
+            ImGui::TextColored(textColor, "current Frametime: %f", frametimes[99]);
+        ImGui::EndChild();
 
     ImGui::End();
     

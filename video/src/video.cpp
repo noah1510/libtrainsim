@@ -62,14 +62,6 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
 
     currentWindowName = windowName;
     
-    /*float vertices[] = {
-    // position    // texture coords
-    1.0f,  1.0f,   1.0f, 0.0f, // top right
-    1.0f, -1.0f,   1.0f, 1.0f, // bottom right
-    -1.0f, -1.0f,   0.0f, 1.0f, // bottom left
-    -1.0f,  1.0f,   0.0f, 0.0f  // top left 
-    };*/
-    
     float vertices[] = {
         // positions    // texture coords
          16.0f,  9.0f,  1.0f, 1.0f, // top right
@@ -108,13 +100,6 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     imguiHandler::initFramebuffer(outputFBO,outputTexture,frameBufferWidth,frameBufferHeight);
     
     //reset the last frame and receive the first frame from the decoder
-    /*lastFrame.reset();
-    try{
-        lastFrame = decode.getNextFrame();
-        decode.scaleFrame(lastFrame, frame_data);
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("could not retrieve next frame"));
-    }*/
     
     //video_reader_read_frame(state);
     //frame_data.resize(state.width*state.height*8);
@@ -285,6 +270,21 @@ void libtrainsim::Video::videoManager::refreshWindow() {
     gotoFrame(0);
 
     //draw the render window
+    
+    //set size and pos on program start to initial values
+    static bool firstStart = true;
+    if(firstStart){
+        auto [w,h] = decode->getDimensions();
+        ImVec2 initialSize {static_cast<float>(w),static_cast<float> (h)};
+        ImGui::SetNextWindowContentSize( initialSize );
+        
+        ImVec2 initialPos {0,0};
+        ImGui::SetNextWindowPos(initialPos);
+        
+        firstStart = false;
+    }
+    
+    //actually start drawing the window
     ImGui::Begin(currentWindowName.c_str());
     
         //update the output size
@@ -296,7 +296,6 @@ void libtrainsim::Video::videoManager::refreshWindow() {
         
         //draw the output texture
         ImGui::Image((void*)(intptr_t)outputTexture, ImVec2(frameBufferWidth, frameBufferHeight));
-        //ImGui::Image(frame_data.data(), ImVec2(decode.getWidth(), decode.getHeight()));
         
         //show a tooltip when the window is hovered
         if(ImGui::IsItemHovered()){
