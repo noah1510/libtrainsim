@@ -86,11 +86,11 @@ namespace libtrainsim {
                 input_handler(const std::filesystem::path& URI) noexcept(false);
 
                 /**
-                 * @brief Get the function of the currently pressed key.
+                 * @brief Get the function of the currently pressed keys.
                  * 
                  * @return std::string the function that should be performed.
                  */
-                std::string getKeyFunction() noexcept;
+                std::vector<std::string> getKeyFunctions() noexcept;
                 
                 /**
                  * @brief access the internal keymap to change the input configuration.
