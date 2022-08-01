@@ -8,16 +8,13 @@
 #include <future>
 #include <iostream>
 #include <chrono>
+#include <vector>
 
-#include "frame.hpp"
-#include "videoDecoder.hpp"
+#include "video_reader.hpp"
 
-#if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
-    #include <SDL2/SDL.h>
-    #include <SDL2/SDL_thread.h>
-#else
-    #error "cannot include sdl2" 
-#endif
+#include "imguiHandler.hpp"
+#include "shader.hpp"
+#include "helper.hpp"
 
 namespace libtrainsim {
     namespace Video{
@@ -28,41 +25,52 @@ namespace libtrainsim {
         */
         class videoManager{
             private:
-
-                /**
-                * @brief reset the singleton to the initial state
-                * 
-                */
-                void reset();
-
-                /**
-                 * @brief init sdl2 and all of its components
-                 */
-                void initSDL2();
                 
-                SDL_Window* screen = nullptr;
-                SDL_Renderer* sdl_renderer = nullptr;
-                SDL_Texture* texture = nullptr;
+                //the buffer and texture for the creation of the rgb video image
+                unsigned int outputFBO = 0;
+                unsigned int outputTexture = 0;
+                
+                uint64_t frameBufferWidth = 1280;
+                uint64_t frameBufferHeight = 720;
+                
+                //the individual textures for the image layers
+                unsigned int textureVideo = 0;
+                
+                //all of the other buffers needed for the shaders
+                unsigned int VBO = 0, VAO = 0, EBO = 0;
+                
+                std::shared_ptr<Shader> YUVShader = nullptr;
                 
                 std::string currentWindowName = "";
                 bool windowFullyCreated = false;
-                std::shared_ptr<Frame> lastFrame;
+                //std::shared_ptr<Frame> lastFrame;
                 
                 std::shared_mutex videoMutex;
-                std::future<std::shared_ptr<libtrainsim::Video::Frame>> nextFrame;
+                //std::future<std::shared_ptr<libtrainsim::Video::Frame>> nextFrame;
+                std::future<bool> nextFrame;
                 bool fetchingFrame = false;
                 uint64_t nextFrameToGet = 0;
                 
                 /**
                  * @brief the decoder used to decode the video file into frames
                  */
-                videoDecoder decode;
+                std::unique_ptr<videoReader> decode = nullptr;
                 
                 /**
                 * @brief the name of the window for the simulator
                 * 
                 */
                 std::string windowName = "trainsim";
+                
+                /**
+                 * The raw pixel data of the decoded frame
+                 */
+                //std::vector<uint8_t> frame_data;
+                uint8_t* frame_data;
+                
+                void updateYUVImage();
+                
+                void initYUVTexture();
 
             public:
                 /**
@@ -84,7 +92,7 @@ namespace libtrainsim {
                 * @return true file sucessfully loaded
                 * @return false error while loading file
                 */
-                bool load(const std::filesystem::path& uri);
+                void load(const std::filesystem::path& uri);
 
                 /**
                 * @brief Get the File Path of the loaded video file
