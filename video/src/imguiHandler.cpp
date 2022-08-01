@@ -5,7 +5,7 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
         throw std::runtime_error(SDL_GetError());
     }
 
-    // GL 3.0 + GLSL 130
+    // GL 4.6 + GLSL 460
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -25,7 +25,7 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
-    window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    window = SDL_CreateWindow("libtrainsim window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
     gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -56,10 +56,6 @@ libtrainsim::Video::imguiHandler::~imguiHandler() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-
-    SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
 }
 
 void libtrainsim::Video::imguiHandler::init_impl() {}
@@ -71,6 +67,7 @@ void libtrainsim::Video::imguiHandler::startRender_impl() {
 }
 
 void libtrainsim::Video::imguiHandler::endRender_impl() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     ImGui::Render();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -80,7 +77,7 @@ void libtrainsim::Video::imguiHandler::endRender_impl() {
     SDL_GL_SwapWindow(window);
 }
 
-void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO, unsigned int& texture ) {
+void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO, unsigned int& texture, uint64_t width, uint64_t height ) {
     //create the framebuffer for the output image
     glGenFramebuffers(1, &FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -91,9 +88,9 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
-        GL_RGBA8,
-        3840,
-        2160,
+        GL_RGBA,
+        width,
+        height,
         0,
         GL_RGBA,
         GL_UNSIGNED_BYTE,
@@ -117,19 +114,19 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf ) {
+void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, uint64_t width, uint64_t height ) {
         
     glBindFramebuffer(GL_FRAMEBUFFER, buf);
-    glViewport(0, 0, 3840, 2160);
+    glViewport(0, 0, width, height);
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
         
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_MAX);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glBlendEquation(GL_MAX);
     
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.7f, 0.7f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 

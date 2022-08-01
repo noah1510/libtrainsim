@@ -5,12 +5,12 @@
 #include <string>
 #include <iostream>
 
+#include <glad/glad.h>
 #include "imgui.h"
 
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 
-#include <glad/glad.h>
 
 #if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
     #include <SDL2/SDL.h>
@@ -44,8 +44,8 @@ namespace libtrainsim{
             void init_impl();
             void startRender_impl();
             void endRender_impl();
-            void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture);
-            void loadFramebuffer_impl ( unsigned int buf );
+            void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture, uint64_t width = 3840, uint64_t height = 2160);
+            void loadFramebuffer_impl ( unsigned int buf, uint64_t width = 3840, uint64_t height = 2160 );
             void updateRenderThread_impl();
             
           public:
@@ -61,12 +61,12 @@ namespace libtrainsim{
                 getInstance().endRender_impl();
             }
             
-            static void initFramebuffer(unsigned int& FBO, unsigned int& texture){
-                getInstance().initFramebuffer_impl(FBO,texture);
+            static void initFramebuffer(unsigned int& FBO, unsigned int& texture, uint64_t width = 3840, uint64_t height = 2160){
+                getInstance().initFramebuffer_impl(FBO,texture,width,height);
             }
             
-            static void loadFramebuffer ( unsigned int buf ){
-                getInstance().loadFramebuffer_impl(buf);
+            static void loadFramebuffer ( unsigned int buf, uint64_t width = 3840, uint64_t height = 2160 ){
+                getInstance().loadFramebuffer_impl(buf, width, height);
             }
             
             static void updateRenderThread(){
