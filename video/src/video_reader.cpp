@@ -39,9 +39,9 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     video_stream_index = -1;
     AVCodecParameters* av_codec_params;
     AVCodec* av_codec;
-    for (int i = 0; i < av_format_ctx->nb_streams; ++i) {
+    for (unsigned int i = 0; i < av_format_ctx->nb_streams; ++i) {
         av_codec_params = av_format_ctx->streams[i]->codecpar;
-        av_codec = avcodec_find_decoder(av_codec_params->codec_id);
+        av_codec = const_cast<AVCodec*>( avcodec_find_decoder(av_codec_params->codec_id) );
         if (!av_codec) {
             continue;
         }
