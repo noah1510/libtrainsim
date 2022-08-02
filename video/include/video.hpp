@@ -39,11 +39,16 @@ namespace libtrainsim {
                 //all of the other buffers needed for the shaders
                 unsigned int VBO = 0, VAO = 0, EBO = 0;
                 
-                std::shared_ptr<Shader> YUVShader = nullptr;
+                /**
+                 * @brief the shader used to render the video into a texture
+                 */
+                std::shared_ptr<Shader> displayShader = nullptr;
                 
+                /**
+                 * @brief the name this window currently has
+                 */
                 std::string currentWindowName = "";
                 bool windowFullyCreated = false;
-                //std::shared_ptr<Frame> lastFrame;
                 
                 std::shared_mutex videoMutex;
                 //std::future<std::shared_ptr<libtrainsim::Video::Frame>> nextFrame;
@@ -125,9 +130,10 @@ namespace libtrainsim {
                 /**
                 * @brief Create a new window with a given name
                 * 
-                * @param windowName 
+                * @param windowName the name the window is going to have
+                * @param shaderLocation The folder where all of the shader files are stored
                 */
-                void createWindow(const std::string& windowName);
+                void createWindow(const std::string& windowName, const std::filesystem::path& shaderLocation);
 
                 /**
                 * @brief just refresh the window contents without changing the displayed content.

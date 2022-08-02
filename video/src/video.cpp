@@ -35,7 +35,7 @@ const std::filesystem::path& libtrainsim::Video::videoManager::getFilePath() con
     return decode->getLoadedFile();
 }
 
-void libtrainsim::Video::videoManager::createWindow ( const std::string& windowName ) {
+void libtrainsim::Video::videoManager::createWindow ( const std::string& windowName, const std::filesystem::path& shaderLocation ) {
     if(currentWindowName != "" || windowFullyCreated){
         throw std::runtime_error("window alread exists");
     }
@@ -53,9 +53,8 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     }
     
     try{
-        
-        YUVShader = std::make_shared<libtrainsim::Video::Shader>("data/production_data/shaders/YUV.vert","data/production_data/shaders/YUV.frag");
-        YUVShader->setUniform("videoTex", 0);
+        displayShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"blit.vert", shaderLocation/"blit.frag");
+        displayShader->setUniform("videoTex", 0);
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not create shader"));
     }
@@ -203,7 +202,7 @@ void libtrainsim::Video::videoManager::updateYUVImage() {
     
     imguiHandler::loadFramebuffer(outputFBO, frameBufferWidth, frameBufferHeight);
     
-    YUVShader->use();
+    displayShader->use();
     
     float camMult = 1.1;
     auto orth = glm::ortho(
@@ -214,7 +213,7 @@ void libtrainsim::Video::videoManager::updateYUVImage() {
         -10.0f,
         10.0f
     );
-    YUVShader->setUniform("transform", orth);
+    displayShader->setUniform("transform", orth);
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureVideo);
