@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <iostream>
 #include <tuple>
+#include "texture.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -42,7 +43,7 @@ namespace libtrainsim{
             
             const std::filesystem::path& getLoadedFile() const;
             bool reachedEndOfFile() const;
-            std::pair<uint64_t, uint64_t> getDimensions() const;
+            dimensions getDimensions() const;
             uint64_t getFrameNumber() const;
         };
     }

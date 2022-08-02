@@ -174,7 +174,7 @@ bool libtrainsim::Video::videoReader::reachedEndOfFile() const {
     return reachedEOF;
 }
 
-std::pair<uint64_t, uint64_t> libtrainsim::Video::videoReader::getDimensions() const {
+libtrainsim::Video::dimensions libtrainsim::Video::videoReader::getDimensions() const {
     return {width,height};
 }
 
