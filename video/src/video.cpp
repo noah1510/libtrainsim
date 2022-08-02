@@ -53,8 +53,11 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     }
     
     try{
-        displayShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"blit.vert", shaderLocation/"blit.frag");
-        displayShader->setUniform("videoTex", 0);
+        displayShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"display.vert", shaderLocation/"display.frag");
+        
+        std::vector<int> units {0};
+        displayShader->setUniform("tex", units);
+        displayShader->setUniform("enabledUnits", 1);
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not create shader"));
     }
@@ -113,15 +116,15 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     decode->copyToBuffer(frame_data);
     
     //init the YUV textures so that they can be written into
-    initYUVTexture();
+    initOutput();
     
     //refresh the window to display stuff
-    updateYUVImage();
+    updateOutput();
     
     windowFullyCreated = true;
 }
 
-void libtrainsim::Video::videoManager::initYUVTexture() {
+void libtrainsim::Video::videoManager::initOutput() {
     
     //texture Y
     
@@ -198,7 +201,7 @@ bool libtrainsim::Video::videoManager::reachedEndOfFile() {
     //return decode.reachedEndOfFile();
 }
 
-void libtrainsim::Video::videoManager::updateYUVImage() {
+void libtrainsim::Video::videoManager::updateOutput() {
     
     imguiHandler::loadFramebuffer(outputFBO, frameBufferWidth, frameBufferHeight);
     
@@ -284,14 +287,14 @@ void libtrainsim::Video::videoManager::refreshWindow() {
     }
     
     //actually start drawing the window
-    ImGui::Begin(currentWindowName.c_str());
+    ImGui::Begin(currentWindowName.c_str(), &isActive);
     
         //update the output size
         frameBufferHeight = ImGui::GetWindowHeight();
         frameBufferWidth = ImGui::GetWindowWidth();
         
         //render into output texture
-        updateYUVImage();
+        updateOutput();
         
         //draw the output texture
         ImGui::Image((void*)(intptr_t)outputTexture, ImVec2(frameBufferWidth, frameBufferHeight));

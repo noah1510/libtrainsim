@@ -73,9 +73,11 @@ namespace libtrainsim {
                 //std::vector<uint8_t> frame_data;
                 uint8_t* frame_data;
                 
-                void updateYUVImage();
+                bool isActive = true;
                 
-                void initYUVTexture();
+                void updateOutput();
+                
+                void initOutput();
 
             public:
                 /**
