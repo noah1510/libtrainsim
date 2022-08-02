@@ -6,6 +6,7 @@ sources = [
     'src/imguiHandler.cpp',
     'src/video_reader.cpp',
     'src/shader.cpp',
+    'src/texture.cpp',
 ]
 
 video_deps = [
