@@ -128,34 +128,71 @@ void libtrainsim::Video::Shader::use() {
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, int value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1i(loc, value);
+    auto dat = std::vector<int>{value};
+    setUniform(location, dat);
+}
+
+void libtrainsim::Video::Shader::setUniform ( const std::string& location, float value ) {
+    auto dat = std::vector<float>{value};
+    setUniform(location, dat);
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec1 value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1f(loc, value.x);
+    auto dat = std::vector<glm::vec1>{value};
+    setUniform(location, dat);
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec2 value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform2f(loc, value.x, value.y);
+    auto dat = std::vector<glm::vec2>{value};
+    setUniform(location, dat);
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec3 value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform3f(loc, value.x, value.y, value.z);
+    auto dat = std::vector<glm::vec3>{value};
+    setUniform(location, dat);
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec4 value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform4f(loc, value.x, value.y, value.z, value.w);
+    auto dat = std::vector<glm::vec4>{value};
+    setUniform(location, dat);
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const glm::mat4& value ) {
     auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
 }
+
+void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<int>& value ) {
+    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    glUniform1iv(loc, value.size(), value.data());
+}
+
+void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<float>& value ) {
+    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    glUniform1fv(loc, value.size(), value.data());
+}
+
+void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec1>& value ) {
+    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    glUniform1fv(loc, value.size(), (float*) value.data());
+}
+
+void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec2>& value ) {
+    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    glUniform2fv(loc, value.size(), (float*) value.data());
+}
+
+void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec3>& value ) {
+    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    glUniform3fv(loc, value.size(), (float*) value.data());
+}
+
+void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec4>& value ) {
+    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    glUniform4fv(loc, value.size(), (float*) value.data());
+}
+
+
 
 
 int libtrainsim::Video::Shader::createShader () {

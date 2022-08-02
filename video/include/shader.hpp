@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
+#include <vector>
 #include <iostream>
 
 namespace libtrainsim{
@@ -53,11 +54,19 @@ namespace libtrainsim{
             void use();
             
             void setUniform(const std::string& location, int value);
+            void setUniform(const std::string& location, float value);
             void setUniform(const std::string& location, glm::vec1 value);
             void setUniform(const std::string& location, glm::vec2 value);
             void setUniform(const std::string& location, glm::vec3 value);
             void setUniform(const std::string& location, glm::vec4 value);
             void setUniform(const std::string& location, const glm::mat4& value);
+            
+            void setUniform(const std::string& location, const std::vector<int>& value);
+            void setUniform(const std::string& location, const std::vector<float>& value);
+            void setUniform(const std::string& location, const std::vector<glm::vec1>& value);
+            void setUniform(const std::string& location, const std::vector<glm::vec2>& value);
+            void setUniform(const std::string& location, const std::vector<glm::vec3>& value);
+            void setUniform(const std::string& location, const std::vector<glm::vec4>& value);
             
         };
     }
