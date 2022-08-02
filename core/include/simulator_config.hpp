@@ -19,6 +19,13 @@ namespace libtrainsim{
          */
         class simulatorConfiguration{
         private:
+            
+            /**
+             * @brief the location corresponding to this settings file.
+             * This may be used to write changes back into the file
+             */
+            std::filesystem::path fileLocation;
+            
             /**
              * @brief An array containing all of the loaded tracks
              * 
@@ -48,6 +55,16 @@ namespace libtrainsim{
              * 
              */
             uint64_t currentTrack = 0;
+            
+            /**
+             * @brief the folder that contains all of the shader files
+             */
+            std::filesystem::path shaderFolderLocation;
+            
+            /**
+             * @brief indicates if the settings are allowed to write changes back into the file
+             */
+            bool readOnly = false;
             
         public:
             
@@ -106,9 +123,16 @@ namespace libtrainsim{
             
             /**
              * @brief ensures that the track with the given index is fully loaded
-             * 
+             * @param index the index which should be loaded
              */
             void ensureTrack(uint64_t index) noexcept(false);
+            
+            /**
+             * @brief returns the location of the shader folder
+             * 
+             * @return const std::filesystem::path& the shader folder location
+             */
+            const std::filesystem::path& getShaderLocation() const noexcept;
         };
     }
 }

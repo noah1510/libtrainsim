@@ -9,14 +9,15 @@ The json file is an object with the following fields:
 **Required:**
 
 * serialConfig (string) (since 0.7.0)
+* shaderLocation (string) (since 0.8.0)
 * tracks (array of string or [object](@ref track_format)) (since 0.7.0)
 * trains (array of string or [object](@ref train_properties_format)) (since 0.7.0)
-
 
 **Optional:**
 
 * formatVersion (string) (since 0.7.0)
 * defaultTrack (int) (since 0.7.0)
+* settingFileReadOnly (bool) (since 0.8.0)
 
 ### Detailed descriptions
 
@@ -25,6 +26,12 @@ All relative filepaths are relative to the simulator configuration file.
 #### serialConfig
 
 This is the relative file path to the [serial configuration file](@ref serial_config_format).
+
+#### shaderLocation
+
+The folder where all of the shader files are stored in.
+Depending on the used modules different shaders are required to be in here.
+For the basic video module at least the blit shader is required.
 
 #### tracks
 
@@ -48,3 +55,8 @@ If the library only supports an older format it may warn the user or even declar
 
 This specifies the index of the track that is selected by default.
 If the field does not exist track 0 is selected by default.
+
+#### settingFileReadOnly
+
+This field specifies if the library is not allowed to change the settings file.
+If this field does not exist it is set to false (modifications are allow) by default.

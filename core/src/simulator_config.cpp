@@ -39,6 +39,12 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     }
     
     try{
+        shaderFolderLocation = p / Helper::getJsonField<std::string>(data_json,"shaderLocation");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not load shader location"));
+    }
+    
+    try{
         auto dat = Helper::getJsonField(data_json,"tracks");
         if(!dat.is_array()){
             throw std::runtime_error("tracks json filed is not an array");
@@ -110,6 +116,17 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
         std::throw_with_nested(std::runtime_error("error setting the default track"));
     }
     
+    try{
+        auto val = Helper::getOptionalJsonField<bool>(data_json,"settingFileReadOnly");
+        if(val.has_value()){
+            readOnly = val.value();
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error reading the readOnly option"));
+    }
+    
+    fileLocation = URI;
+    
 }
 
 const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getSerialConfigLocation() const noexcept{
@@ -154,7 +171,8 @@ void libtrainsim::core::simulatorConfiguration::ensureTrack ( uint64_t index ) n
     }
 }
 
-
-
+const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getShaderLocation() const noexcept {
+    return shaderFolderLocation;
+}
 
 
