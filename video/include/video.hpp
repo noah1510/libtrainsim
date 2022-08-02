@@ -15,6 +15,7 @@
 #include "imguiHandler.hpp"
 #include "shader.hpp"
 #include "helper.hpp"
+#include "texture.hpp"
 
 namespace libtrainsim {
     namespace Video{
@@ -32,9 +33,6 @@ namespace libtrainsim {
                 
                 uint64_t frameBufferWidth = 1280;
                 uint64_t frameBufferHeight = 720;
-                
-                //the individual textures for the image layers
-                unsigned int textureVideo = 0;
                 
                 //all of the other buffers needed for the shaders
                 unsigned int VBO = 0, VAO = 0, EBO = 0;
@@ -77,7 +75,7 @@ namespace libtrainsim {
                 
                 void updateOutput();
                 
-                void initOutput();
+                std::vector< std::shared_ptr<texture> > displayTextures;
 
             public:
                 /**

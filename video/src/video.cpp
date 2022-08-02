@@ -61,6 +61,13 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not create shader"));
     }
+    
+    try{
+        auto bg_tex = std::make_shared<texture>("background");
+        displayTextures.emplace_back(bg_tex);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not init video image"));
+    }
 
     currentWindowName = windowName;
     
@@ -115,37 +122,11 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     
     decode->copyToBuffer(frame_data);
     
-    //init the YUV textures so that they can be written into
-    initOutput();
-    
     //refresh the window to display stuff
     updateOutput();
     
     windowFullyCreated = true;
 }
-
-void libtrainsim::Video::videoManager::initOutput() {
-    
-    //texture Y
-    
-    //create the texture unit
-    glGenTextures(1, &textureVideo);
-    glBindTexture(GL_TEXTURE_2D, textureVideo); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-    // set the texture wrapping parameters
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);// set texture wrapping to GL_REPEAT (default wrapping method)
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    
-    //float color[] = { 1.0f, 0.0f, 0.0f, 0.0f };
-    //glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color);
-    
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    
-}
-
 
 double libtrainsim::Video::videoManager::getHeight() {
     return decode->getDimensions().second;
@@ -219,21 +200,7 @@ void libtrainsim::Video::videoManager::updateOutput() {
     displayShader->setUniform("transform", orth);
     
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureVideo);
-    
-    auto [w,h] = decode->getDimensions();
-    glTexImage2D(
-        GL_TEXTURE_2D, 
-        0, 
-        GL_RGBA, 
-        w, 
-        h, 
-        0,
-        GL_RGBA, 
-        GL_UNSIGNED_BYTE, 
-        //frame_data.data()
-        frame_data
-    );
+    displayTextures[0]->updateImage(frame_data, decode->getDimensions());
     
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
