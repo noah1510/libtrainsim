@@ -85,12 +85,19 @@ void libtrainsim::Video::imguiHandler::endRender_impl() {
     SDL_GL_SwapWindow(window);
 }
 
-void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO, unsigned int& texture, uint64_t width, uint64_t height ) {
+void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO, unsigned int& texture, dimensions dims ) {
+        
+    auto width = static_cast<unsigned int>(dims.x());
+    auto height = static_cast<unsigned int>(dims.y());
+    
     //create the framebuffer for the output image
     glGenFramebuffers(1, &FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     
-    glGenTextures(1, &texture);
+    if(texture == 0){
+        glGenTextures(1, &texture);
+    }
+    
     glBindTexture(GL_TEXTURE_2D, texture);
 
     glTexImage2D(
@@ -122,8 +129,11 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, uint64_t width, uint64_t height ) {
+void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, dimensions dims ) {
         
+    auto width = static_cast<unsigned int>(dims.x());
+    auto height = static_cast<unsigned int>(dims.y());
+    
     glBindFramebuffer(GL_FRAMEBUFFER, buf);
     glViewport(0, 0, width, height);
 

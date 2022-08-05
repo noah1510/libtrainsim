@@ -48,8 +48,8 @@ namespace libtrainsim{
             void init_impl();
             void startRender_impl();
             void endRender_impl();
-            void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture, uint64_t width = 3840, uint64_t height = 2160);
-            void loadFramebuffer_impl ( unsigned int buf, uint64_t width = 3840, uint64_t height = 2160 );
+            void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture, dimensions dims );
+            void loadFramebuffer_impl ( unsigned int buf, dimensions dims );
             void updateRenderThread_impl();
             
           public:
@@ -65,12 +65,12 @@ namespace libtrainsim{
                 getInstance().endRender_impl();
             }
             
-            static void initFramebuffer(unsigned int& FBO, unsigned int& texture, uint64_t width = 3840, uint64_t height = 2160){
-                getInstance().initFramebuffer_impl(FBO,texture,width,height);
+            static void initFramebuffer(unsigned int& FBO, unsigned int& texture, dimensions dims = dimensions{3840,2160}){
+                getInstance().initFramebuffer_impl(FBO,texture,dims);
             }
             
-            static void loadFramebuffer ( unsigned int buf, uint64_t width = 3840, uint64_t height = 2160 ){
-                getInstance().loadFramebuffer_impl(buf, width, height);
+            static void loadFramebuffer ( unsigned int buf, dimensions dims = dimensions{3840,2160} ){
+                getInstance().loadFramebuffer_impl(buf, dims);
             }
             
             static void updateRenderThread(){
