@@ -26,6 +26,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "dimensions.hpp"
+
 namespace libtrainsim{
     namespace Video{
         class imguiHandler{

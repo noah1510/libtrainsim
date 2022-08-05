@@ -7,6 +7,7 @@ sources = [
     'src/video_reader.cpp',
     'src/shader.cpp',
     'src/texture.cpp',
+    'src/dimensions.cpp',
 ]
 
 video_deps = [
