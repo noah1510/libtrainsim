@@ -85,6 +85,9 @@ libtrainsim::Video::texture::texture ( const std::filesystem::path& URI ) :textu
 libtrainsim::Video::texture::~texture(){
     std::scoped_lock lock{acessMutex};
     
+    if(framebufferMode){
+        glDeleteFramebuffers(1, &FBO);
+    }
     glDeleteTextures(1, &textureID);
 }
 
@@ -113,9 +116,10 @@ void libtrainsim::Video::texture::updateImage (const std::vector<uint8_t>& data,
 }
 
 void libtrainsim::Video::texture::updateImage (const uint8_t* data, const libtrainsim::Video::dimensions& newSize ) {
+    std::scoped_lock lock{acessMutex};
     imageSize = newSize;
     
-    bind();
+    glBindTexture(GL_TEXTURE_2D, textureID);
     
     auto [w,h] = imageSize;
     glTexImage2D(
@@ -131,8 +135,43 @@ void libtrainsim::Video::texture::updateImage (const uint8_t* data, const libtra
     );
 }
 
+void libtrainsim::Video::texture::resize ( const libtrainsim::Video::dimensions& newSize ) {
+    std::scoped_lock lock{acessMutex};
+    if(!framebufferMode){
+        throw std::invalid_argument("Cannot change the size outside of framebuffer mode");
+    }
+    
+    imageSize = newSize;
+}
+
+
 void libtrainsim::Video::texture::bind() {
+    std::scoped_lock lock{acessMutex};
     glBindTexture(GL_TEXTURE_2D, textureID);
+}
+
+void libtrainsim::Video::texture::createFramebuffer ( libtrainsim::Video::dimensions framebufferSize ) {
+    std::scoped_lock lock{acessMutex};
+    
+    imguiHandler::initFramebuffer(FBO, textureID, framebufferSize);
+    framebufferMode = true;
+    imageSize = framebufferSize;
+}
+
+void libtrainsim::Video::texture::loadFramebuffer() {
+    std::scoped_lock lock{acessMutex};
+    
+    if(!framebufferMode){
+        throw std::invalid_argument("Cannot load texture as framebuffer if is is not initialized as framebuffer");
+    }
+    imguiHandler::loadFramebuffer(FBO,imageSize);
+}
+
+
+void libtrainsim::Video::texture::displayImGui() {
+    std::shared_lock lock{acessMutex};
+    
+    ImGui::Image((void*)(intptr_t)textureID, ImVec2(imageSize.x(), imageSize.y()));
 }
 
 
