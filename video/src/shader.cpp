@@ -132,6 +132,11 @@ void libtrainsim::Video::Shader::setUniform ( const std::string& location, int v
     setUniform(location, dat);
 }
 
+void libtrainsim::Video::Shader::setUniform ( const std::string& location, size_t value ) {
+    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    glUniform1ui(loc, value);
+}
+
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, float value ) {
     auto dat = std::vector<float>{value};
     setUniform(location, dat);

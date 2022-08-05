@@ -3,6 +3,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include <filesystem>
 #include <iostream>
 
 #include <glad/glad.h>
@@ -15,6 +16,7 @@
 #if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
     #include <SDL2/SDL.h>
     #include <SDL2/SDL_thread.h>
+    #include <SDL_image.h>
     #include <SDL_opengl.h>
 #else
     #error "cannot include sdl2" 

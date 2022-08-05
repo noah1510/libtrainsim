@@ -54,6 +54,7 @@ namespace libtrainsim{
             void use();
             
             void setUniform(const std::string& location, int value);
+            void setUniform(const std::string& location, size_t value);
             void setUniform(const std::string& location, float value);
             void setUniform(const std::string& location, glm::vec1 value);
             void setUniform(const std::string& location, glm::vec2 value);
