@@ -152,6 +152,16 @@ namespace libtrainsim {
                 */
                 bool reachedEndOfFile();
                 
+                /**
+                 * @brief adds a texture to be rendered on top of the video
+                 */
+                void addTexture(std::shared_ptr<texture> newTexture);
+                
+                /**
+                 * @brief remove a texture from being rendered
+                 */
+                void removeTexture(const std::string& textureName);
+                
         };
     }
 }

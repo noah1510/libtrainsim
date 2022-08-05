@@ -55,19 +55,29 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     try{
         displayShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"display.vert", shaderLocation/"display.frag");
         
-        std::vector<int> units {0};
+        displayShader->use();
+        std::vector<int> units {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
         displayShader->setUniform("tex", units);
-        displayShader->setUniform("enabledUnits", 1);
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not create shader"));
     }
     
     try{
-        auto bg_tex = std::make_shared<texture>("background");
-        displayTextures.emplace_back(bg_tex);
+        auto bg_tex = std::make_shared<texture>("background"s);
+        addTexture(bg_tex);
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not init video image"));
     }
+    
+    /*
+    //This is the sample code to add an additional texture to the render code to be displayed on top of the background
+    try{
+        auto snow_tex = std::make_shared<texture>(shaderLocation / "../snowflake_textures/snowflake-0.tif");
+        addTexture(snow_tex);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not create the test snowflake texture"));
+    }
+    */
 
     currentWindowName = windowName;
     
@@ -202,6 +212,11 @@ void libtrainsim::Video::videoManager::updateOutput() {
     glActiveTexture(GL_TEXTURE0);
     displayTextures[0]->updateImage(frame_data, decode->getDimensions());
     
+    for(unsigned int i = 1; i < displayTextures.size(); i++){
+        glActiveTexture(GL_TEXTURE0+i);
+        displayTextures[i]->bind();
+    }
+    
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     
@@ -278,9 +293,40 @@ void libtrainsim::Video::videoManager::refreshWindow() {
 
 }
 
+void libtrainsim::Video::videoManager::addTexture ( std::shared_ptr<texture> newTexture ) {
+    if(displayTextures.size() == 16){
+        throw std::runtime_error("For now only 16 display textures are supported, remove one to add this one!");
+    }
+    
+    auto texName = newTexture->getName();
+
+    for(auto x:displayTextures){
+        if(x->getName() == texName){
+            throw std::invalid_argument("a texture with this name already exists");
+        }
+    }
+    
+    displayTextures.emplace_back(newTexture);
+    displayShader->use();
+    displayShader->setUniform("enabledUnits", displayTextures.size());
+}
+
+void libtrainsim::Video::videoManager::removeTexture ( const std::string& textureName ) {
+    if(textureName == "background"){
+        throw std::invalid_argument("the background texture cannot be removed");
+    }
+    
+    for(auto i = displayTextures.begin(); i < displayTextures.end(); i++){
+        if((*i)->getName() == textureName){
+            displayTextures.erase(i);
+
+            displayShader->use();
+            displayShader->setUniform("enabledUnits", displayTextures.size());
+            return;
+        }
+    }
+    
+    throw std::invalid_argument("a texture with the name '" + textureName + "' does not exist");
+}
 
 
-
-
-
-  
