@@ -132,6 +132,12 @@ std::shared_mutex & libtrainsim::Video::texture::getMutex() noexcept {
     return acessMutex;
 }
 
+const std::string & libtrainsim::Video::texture::getName() noexcept {
+    std::shared_lock lock{acessMutex};
+    return name;
+}
+
+
 void libtrainsim::Video::texture::updateImage (const std::vector<uint8_t>& data, const libtrainsim::Video::dimensions& newSize ) {
     updateImage(data.data(),newSize);
 }
@@ -139,7 +145,7 @@ void libtrainsim::Video::texture::updateImage (const std::vector<uint8_t>& data,
 void libtrainsim::Video::texture::updateImage (const uint8_t* data, const libtrainsim::Video::dimensions& newSize ) {
     imageSize = newSize;
     
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    bind();
     
     auto [w,h] = imageSize;
     glTexImage2D(
@@ -154,4 +160,9 @@ void libtrainsim::Video::texture::updateImage (const uint8_t* data, const libtra
         data
     );
 }
+
+void libtrainsim::Video::texture::bind() {
+    glBindTexture(GL_TEXTURE_2D, textureID);
+}
+
 

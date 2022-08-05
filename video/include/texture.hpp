@@ -39,12 +39,15 @@ namespace libtrainsim{
         public:
             texture();
             texture(const std::string& _name);
+            texture(const std::filesystem::path& URI);
             ~texture();
             
             const dimensions& getSize() noexcept;
             unsigned int getTextureId() noexcept;
+            const std::string& getName() noexcept;
             void updateImage(const std::vector<uint8_t>& data, const dimensions& newSize);
             void updateImage(const uint8_t* data, const dimensions& newSize);
+            void bind();
             
             std::shared_mutex& getMutex() noexcept;
         };
