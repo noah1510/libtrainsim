@@ -1,8 +1,14 @@
 #include "imguiHandler.hpp"
 
+using namespace std::literals;
+
 libtrainsim::Video::imguiHandler::imguiHandler(){
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0){
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
         throw std::runtime_error(SDL_GetError());
+    }
+    
+    if( IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG | IMG_INIT_TIF | IMG_INIT_WEBP) == 0){
+        throw std::runtime_error( "error initializing sdl_image"s + IMG_GetError() );
     }
 
     // GL 4.6 + GLSL 460
@@ -52,7 +58,9 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     std::cout << "OpenGL version loaded: " << GLVersion.major << "." << GLVersion.minor << std::endl;
 }
 
-libtrainsim::Video::imguiHandler::~imguiHandler() {
+libtrainsim::Video::imguiHandler::~imguiHandler() {    
+    SDL_DestroyWindow(window);
+    IMG_Quit();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
