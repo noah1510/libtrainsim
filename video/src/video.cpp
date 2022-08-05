@@ -53,6 +53,15 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     }
     
     try{
+        outputBuffer = std::make_shared<texture>("outBuffer"s);
+        
+        //init the output framebuffer and its texture
+        outputBuffer->createFramebuffer(decode->getDimensions());
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not create the output framebuffer"));
+    }
+    
+    try{
         displayShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"display.vert", shaderLocation/"display.frag");
         
         displayShader->use();
@@ -114,9 +123,6 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     glEnableVertexAttribArray(1);
     
     glBindVertexArray(0);
-
-    //init the output framebuffer and its texture
-    imguiHandler::initFramebuffer(outputFBO,outputTexture,frameBufferWidth,frameBufferHeight);
     
     //reset the last frame and receive the first frame from the decoder
     
@@ -194,16 +200,17 @@ bool libtrainsim::Video::videoManager::reachedEndOfFile() {
 
 void libtrainsim::Video::videoManager::updateOutput() {
     
-    imguiHandler::loadFramebuffer(outputFBO, frameBufferWidth, frameBufferHeight);
+    outputBuffer->loadFramebuffer();
+    auto [w,h] = outputBuffer->getSize();
     
     displayShader->use();
     
     float camMult = 1.1;
     auto orth = glm::ortho(
         -16.0f, 
-        camMult * 9.0f * frameBufferWidth / frameBufferHeight,
+        camMult * 9.0f * w / h,
         -9.0f,
-        camMult * 16.0f * frameBufferHeight / frameBufferWidth,
+        camMult * 16.0f * h / w,
         -10.0f,
         10.0f
     );
@@ -272,20 +279,21 @@ void libtrainsim::Video::videoManager::refreshWindow() {
     ImGui::Begin(currentWindowName.c_str(), &isActive);
     
         //update the output size
-        frameBufferHeight = ImGui::GetWindowHeight();
-        frameBufferWidth = ImGui::GetWindowWidth();
+        auto w = ImGui::GetWindowWidth();
+        auto h = ImGui::GetWindowHeight();
+        
+        outputBuffer->resize({w,h});
         
         //render into output texture
         updateOutput();
         
         //draw the output texture
-        ImGui::Image((void*)(intptr_t)outputTexture, ImVec2(frameBufferWidth, frameBufferHeight));
+        outputBuffer->displayImGui();
         
         //show a tooltip when the window is hovered
         if(ImGui::IsItemHovered()){
             ImGui::BeginTooltip();
-            ImGui::Text("pointer = %u", outputTexture);
-            ImGui::Text("size = %lu x %lu", frameBufferWidth, frameBufferHeight);
+            ImGui::Text("size = %f x %f", w, h);
             ImGui::EndTooltip();
         }
     

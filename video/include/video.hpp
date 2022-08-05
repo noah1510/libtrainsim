@@ -28,11 +28,7 @@ namespace libtrainsim {
             private:
                 
                 //the buffer and texture for the creation of the rgb video image
-                unsigned int outputFBO = 0;
-                unsigned int outputTexture = 0;
-                
-                uint64_t frameBufferWidth = 1280;
-                uint64_t frameBufferHeight = 720;
+                std::shared_ptr<texture> outputBuffer;
                 
                 //all of the other buffers needed for the shaders
                 unsigned int VBO = 0, VAO = 0, EBO = 0;
