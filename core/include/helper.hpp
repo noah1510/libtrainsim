@@ -154,6 +154,11 @@ namespace libtrainsim{
                 return std::chrono::high_resolution_clock::now();
             }
             
+            template <typename T>
+            static void emplaceBack(std::vector<T>& destination, const std::vector<T>& source){
+                destination.insert(destination.end(), source.begin(), source.end());
+            }
+            
         };
     }
 }
