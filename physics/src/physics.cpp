@@ -16,7 +16,7 @@ physics::physics(const Track& conf, bool _autoTick):config(conf),autoTick(_autoT
 
 
 
-    last_update = now();
+    last_update = Helper::now();
 
     std::scoped_lock<std::shared_mutex> lock2(mutex_error);
     hasError = false;

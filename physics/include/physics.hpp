@@ -9,6 +9,7 @@
 #include "track_configuration.hpp"
 #include "types.hpp"
 #include "input_axis.hpp"
+#include "helper.hpp"
 
 #include "common.hpp"
 
@@ -53,6 +54,10 @@ namespace libtrainsim{
             * @brief The current Speedlevel of the Train. This variable is set by playerinput, the default value is 0.0
             */
             long double speedlevel = 0.0;
+
+            static std::chrono::time_point<std::chrono::high_resolution_clock> now(){
+                return std::chrono::high_resolution_clock::now();
+            }
 
             const libtrainsim::core::Track config;
 
@@ -133,9 +138,5 @@ namespace libtrainsim{
             * @brief This Function does the whole mathematics behind the physics. It calculates the current values of location, velocity, acceleration, traction and trainpower for every tick the simulation is running.
             */
             void tick();
-
-            static std::chrono::time_point<std::chrono::high_resolution_clock> now(){
-                return std::chrono::high_resolution_clock::now();
-            }
     };
 }
