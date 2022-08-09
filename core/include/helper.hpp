@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 #include <type_traits>
+#include <chrono>
 #include <nlohmann/json.hpp>
 
 namespace libtrainsim{
@@ -139,6 +140,18 @@ namespace libtrainsim{
                     }
                 }
                 return false;
+            }
+            
+            template<typename T, size_t SIZE>
+            static void appendValue(std::array<T, SIZE>& data, const T& value){
+                for(size_t i = 0; i < SIZE;i++){
+                    data[i] = data[i+1];
+                }
+                data[SIZE-1] = value;
+            }
+
+            static std::chrono::time_point<std::chrono::high_resolution_clock> now(){
+                return std::chrono::high_resolution_clock::now();
             }
             
         };
