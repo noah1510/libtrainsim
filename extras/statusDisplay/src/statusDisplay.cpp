@@ -3,7 +3,7 @@
 using namespace sakurajin::unit_system::base::literals;
 using namespace sakurajin::unit_system::common::literals;
 
-libtrainsim::Video::statusDisplay::statusDisplay(){
+libtrainsim::extras::statusDisplay::statusDisplay(){
     libtrainsim::Video::imguiHandler::init();
     for(auto& x : frametimes){
         x = 0;
@@ -18,17 +18,17 @@ libtrainsim::Video::statusDisplay::statusDisplay(){
     currentSpeedLevel = 0;
 }
 
-ImGuiIO & libtrainsim::Video::statusDisplay::io() {
+ImGuiIO & libtrainsim::extras::statusDisplay::io() {
     return ImGui::GetIO();
 }
 
 
-libtrainsim::Video::statusDisplay::~statusDisplay() {
+libtrainsim::extras::statusDisplay::~statusDisplay() {
     ImGui::DestroyContext();
 }
 
 
-void libtrainsim::Video::statusDisplay::update() {
+void libtrainsim::extras::statusDisplay::update() {
     
     //set size and pos on program start to initial values
     static bool firstStart = true;
@@ -65,7 +65,7 @@ void libtrainsim::Video::statusDisplay::update() {
     
 }
 
-void libtrainsim::Video::statusDisplay::appendFrametime ( sakurajin::unit_system::base::time_si frametime ) {
+void libtrainsim::extras::statusDisplay::appendFrametime ( sakurajin::unit_system::base::time_si frametime ) {
     for(size_t i = 0; i < frametimes.size();i++){
         frametimes[i] = frametimes[i+1];
     }
@@ -73,23 +73,24 @@ void libtrainsim::Video::statusDisplay::appendFrametime ( sakurajin::unit_system
     frametimes[frametimes.size()-1] = frametime.value;
 }
 
-void libtrainsim::Video::statusDisplay::changePosition ( sakurajin::unit_system::base::length newPosition ) {
+void libtrainsim::extras::statusDisplay::appendRendertime ( sakurajin::unit_system::base::time_si rendertime ) {
+void libtrainsim::extras::statusDisplay::changePosition ( sakurajin::unit_system::base::length newPosition ) {
     currentPosition = sakurajin::unit_system::unit_cast(newPosition, 1);
 }
 
-void libtrainsim::Video::statusDisplay::changeEndPosition ( sakurajin::unit_system::base::length newEndPosition ) {
+void libtrainsim::extras::statusDisplay::changeEndPosition ( sakurajin::unit_system::base::length newEndPosition ) {
     endPosition = sakurajin::unit_system::unit_cast(newEndPosition, 1);;
 }
 
-void libtrainsim::Video::statusDisplay::setAcceleration ( sakurajin::unit_system::common::acceleration newAcceleration ) {
+void libtrainsim::extras::statusDisplay::setAcceleration ( sakurajin::unit_system::common::acceleration newAcceleration ) {
     currentAcceleration = sakurajin::unit_system::unit_cast(newAcceleration, 1);
 }
 
-void libtrainsim::Video::statusDisplay::setVelocity ( sakurajin::unit_system::common::speed newVelocity ) {
+void libtrainsim::extras::statusDisplay::setVelocity ( sakurajin::unit_system::common::speed newVelocity ) {
     currentVelocity = sakurajin::unit_system::unit_cast(newVelocity, (1_kmph).multiplier );
 }
 
-void libtrainsim::Video::statusDisplay::setSpeedLevel ( core::input_axis newSpeedLevel ) {
+void libtrainsim::extras::statusDisplay::setSpeedLevel ( core::input_axis newSpeedLevel ) {
     currentSpeedLevel = newSpeedLevel;
 }
 

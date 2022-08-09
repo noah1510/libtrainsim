@@ -43,6 +43,11 @@ if get_option('build_physics') or get_option('build_full')
     meson.override_dependency('libtrainsim-physics', libtrainsim_physics_dep)
 endif
 
+if get_option('build_extras') or get_option('build_full')
+    subdir('extras')
+    meson.override_dependency('libtrainsim-extras', libtrainsim_extras_dep)
+endif
+
 #declare the dependency libtrainsim_full
 if get_option('build_full')
     libtrainsim_full_dep = declare_dependency(
@@ -51,6 +56,7 @@ if get_option('build_full')
             dependency('libtrainsim-video', required: true, version : '=' + meson.project_version()),
             dependency('libtrainsim-control', required: true, version : '=' + meson.project_version()),
             dependency('libtrainsim-physics', required: true, version : '=' + meson.project_version()),
+            dependency('libtrainsim-extras', required: true, version : '=' + meson.project_version()),
         ],
         version: meson.project_version()
     )

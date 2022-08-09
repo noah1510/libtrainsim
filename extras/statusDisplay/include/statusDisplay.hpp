@@ -13,7 +13,7 @@
 #include "input_axis.hpp"
 
 namespace libtrainsim{
-    namespace Video{
+    namespace extras{
         class statusDisplay{
           private:
             ImVec4 textColor{0.7,1,0.7,1};
