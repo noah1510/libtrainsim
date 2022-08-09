@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include "video_config.hpp"
+
 #include <glad/glad.h>
 #include "imgui.h"
 

@@ -81,6 +81,7 @@ else
     
     video_deps += dependency('sdl2', required : true, fallback: ['sdl2','sdl2_dep'])
     video_deps += dependency('SDL2_image', required: true)
+    video_deps += dependency('SDL2_gfx', required: true)
     video_deps += dependency('glm', required : true, fallback : ['glm','glm_dep'])
     imgui_subp = subproject('imgui', default_options : [
         'dx9=disabled', 
