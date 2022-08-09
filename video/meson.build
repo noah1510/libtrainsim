@@ -92,7 +92,8 @@ else
         'metal=disabled',
         'allegro5=disabled',
         'sdl_renderer=disabled',
-        'webgpu=disabled'
+        'webgpu=disabled',
+        'opengl=enabled'
     ])
     video_deps += imgui_subp.get_variable('imgui_dep')
     #video_deps += dependency('imgui', required : true, fallback : ['imgui','imgui_dep'])
