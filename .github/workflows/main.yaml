@@ -33,7 +33,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes libopencv-dev libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev ninja-build
+          sudo apt-get install --yes libsdl2-dev libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavresample-dev libavutil-dev libswresample-dev libswscale-dev libpostproc-dev ninja-build
 
       - uses: BSFishy/meson-build@v1.0.2
         name: build full
@@ -59,6 +59,8 @@ jobs:
             mingw-w64-x86_64-python3
             mingw-w64-x86_64-meson
             mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_image
+            mingw-w64-x86_64-SDL2_gfx
             mingw-w64-x86_64-ffmpeg
             mingw-w64-x86_64-glm
             mingw-w64-x86_64-toolchain
@@ -83,6 +85,8 @@ jobs:
         run: |
           brew install sdl2
           brew install ffmpeg
+          brew install sdl2_image
+          brew install sdl2_gfx
 
       - uses: BSFishy/meson-build@v1.0.2
         name: build full
