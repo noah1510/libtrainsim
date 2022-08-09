@@ -132,6 +132,16 @@ namespace libtrainsim{
                 return val;
             }
             
+            /**
+             * @brief checks if a vector contains a given element
+             * @warning The function only returns if the object was found not where it is!
+             * 
+             * @tparam T The type of all the array elements
+             * @param data The array containing the data to be searched through
+             * @param key The value that is being searched for
+             * @return true The array contains the element
+             * @return false the array does not contain the element
+             */
             template<typename T>
             static bool contains(const std::vector<T>& data, const T& key){
                 for(auto x : data){
@@ -142,6 +152,16 @@ namespace libtrainsim{
                 return false;
             }
             
+            /**
+             * @brief append a single value to an array
+             * This function move all of the elements in the array by one and
+             * and then adds the new element to the back
+             * 
+             * @tparam T The type of the value and the array
+             * @tparam SIZE The number of elements this array has
+             * @param data The array the value should be stored in
+             * @param value The value to be stored in the array
+             */
             template<typename T, size_t SIZE>
             static void appendValue(std::array<T, SIZE>& data, const T& value){
                 for(size_t i = 0; i < SIZE;i++){
@@ -150,10 +170,22 @@ namespace libtrainsim{
                 data[SIZE-1] = value;
             }
 
+            /**
+             * @brief This returns the current time point
+             * 
+             * @return std::chrono::time_point<std::chrono::high_resolution_clock> The current time point
+             */
             static std::chrono::time_point<std::chrono::high_resolution_clock> now(){
                 return std::chrono::high_resolution_clock::now();
             }
             
+            /**
+             * @brief like vector.emplaceBack(val) but value can be a vector
+             * 
+             * @tparam T The type of the vector elements
+             * @param destination The vector the data will be inserted to
+             * @param source The vector where the new data is coming from
+             */
             template <typename T>
             static void emplaceBack(std::vector<T>& destination, const std::vector<T>& source){
                 destination.insert(destination.end(), source.begin(), source.end());
