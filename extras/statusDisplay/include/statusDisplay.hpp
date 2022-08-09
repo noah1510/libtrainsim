@@ -11,6 +11,7 @@
 #include <array>
 
 #include "input_axis.hpp"
+#include "helper.hpp"
 
 namespace libtrainsim{
     namespace extras{
@@ -18,7 +19,12 @@ namespace libtrainsim{
           private:
             ImVec4 textColor{0.7,1,0.7,1};
             bool my_tool_active = false;
-            std::array<float, 100> frametimes;
+            
+            const static size_t frametimeValues = 100;
+            const static size_t rendertimeValues = 100;
+            
+            std::array<float, frametimeValues> frametimes;
+            std::array<float, rendertimeValues> rendertimes;
             ImGuiIO& io();
             
             sakurajin::unit_system::base::length currentPosition;
@@ -37,6 +43,8 @@ namespace libtrainsim{
             void update();
             
             void appendFrametime(sakurajin::unit_system::base::time_si frametime);
+            
+            void appendRendertime(sakurajin::unit_system::base::time_si rendertime);
             
             void changePosition(sakurajin::unit_system::base::length newPosition);
             

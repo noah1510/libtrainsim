@@ -8,6 +8,9 @@ libtrainsim::extras::statusDisplay::statusDisplay(){
     for(auto& x : frametimes){
         x = 0;
     }
+    for(auto& x : rendertimes){
+        x = 0;
+    }
     
     currentAcceleration = 0_mps2;
     currentVelocity = 0_mps;
@@ -51,14 +54,16 @@ void libtrainsim::extras::statusDisplay::update() {
     ImGui::Begin("Status Window", &my_tool_active, ImGuiWindowFlags_MenuBar);
 
         // Plot the frametimes
-        ImGui::PlotLines("Frame Times", frametimes.data(), frametimes.size());
+        ImGui::PlotLines("Frame Times", frametimes.data(), frametimeValues);
+        ImGui::PlotLines("Render Times", rendertimes.data(), rendertimeValues);
         
         ImGui::BeginChild("Status Text");
             ImGui::TextColored(textColor, "current Position: %Lfm / %LFm", currentPosition.value, endPosition.value);
             ImGui::TextColored(textColor, "current Velocity: %Lf km/h", currentVelocity.value);
             ImGui::TextColored(textColor, "current Acceleration: %Lf m/s²", currentAcceleration.value);
             ImGui::TextColored(textColor, "current SpeedLevel: %Lf", currentSpeedLevel.get());
-            ImGui::TextColored(textColor, "current Frametime: %f", frametimes[99]);
+            ImGui::TextColored(textColor, "current Frametime: %f ms", frametimes[frametimeValues-1]);
+            ImGui::TextColored(textColor, "current Rendertime: %f ms", rendertimes[rendertimeValues-1]);
         ImGui::EndChild();
 
     ImGui::End();
@@ -66,14 +71,16 @@ void libtrainsim::extras::statusDisplay::update() {
 }
 
 void libtrainsim::extras::statusDisplay::appendFrametime ( sakurajin::unit_system::base::time_si frametime ) {
-    for(size_t i = 0; i < frametimes.size();i++){
-        frametimes[i] = frametimes[i+1];
-    }
     frametime = sakurajin::unit_system::unit_cast(frametime, sakurajin::unit_system::prefix::milli);
-    frametimes[frametimes.size()-1] = frametime.value;
+    libtrainsim::core::Helper::appendValue<float,frametimeValues>(frametimes,frametime.value);
 }
 
 void libtrainsim::extras::statusDisplay::appendRendertime ( sakurajin::unit_system::base::time_si rendertime ) {
+    rendertime = sakurajin::unit_system::unit_cast(rendertime, sakurajin::unit_system::prefix::milli);
+    libtrainsim::core::Helper::appendValue<float,rendertimeValues>(rendertimes,rendertime.value);
+}
+
+
 void libtrainsim::extras::statusDisplay::changePosition ( sakurajin::unit_system::base::length newPosition ) {
     currentPosition = sakurajin::unit_system::unit_cast(newPosition, 1);
 }
