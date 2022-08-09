@@ -14,7 +14,6 @@ std::vector<std::string> libtrainsim::control::input_handler::getKeyFunctions() 
     #ifdef HAS_VIDEO_SUPPORT
 
         SDL_Event event;
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         while(SDL_PollEvent(&event)){
             
             ImGui_ImplSDL2_ProcessEvent(&event);
