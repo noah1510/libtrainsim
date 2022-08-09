@@ -34,7 +34,12 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     window = SDL_CreateWindow("libtrainsim window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
     gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
+    
+    #ifdef ENABLE_VSYNC
+        SDL_GL_SetSwapInterval(1); // Enable vsync
+    #else
+        SDL_GL_SetSwapInterval(0); // Disable vsync
+    #endif
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();

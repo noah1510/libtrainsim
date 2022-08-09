@@ -112,7 +112,7 @@ endif
 video_conf_data = configuration_data()
 video_conf_data.set('HAS_FFMPEG_SUPPORT', true)
 video_conf_data.set('HAS_SDL_SUPPORT', true)
-video_conf_data.set('ENDABLE_VSYNC', get_option('video_use_vsync'))
+video_conf_data.set('ENABLE_VSYNC', get_option('video_use_vsync'))
 configure_file(output : 'video_config.hpp', configuration : video_conf_data, install: true, install_dir: 'include/libtrainsim')
 
 #include all headers including the video configuration
