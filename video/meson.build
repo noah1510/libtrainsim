@@ -93,7 +93,7 @@ else
         'webgpu=disabled',
         'allegro5=disabled',
         
-        'win32=disabled',
+        'win=disabled',
         'osx=disabled',
         'glfw=disabled',
         
