@@ -64,8 +64,7 @@ namespace libtrainsim {
                 /**
                  * The raw pixel data of the decoded frame
                  */
-                //std::vector<uint8_t> frame_data;
-                uint8_t* frame_data;
+                std::vector<uint8_t> frame_data;
                 
                 bool isActive = true;
                 

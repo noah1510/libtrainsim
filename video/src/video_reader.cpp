@@ -166,6 +166,18 @@ void libtrainsim::Video::videoReader::copyToBuffer ( uint8_t* frame_buffer ) {
     sws_scale(sws_scaler_ctx, av_frame->data, av_frame->linesize, 0, av_frame->height, dest, dest_linesize);
 }
 
+void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame_buffer ) {
+    try{
+        if(frame_buffer.size() < width*height*4){
+            frame_buffer.resize(width*height*4);
+        }
+        copyToBuffer(frame_buffer.data());
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not copy frame into framebuffer"));
+    }
+}
+
+
 const std::filesystem::path& libtrainsim::Video::videoReader::getLoadedFile() const{
     return uri;
 }

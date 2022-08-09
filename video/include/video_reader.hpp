@@ -40,6 +40,7 @@ namespace libtrainsim{
             void readNextFrame();
             void seekFrame(uint64_t framenumber);
             void copyToBuffer(uint8_t* frame_buffer);
+            void copyToBuffer(std::vector<uint8_t>& frame_buffer);
             
             const std::filesystem::path& getLoadedFile() const;
             bool reachedEndOfFile() const;

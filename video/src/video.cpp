@@ -18,8 +18,6 @@ libtrainsim::Video::videoManager::~videoManager(){
         nextFrame.wait();
     }catch(...){}
     
-    free(frame_data);
-    
     std::cout << "video manager for window '" << windowName << "' was destroyed" << std::endl;
 }
 
@@ -125,17 +123,6 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     glBindVertexArray(0);
     
     //reset the last frame and receive the first frame from the decoder
-    
-    //video_reader_read_frame(state);
-    //frame_data.resize(state.width*state.height*8);
-    //video_reader_copy_to_buffer(state, frame_data.data());
-    //frame_data.shrink_to_fit();
-    constexpr int ALIGNMENT = 128;
-    const auto [frame_width,frame_height] = decode->getDimensions();
-    if (posix_memalign((void**)&frame_data, ALIGNMENT, frame_width * frame_height * 4) != 0) {
-        throw std::runtime_error("Couldn't allocate frame buffer\n");
-    }
-    
     decode->copyToBuffer(frame_data);
     
     //refresh the window to display stuff
