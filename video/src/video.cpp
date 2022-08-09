@@ -164,20 +164,31 @@ void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {
                 
                 if(diff > 120){
                     auto time = decode->seekFrame(nextF);
+                    
+                    videoMutex.lock();
                     newRenderTimes.emplace_back(time);
-                    return false;
+                    videoMutex.unlock();
                 
                 }else{
                     bool working = true;
+                    std::vector<sakurajin::unit_system::base::time_si> times;
                     while(currF < nextF && working){
                         auto time = decode->readNextFrame();
-                        newRenderTimes.emplace_back(time);
+                    
+                        times.emplace_back(time);
                         currF++;
                     }
+                    
+                    videoMutex.lock();
+                    libtrainsim::core::Helper::emplaceBack(newRenderTimes, times);
+                    videoMutex.unlock();
+                    
                 }
             }catch(const std::exception& e){
                 libtrainsim::core::Helper::print_exception(e);
+                return false;
             }
+            
             return true;
         }
     );
@@ -231,7 +242,7 @@ void libtrainsim::Video::videoManager::refreshWindow() {
     videoMutex.lock();
     
     if(fetchingFrame){
-        auto status = nextFrame.wait_for(1ms);
+        auto status = nextFrame.wait_for(1ns);
         if(status == std::future_status::ready){
             if(!nextFrame.get()){
                 std::cerr << "Error getting next frame" << std::endl;
@@ -329,8 +340,10 @@ void libtrainsim::Video::videoManager::removeTexture ( const std::string& textur
 }
 
 std::optional<std::vector<sakurajin::unit_system::base::time_si>> libtrainsim::Video::videoManager::getNewRendertimes() {
+    videoMutex.lock();
     auto times = newRenderTimes;
     newRenderTimes.clear();
+    videoMutex.unlock();
     
     if(times.size() > 0){
         return std::make_optional(times);
