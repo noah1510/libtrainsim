@@ -29,19 +29,19 @@ libtrainsim::Video::texture::texture ( const std::string& _name ) : texture{} {
 libtrainsim::Video::texture::texture ( const std::filesystem::path& URI ) :texture{} {
    
     if( !std::filesystem::exists( URI) ){
-        throw std::runtime_error(std::string{"image file does not exist! "}.append(URI));
+        throw std::runtime_error("image file does not exist! " + URI.string());
     }
     
     std::scoped_lock<std::shared_mutex>{acessMutex};
     auto tmp_surface = IMG_Load(URI.c_str());
     if(!tmp_surface) {
-        throw std::runtime_error(std::string{"Could not read image: "}.append(IMG_GetError()));
+        throw std::runtime_error(std::string{"Could not read image: "} + IMG_GetError());
     }
     
     auto* surface = SDL_ConvertSurfaceFormat(tmp_surface, SDL_PIXELFORMAT_RGBA32, 0);
     if(surface == nullptr){
         SDL_FreeSurface(tmp_surface);
-        throw std::runtime_error(std::string{"Could not convert to rgba32: "}.append(SDL_GetError()));
+        throw std::runtime_error(std::string{"Could not convert to rgba32: "} + SDL_GetError());
     }
     
     SDL_FreeSurface(tmp_surface);
