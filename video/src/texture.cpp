@@ -33,7 +33,7 @@ libtrainsim::Video::texture::texture ( const std::filesystem::path& URI ) :textu
     }
     
     std::scoped_lock<std::shared_mutex>{acessMutex};
-    auto tmp_surface = IMG_Load(URI.c_str());
+    auto tmp_surface = IMG_Load(URI.string().c_str());
     if(!tmp_surface) {
         throw std::runtime_error(std::string{"Could not read image: "} + IMG_GetError());
     }
@@ -77,7 +77,7 @@ libtrainsim::Video::texture::texture ( const std::filesystem::path& URI ) :textu
     imageSize.x() = w;
     imageSize.y() = h;
     
-    name = URI;
+    name = URI.string();
 }
 
 

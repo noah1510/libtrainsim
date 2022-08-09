@@ -30,7 +30,7 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
         throw std::invalid_argument("video file does not exist or is empty");
     }
 
-    if (avformat_open_input(&av_format_ctx, filename.c_str(), NULL, NULL) != 0) {
+    if (avformat_open_input(&av_format_ctx, filename.string().c_str(), NULL, NULL) != 0) {
         throw std::invalid_argument("Couldn't open video file");
     }
     uri = filename;
