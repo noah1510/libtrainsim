@@ -159,15 +159,19 @@ void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {
             uint64_t nextF = nextFrameToGet;
             uint64_t currF = decode->getFrameNumber();
             uint64_t diff = nextF - currF;
+            
             try{
                 
                 if(diff > 120){
-                    decode->seekFrame(nextF);   return false;
+                    auto time = decode->seekFrame(nextF);
+                    newRenderTimes.emplace_back(time);
+                    return false;
                 
                 }else{
                     bool working = true;
                     while(currF < nextF && working){
-                        decode->readNextFrame();
+                        auto time = decode->readNextFrame();
+                        newRenderTimes.emplace_back(time);
                         currF++;
                     }
                 }
@@ -322,6 +326,17 @@ void libtrainsim::Video::videoManager::removeTexture ( const std::string& textur
     }
     
     throw std::invalid_argument("a texture with the name '" + textureName + "' does not exist");
+}
+
+std::optional<std::vector<sakurajin::unit_system::base::time_si>> libtrainsim::Video::videoManager::getNewRendertimes() {
+    auto times = newRenderTimes;
+    newRenderTimes.clear();
+    
+    if(times.size() > 0){
+        return std::make_optional(times);
+    }else{
+        return {};
+    }
 }
 
 

@@ -5,6 +5,9 @@
 #include <iostream>
 #include <tuple>
 #include "texture.hpp"
+#include "helper.hpp"
+
+#include "base.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -37,8 +40,8 @@ namespace libtrainsim{
             
             videoReader(const std::filesystem::path& filename);
             ~videoReader();
-            void readNextFrame();
-            void seekFrame(uint64_t framenumber);
+            sakurajin::unit_system::base::time_si readNextFrame();
+            sakurajin::unit_system::base::time_si seekFrame(uint64_t framenumber);
             void copyToBuffer(uint8_t* frame_buffer);
             void copyToBuffer(std::vector<uint8_t>& frame_buffer);
             

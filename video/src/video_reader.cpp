@@ -1,4 +1,7 @@
 #include "video_reader.hpp"
+#include "prefix.hpp"
+
+using namespace sakurajin::unit_system;
 
 std::string libtrainsim::Video::videoReader::makeAVError ( int errnum ) {
     char str[AV_ERROR_MAX_STRING_SIZE];
@@ -97,7 +100,9 @@ libtrainsim::Video::videoReader::~videoReader() {
 }
 
 
-void libtrainsim::Video::videoReader::readNextFrame() {
+sakurajin::unit_system::base::time_si libtrainsim::Video::videoReader::readNextFrame() {
+    auto begin = libtrainsim::core::Helper::now();
+    
     // Decode one frame
     int response;
     while (av_read_frame(av_format_ctx, av_packet) >= 0) {
@@ -128,9 +133,12 @@ void libtrainsim::Video::videoReader::readNextFrame() {
     }
     
     currentFrameNumber++;
+    return unit_cast(libtrainsim::core::Helper::now()-begin);
 }
 
-void libtrainsim::Video::videoReader::seekFrame ( uint64_t framenumber ) {
+sakurajin::unit_system::base::time_si libtrainsim::Video::videoReader::seekFrame ( uint64_t framenumber ) {
+    auto begin = libtrainsim::core::Helper::now();
+    
     if(av_seek_frame(av_format_ctx, video_stream_index, framenumber, AVSEEK_FLAG_FRAME) < 0){
         throw std::runtime_error("Problem seeking a future frame");
     }
@@ -142,6 +150,7 @@ void libtrainsim::Video::videoReader::seekFrame ( uint64_t framenumber ) {
     }
 
     currentFrameNumber = framenumber;
+    return unit_cast(libtrainsim::core::Helper::now()-begin);
 }
 
 void libtrainsim::Video::videoReader::copyToBuffer ( uint8_t* frame_buffer ) {

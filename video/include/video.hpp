@@ -17,6 +17,8 @@
 #include "helper.hpp"
 #include "texture.hpp"
 
+#include "time.hpp"
+
 namespace libtrainsim {
     namespace Video{
 
@@ -71,6 +73,8 @@ namespace libtrainsim {
                 void updateOutput();
                 
                 std::vector< std::shared_ptr<texture> > displayTextures;
+                
+                std::vector<sakurajin::unit_system::base::time_si> newRenderTimes;
 
             public:
                 /**
@@ -156,6 +160,9 @@ namespace libtrainsim {
                  * @brief remove a texture from being rendered
                  */
                 void removeTexture(const std::string& textureName);
+                
+                
+                std::optional< std::vector<sakurajin::unit_system::base::time_si> > getNewRendertimes();
                 
         };
     }
