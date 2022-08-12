@@ -244,7 +244,7 @@ void libtrainsim::extras::snowFx::copy ( std::shared_ptr<libtrainsim::Video::tex
 void libtrainsim::extras::snowFx::drawSnowflake() {
     auto dt = std::chrono::high_resolution_clock::now() - last_snowflake;
     
-    if(distribution_copyBlur(number_generator) < 0.5){
+    if(distribution_copyBlur(number_generator) < 0.01){
         blur(imageTexture, 2);
     }
     
