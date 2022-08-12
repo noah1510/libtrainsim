@@ -97,6 +97,9 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     distribution_size = std::uniform_real_distribution<>{0.01,0.025};
     distribution_rotation = std::uniform_real_distribution<> {0.0, 2*std::acos(0.0)};
     distribution_deltaT = std::uniform_real_distribution<> {0.5, 2.0};
+    distribution_copyBlur = std::uniform_real_distribution<> {0.0, 100.0};
+    
+    trainSpeed.value = 1.0;
     
     //the the ime when the lase snowflake was drawn and when the next will be drawn
     next_snowflake = 100000us * static_cast<long>( distribution_deltaT(number_generator) );
@@ -160,7 +163,8 @@ void libtrainsim::extras::snowFx::blur ( std::shared_ptr<libtrainsim::Video::tex
     glm::vec2 off2x = glm::vec2(3.2307692308) * glm::vec2(1.0,0.0) / resolution;
     glm::vec2 off2y = glm::vec2(3.2307692308) * glm::vec2(0.0,1.0) / resolution;
     
-    for(uint64_t i = 0; i < passes/2; i++){
+    uint64_t i = 0;
+    do{
         //blur into blur fbo
         loadFramebuffer(blurTexture);
         
@@ -178,7 +182,8 @@ void libtrainsim::extras::snowFx::blur ( std::shared_ptr<libtrainsim::Video::tex
         blurShader->setUniform("off2", off2y);
         
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    }
+        i++;
+    }while(i < passes/2);
 }
 
 void libtrainsim::extras::snowFx::copy ( std::shared_ptr<libtrainsim::Video::texture> src, std::shared_ptr<libtrainsim::Video::texture> dest, bool loadTexture ) {
@@ -219,6 +224,11 @@ void libtrainsim::extras::snowFx::copy ( std::shared_ptr<libtrainsim::Video::tex
 
 void libtrainsim::extras::snowFx::drawSnowflake() {
     auto dt = std::chrono::high_resolution_clock::now() - last_snowflake;
+    
+    if(distribution_copyBlur(number_generator) < 0.5){
+        blur(imageTexture, 2);
+    }
+    
     if (dt > next_snowflake){
         glm::mat4 projection = glm::mat4(1.0f);
         
@@ -280,7 +290,10 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
         
         //update when the time when snowflake was drawn and when the next one should be drawn
         last_snowflake = std::chrono::high_resolution_clock::now();
-        next_snowflake = 100000us * static_cast<long>( distribution_deltaT(number_generator) / weather_intensity );
+        auto multiplier = distribution_deltaT(number_generator) / (weather_intensity * trainSpeed.value);
+        next_snowflake = 1000ms * static_cast<long>( multiplier );
+    }else{
+        copy(imageTexture, outputTexture);
     }
 }
 
@@ -290,11 +303,17 @@ void libtrainsim::extras::snowFx::updateTexture() {
     //copy the result back into the input framebuffer
     copy(outputTexture, imageTexture);
     
-    blur(outputTexture, 6);
+    blur(outputTexture, 4);
 }
+
+void libtrainsim::extras::snowFx::updateTrainSpeed ( sakurajin::unit_system::common::speed newTrainSpeed ) {
+    newTrainSpeed = sakurajin::unit_system::unit_cast(newTrainSpeed,1.0);
+    newTrainSpeed.value += 1.0;
+    trainSpeed = newTrainSpeed;
+}
+
 
 std::shared_ptr<libtrainsim::Video::texture> libtrainsim::extras::snowFx::getOutputTexture() {
     return outputTexture;
 }
-
 

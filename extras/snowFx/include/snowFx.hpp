@@ -6,6 +6,8 @@
 #include "texture.hpp"
 #include "shader.hpp"
 
+#include "speed.hpp"
+
 #include <chrono>
 #include <random>
 #include <vector>
@@ -46,17 +48,18 @@ namespace libtrainsim{
             std::uniform_real_distribution<> distribution_size;
             std::uniform_real_distribution<> distribution_rotation;
             std::uniform_real_distribution<> distribution_deltaT;
+            std::uniform_real_distribution<> distribution_copyBlur;
             
             //a time difference since the last snowflake to indicate when the next should be shown
             decltype(std::chrono::microseconds(100000)) next_snowflake;
             //a time point when the last snowflake was drawn
-            decltype(std::chrono::high_resolution_clock::now()) last_snowflake;
+            decltype(libtrainsim::core::Helper::now()) last_snowflake;
             
             //this loads a snowflake file into a texture buffer
             std::shared_ptr<libtrainsim::Video::texture> loadSnowflake(const std::filesystem::path& URI);
             
             //a simple multiplier to change the rate at which new snowflakes spawn
-            double weather_intensity = 5.0;
+            double weather_intensity = 0.1;
             
             //draws a snowflake to the output buffer if needed
             void drawSnowflake();
@@ -70,6 +73,9 @@ namespace libtrainsim{
             //load a framebuffer with the wanted loader settigns
             void loadFramebuffer(std::shared_ptr<libtrainsim::Video::texture> buf);
             
+            //The current speed of the train. This modifies in interval in which new snowflakes are spawned.
+            sakurajin::unit_system::common::speed trainSpeed;
+            
           public:
             snowFx(const std::filesystem::path& shaderLocation, const std::filesystem::path& dataLocation);
             
@@ -78,6 +84,8 @@ namespace libtrainsim{
             void updateTexture();
             
             std::shared_ptr<libtrainsim::Video::texture> getOutputTexture();
+            
+            void updateTrainSpeed(sakurajin::unit_system::common::speed newTrainSpeed);
             
         };
     }
