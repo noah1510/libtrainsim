@@ -37,7 +37,6 @@ namespace libtrainsim{
             std::shared_ptr<libtrainsim::Video::texture> blurTexture;
             
             //all of the displacement textures for various types of effects
-            //0 is a neutral grey which should result in a displacement of 0
             std::vector< std::shared_ptr<libtrainsim::Video::texture> > displacementTextures;
             
             //all of the other buffers needed for the shaders

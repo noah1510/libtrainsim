@@ -116,7 +116,7 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     distribution_rotation = std::uniform_real_distribution<> {0.0, 2*std::acos(0.0)};
     distribution_deltaT = std::uniform_real_distribution<> {0.5, 2.0};
     distribution_copyBlur = std::uniform_real_distribution<> {0.0, 100.0};
-    distribution_displacementStrength = std::uniform_real_distribution<> {0.5, 2.0};
+    distribution_displacementStrength = std::uniform_real_distribution<> {0.75, 1.75};
     
     trainSpeed.value = 1.0;
     
@@ -281,7 +281,9 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
         flake->bind();
         
         //set the displacement multiplier to a random number
-        float displacementStrength = distribution_displacementStrength(number_generator);
+        //the 150 is an arbitray value, it is supposed to be close to the maximum speed of the train
+        //the faster the train is the more mashed up the snowflakes are
+        float displacementStrength = distribution_displacementStrength(number_generator)  * trainSpeed.value / 110.0f;
         displacementShader->setUniform("multiplier", displacementStrength);
         
         //create the transformation matrix for the new snowflake
