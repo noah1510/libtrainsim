@@ -27,7 +27,6 @@ ImGuiIO & libtrainsim::extras::statusDisplay::io() {
 
 
 libtrainsim::extras::statusDisplay::~statusDisplay() {
-    ImGui::DestroyContext();
 }
 
 
