@@ -3,10 +3,10 @@ directory = imgui-1.87
 url = https://github.com/ocornut/imgui.git
 revision = docking
 
-patch_filename = imgui_1.87-3_patch.zip
-patch_url = https://wrapdb.mesonbuild.com/v2/imgui_1.87-3/get_patch
-patch_hash = daedd65150ad24667190f915267515f36da68e46724a21175d667660c1b54918
-wrapdb_version = 1.87-3
+patch_filename = imgui_1.87-4_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/imgui_1.87-4/get_patch
+patch_hash = a008fc446e8c09c5a6c985ba94d4ffe04534f8c805f2805afdd0ba17ea6c73f5
+wrapdb_version = 1.87-4
 
 [provide]
 imgui = imgui_dep
