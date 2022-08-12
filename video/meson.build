@@ -99,7 +99,8 @@ else
         'glfw=disabled',
         
         'opengl=enabled',
-        'sdl2=enabled'
+        'sdl2=enabled',
+        'default_library=static'
     ])
     video_deps += imgui_subp.get_variable('imgui_dep')
     #video_deps += dependency('imgui', required : true, fallback : ['imgui','imgui_dep'])
