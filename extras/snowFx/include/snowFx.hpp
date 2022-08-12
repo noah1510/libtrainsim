@@ -25,6 +25,7 @@ namespace libtrainsim{
             std::shared_ptr<libtrainsim::Video::Shader> blitShader;
             std::shared_ptr<libtrainsim::Video::Shader> copyShader;
             std::shared_ptr<libtrainsim::Video::Shader> blurShader;
+            std::shared_ptr<libtrainsim::Video::Shader> displacementShader;
             
             //the texture for the image output
             std::shared_ptr<libtrainsim::Video::texture> outputTexture;
@@ -34,6 +35,10 @@ namespace libtrainsim{
             
             //the buffer and texture used to create the blurred output
             std::shared_ptr<libtrainsim::Video::texture> blurTexture;
+            
+            //all of the displacement textures for various types of effects
+            //0 is a neutral grey which should result in a displacement of 0
+            std::vector< std::shared_ptr<libtrainsim::Video::texture> > displacementTextures;
             
             //all of the other buffers needed for the shaders
             unsigned int VBO = 0, VAO = 0, EBO = 0;
@@ -49,6 +54,7 @@ namespace libtrainsim{
             std::uniform_real_distribution<> distribution_rotation;
             std::uniform_real_distribution<> distribution_deltaT;
             std::uniform_real_distribution<> distribution_copyBlur;
+            std::uniform_real_distribution<> distribution_displacementStrength;
             
             //a time difference since the last snowflake to indicate when the next should be shown
             decltype(std::chrono::microseconds(100000)) next_snowflake;

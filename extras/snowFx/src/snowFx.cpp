@@ -24,6 +24,12 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
         std::throw_with_nested(std::runtime_error("Could not create blur shader"));
     }
     
+    try{
+        displacementShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"displacement.vert",shaderLocation/"displacement.frag");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not create displacement shader"));
+    }
+    
     //framebuffers
     try{
         outputTexture = std::make_shared<libtrainsim::Video::texture>();
@@ -46,6 +52,18 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
             auto flake = loadSnowflake(dataLocation/URI.str());
             //blur(flake);
             snowflake_textures.emplace_back(flake);
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not load snowflake textures"));
+    }
+    
+    try{
+        //adding all of the displacement textures        
+        for(int i = 0; i < 2; i++){
+            std::stringstream URI{};
+            URI << "displacement-" << i << ".tif";
+            auto disTex = std::make_shared<libtrainsim::Video::texture>(dataLocation/URI.str());
+            displacementTextures.emplace_back(disTex);
         }
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not load snowflake textures"));
@@ -98,6 +116,7 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     distribution_rotation = std::uniform_real_distribution<> {0.0, 2*std::acos(0.0)};
     distribution_deltaT = std::uniform_real_distribution<> {0.5, 2.0};
     distribution_copyBlur = std::uniform_real_distribution<> {0.0, 100.0};
+    distribution_displacementStrength = std::uniform_real_distribution<> {0.5, 2.0};
     
     trainSpeed.value = 1.0;
     
@@ -235,22 +254,37 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
         //render the new snowflake into the output framebuffer
         loadFramebuffer(outputTexture);
         
-        blitShader->use();
+        displacementShader->use();
         
         //draw the background
-        blitShader->setUniform("transform", projection);
+        displacementShader->setUniform("transform", projection);
         
+        //load the fx layer as background
         glActiveTexture(GL_TEXTURE0);
         imageTexture->bind();
-        blitShader->setUniform("img", 0);
+        displacementShader->setUniform("img", 0);
+        
+        //load the displacement texture
+        glActiveTexture(GL_TEXTURE1);
+        displacementTextures[1]->bind();
+        displacementShader->setUniform("displacement", 1);
+        
+        //set the displacement to 0, to not move the fx layer
+        displacementShader->setUniform("multiplier", 0.0f);
         
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         
         //draw the snowflake
+        glActiveTexture(GL_TEXTURE0);
         auto flake = snowflake_textures[ distribution_image(number_generator) ];
         flake->bind();
         
+        //set the displacement multiplier to a random number
+        float displacementStrength = distribution_displacementStrength(number_generator);
+        displacementShader->setUniform("multiplier", displacementStrength);
+        
+        //create the transformation matrix for the new snowflake
         projection = glm::translate(
             projection, 
             glm::vec3(
@@ -272,6 +306,7 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
             glm::vec3(size, size, 1.0)
         );
         
+        //create the projection matrix for to handle some buffer issues
         float camMult = 1/16.0;
         auto [w,h] = outputTexture->getSize();
         auto orth = glm::ortho(
@@ -283,7 +318,7 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
             10.0f
         );
         
-        blitShader->setUniform("transform", orth * projection);
+        displacementShader->setUniform("transform", orth * projection);
         
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -292,18 +327,18 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
         last_snowflake = std::chrono::high_resolution_clock::now();
         auto multiplier = distribution_deltaT(number_generator) / (weather_intensity * trainSpeed.value);
         next_snowflake = 1000ms * static_cast<long>( multiplier );
+    
+        //copy the result back into the input framebuffer
+        copy(outputTexture, imageTexture);
     }else{
+        //if no new snowflake has to be drawn just draw the previous fx layer
         copy(imageTexture, outputTexture);
     }
 }
 
 void libtrainsim::extras::snowFx::updateTexture() {
+    //draw a new snowflake if needed
     drawSnowflake();
-    
-    //copy the result back into the input framebuffer
-    copy(outputTexture, imageTexture);
-    
-    blur(outputTexture, 4);
 }
 
 void libtrainsim::extras::snowFx::updateTrainSpeed ( sakurajin::unit_system::common::speed newTrainSpeed ) {
