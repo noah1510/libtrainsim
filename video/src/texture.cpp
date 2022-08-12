@@ -167,6 +167,14 @@ void libtrainsim::Video::texture::loadFramebuffer() {
     imguiHandler::loadFramebuffer(FBO,imageSize);
 }
 
+bool libtrainsim::Video::texture::hasFramebuffer() const noexcept {
+    return framebufferMode;
+}
+
+unsigned int libtrainsim::Video::texture::getFBO() const noexcept {
+    return FBO;
+}
+
 
 void libtrainsim::Video::texture::displayImGui() {
     std::shared_lock lock{acessMutex};

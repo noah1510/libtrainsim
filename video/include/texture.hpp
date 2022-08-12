@@ -40,7 +40,9 @@ namespace libtrainsim{
             
             void bind();
             void createFramebuffer(dimensions framebufferSize);
+            bool hasFramebuffer() const noexcept;
             void loadFramebuffer();
+            unsigned int getFBO() const noexcept;
             void displayImGui();
             
             std::shared_mutex& getMutex() noexcept;

@@ -152,7 +152,7 @@ void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, 
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glBlendEquation(GL_MAX);
     
-    glClearColor(0.7f, 0.7f, 0.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
