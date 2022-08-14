@@ -3,6 +3,7 @@
 #include "imguiHandler.hpp"
 #include "helper.hpp"
 #include "texture.hpp"
+#include "shader.hpp"
 
 namespace libtrainsim{
     namespace extras{
@@ -16,8 +17,10 @@ namespace libtrainsim{
             std::shared_ptr<libtrainsim::Video::texture> wiperImage;
             std::shared_ptr<libtrainsim::Video::texture> wiperFBO;
             
+            std::shared_ptr<libtrainsim::Video::Shader> wiperShader;
+            
         public:
-            wiper(const std::filesystem::path& textureLocation);
+            wiper(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
             ~wiper();
             
             void updateWiper(libtrainsim::Video::texture& outputImage);
