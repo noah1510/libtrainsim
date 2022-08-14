@@ -57,6 +57,8 @@ namespace libtrainsim{
             std::shared_ptr<Shader> copyShader;
             bool shaderLoaded = false;
             
+            int maxTextureUnits = 0;
+            
             void init_impl();
             void startRender_impl();
             void endRender_impl();
@@ -117,6 +119,10 @@ namespace libtrainsim{
                 }catch(...){
                     std::throw_with_nested(std::runtime_error("Error binding the VAO"));
                 }
+            }
+            
+            static unsigned int getMaxTextureUnits(){
+                return static_cast<unsigned int>( getInstance().maxTextureUnits );
             }
             
         };

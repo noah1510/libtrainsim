@@ -66,6 +66,9 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     }
     
     std::cout << "OpenGL version loaded: " << GLVersion.major << "." << GLVersion.minor << std::endl;
+    
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+    std::cout << "maxTextureUnits: " << maxTextureUnits << std::endl;
 }
 
 libtrainsim::Video::imguiHandler::~imguiHandler() {
@@ -196,8 +199,7 @@ void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::
     copyShader->setUniform("transform", orth);
     
     if(loadTexture){
-        glActiveTexture(GL_TEXTURE15);
-        src->bind();
+        src->bind(15);
         
         copyShader->setUniform("sourceImage", 15);
     }
