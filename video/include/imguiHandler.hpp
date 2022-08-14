@@ -32,6 +32,10 @@
 
 namespace libtrainsim{
     namespace Video{
+        //forward declarations
+        class texture;
+        class Shader;
+        
         class imguiHandler{
           private:
             std::string glsl_version = "#version 460 core";
@@ -47,12 +51,21 @@ namespace libtrainsim{
                 return instance;
             }
             
+            //all of the other buffers needed for the shaders
+            unsigned int VBO = 0, VAO = 0, EBO = 0;
+            
+            std::shared_ptr<Shader> copyShader;
+            bool shaderLoaded = false;
+            
             void init_impl();
             void startRender_impl();
             void endRender_impl();
             void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture, dimensions dims );
             void loadFramebuffer_impl ( unsigned int buf, dimensions dims );
             void updateRenderThread_impl();
+            void copy_impl(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture);
+            void loadShaders_impl(const std::filesystem::path& shaderLocation);
+            void bindVAO_impl();
             
           public:
             static void init(){
@@ -77,6 +90,33 @@ namespace libtrainsim{
             
             static void updateRenderThread(){
                 getInstance().updateRenderThread_impl();
+            }
+            
+            //copies the output buffer into the input buffer
+            static void copy(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture = true){
+                try{
+                    getInstance().copy_impl(src, dest, loadTexture);
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Error copying textrue into frambuffer"));
+                }
+            }
+            
+            //load the shaders and other buffer objects
+            static void loadShaders(const std::filesystem::path& shaderLocation){
+                try{
+                    getInstance().loadShaders_impl(shaderLocation);
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Error copying textrue into frambuffer"));
+                }
+            }
+            
+            //bind the basic VAO for opengl draw calls
+            static void bindVAO(){
+                try{
+                    getInstance().bindVAO_impl();
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Error binding the VAO"));
+                }
             }
             
         };

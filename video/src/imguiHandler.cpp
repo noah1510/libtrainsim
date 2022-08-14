@@ -1,4 +1,6 @@
 #include "imguiHandler.hpp"
+#include "texture.hpp"
+#include "shader.hpp"
 
 using namespace std::literals;
 
@@ -66,7 +68,13 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     std::cout << "OpenGL version loaded: " << GLVersion.major << "." << GLVersion.minor << std::endl;
 }
 
-libtrainsim::Video::imguiHandler::~imguiHandler() {    
+libtrainsim::Video::imguiHandler::~imguiHandler() {
+    if(shaderLoaded){
+        copyShader.reset();
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+    }
     SDL_DestroyWindow(window);
     IMG_Quit();
     ImGui_ImplOpenGL3_Shutdown();
@@ -158,5 +166,110 @@ void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, 
 
 void libtrainsim::Video::imguiHandler::updateRenderThread_impl() {
     SDL_GL_MakeCurrent(window, gl_context);
+}
+
+void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::Video::texture> src, std::shared_ptr<libtrainsim::Video::texture> dest, bool loadTexture ) {
+    
+    //thorw an error if shader are not loaded yet
+    if(!shaderLoaded){
+        throw std::runtime_error("load shader before using the shader parts");
+    }
+    
+    if(src == nullptr || dest == nullptr){
+        throw std::invalid_argument("nullptr not allowed for copy operation");
+    }
+    
+    if(!dest->hasFramebuffer()){
+        throw std::invalid_argument("destination texture has no attached framebuffer");
+    }
+    dest->loadFramebuffer();
+    
+    copyShader->use();
+    auto orth = glm::ortho(
+        -1.0f, 
+        1.0f,
+        -1.0f,
+        1.0f,
+        -10.0f,
+        10.0f
+    );
+    copyShader->setUniform("transform", orth);
+    
+    if(loadTexture){
+        glActiveTexture(GL_TEXTURE15);
+        src->bind();
+        
+        copyShader->setUniform("sourceImage", 15);
+    }
+    
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    
+    //reset all of the buffers
+    glBindVertexArray(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void libtrainsim::Video::imguiHandler::loadShaders_impl ( const std::filesystem::path& shaderLocation ) {
+    
+    //do not reload if shader are already loaded
+    if(shaderLoaded){
+        return;
+    }
+    
+    //---------------init Shader---------------
+    //load the copy shader
+    try{
+        copyShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"copy.frag");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not create copy shader"));
+    }
+    
+    //---------------init vertex buffers---------------
+    float vertices[] = {
+        // position           // texture coords
+         1.0f,  1.0f,   1.0f, 0.0f, // top right
+         1.0f, -1.0f,   1.0f, 1.0f, // bottom right
+        -1.0f, -1.0f,   0.0f, 1.0f, // bottom left
+        -1.0f,  1.0f,   0.0f, 0.0f  // top left 
+    };
+    unsigned int indices[] = {  
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+    
+    //create all of the blit buffers
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    
+    // position attribute
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // texture coord attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    
+    glBindVertexArray(0);
+    
+    shaderLoaded = true;
+}
+
+void libtrainsim::Video::imguiHandler::bindVAO_impl() {
+    
+    //thorw an error if shader are not loaded yet
+    if(!shaderLoaded){
+        throw std::runtime_error("load shader before using the shader parts");
+    }
+    
+    glBindVertexArray(VAO);
 }
 
