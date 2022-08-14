@@ -124,11 +124,8 @@ void libtrainsim::extras::snowFx::blur ( std::shared_ptr<libtrainsim::Video::tex
     
     blurShader->use();
     
-    glActiveTexture(GL_TEXTURE14);
-    blurTexture->bind();
-        
-    glActiveTexture(GL_TEXTURE15);
-    tex->bind();
+    blurTexture->bind(14);
+    tex->bind(15);
     
     libtrainsim::Video::imguiHandler::bindVAO();
     
@@ -173,13 +170,11 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
     displacementShader->setUniform("transform", projection);
     
     //load the fx layer as background
-    glActiveTexture(GL_TEXTURE0);
-    imageTexture->bind();
+    imageTexture->bind(0);
     displacementShader->setUniform("img", 0);
     
     //load the displacement texture
-    glActiveTexture(GL_TEXTURE1);
-    displacementTextures[1]->bind();
+    displacementTextures[1]->bind(1);
     displacementShader->setUniform("displacement", 1);
     
     //set the displacement to 0, to not move the fx layer
@@ -189,9 +184,8 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     
     //draw the snowflake
-    glActiveTexture(GL_TEXTURE0);
     auto flake = snowflake_textures[ distribution_image(number_generator) ];
-    flake->bind();
+    flake->bind(0);
     
     //set the displacement multiplier to a random number
     //the 150 is an arbitray value, it is supposed to be close to the maximum speed of the train

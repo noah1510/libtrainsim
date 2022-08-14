@@ -1,5 +1,7 @@
 #include "texture.hpp"
 
+using namespace std::literals;
+
 libtrainsim::Video::texture::texture() {
     std::scoped_lock lock{acessMutex};
     
@@ -14,6 +16,7 @@ libtrainsim::Video::texture::texture() {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     name = textureID;
+
 }
 
 libtrainsim::Video::texture::texture ( const std::string& _name ) : texture{} {
@@ -148,8 +151,16 @@ void libtrainsim::Video::texture::resize ( const libtrainsim::Video::dimensions&
 }
 
 
-void libtrainsim::Video::texture::bind() {
+void libtrainsim::Video::texture::bind(unsigned int unit) {
     std::scoped_lock lock{acessMutex};
+    
+    if(unit > libtrainsim::Video::imguiHandler::getMaxTextureUnits()){
+        std::stringstream ss;
+        ss << "texture unit value too high. Only " << libtrainsim::Video::imguiHandler::getMaxTextureUnits() << " are allowed";
+        throw std::runtime_error(ss.str());
+    }
+    
+    glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, textureID);
 }
 

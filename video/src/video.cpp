@@ -222,8 +222,7 @@ void libtrainsim::Video::videoManager::updateOutput() {
     displayTextures[0]->updateImage(frame_data, decode->getDimensions());
     
     for(unsigned int i = 1; i < displayTextures.size(); i++){
-        glActiveTexture(GL_TEXTURE0+i);
-        displayTextures[i]->bind();
+        displayTextures[i]->bind(i);
     }
     
     glBindVertexArray(VAO);
@@ -304,7 +303,7 @@ void libtrainsim::Video::videoManager::refreshWindow() {
 }
 
 void libtrainsim::Video::videoManager::addTexture ( std::shared_ptr<texture> newTexture ) {
-    if(displayTextures.size() == 16){
+    if(displayTextures.size() == libtrainsim::Video::imguiHandler::getMaxTextureUnits()){
         throw std::runtime_error("For now only 16 display textures are supported, remove one to add this one!");
     }
     

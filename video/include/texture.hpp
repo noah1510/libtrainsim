@@ -9,6 +9,7 @@
 #include <shared_mutex>
 #include <tuple>
 #include <vector>
+#include <sstream>
 
 namespace libtrainsim{
     namespace Video{
@@ -38,7 +39,7 @@ namespace libtrainsim{
             void updateImage(const uint8_t* data, const dimensions& newSize);
             void resize(const dimensions& newSize);
             
-            void bind();
+            void bind(unsigned int unit);
             void createFramebuffer(dimensions framebufferSize);
             bool hasFramebuffer() const noexcept;
             void loadFramebuffer();
