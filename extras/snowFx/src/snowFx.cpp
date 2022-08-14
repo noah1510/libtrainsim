@@ -1,6 +1,7 @@
 #include "snowFx.hpp"
 
 using namespace std::literals;
+using namespace sakurajin::unit_system::common::literals;
 
 libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation, const std::filesystem::path& dataLocation){
     
@@ -116,9 +117,9 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     distribution_rotation = std::uniform_real_distribution<> {0.0, 2*std::acos(0.0)};
     distribution_deltaT = std::uniform_real_distribution<> {0.5, 2.0};
     distribution_copyBlur = std::uniform_real_distribution<> {0.0, 100.0};
-    distribution_displacementStrength = std::uniform_real_distribution<> {0.75, 1.75};
+    distribution_displacementStrength = std::uniform_real_distribution<> {1.25, 2.25};
     
-    trainSpeed.value = 1.0;
+    updateTrainSpeed(0.0_mps);
     
     //the the ime when the lase snowflake was drawn and when the next will be drawn
     next_snowflake = 100000us * static_cast<long>( distribution_deltaT(number_generator) );
@@ -283,7 +284,7 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
         //set the displacement multiplier to a random number
         //the 150 is an arbitray value, it is supposed to be close to the maximum speed of the train
         //the faster the train is the more mashed up the snowflakes are
-        float displacementStrength = distribution_displacementStrength(number_generator)  * trainSpeed.value / 110.0f;
+        float displacementStrength = distribution_displacementStrength(number_generator) * 0.1 * std::log2(trainSpeed.value);
         displacementShader->setUniform("multiplier", displacementStrength);
         
         //create the transformation matrix for the new snowflake
@@ -327,7 +328,7 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
         
         //update when the time when snowflake was drawn and when the next one should be drawn
         last_snowflake = std::chrono::high_resolution_clock::now();
-        auto multiplier = distribution_deltaT(number_generator) / (weather_intensity * trainSpeed.value);
+        auto multiplier = distribution_deltaT(number_generator) / (weather_intensity * std::log2(trainSpeed.value));
         next_snowflake = 1000ms * static_cast<long>( multiplier );
     
         //copy the result back into the input framebuffer
@@ -345,7 +346,9 @@ void libtrainsim::extras::snowFx::updateTexture() {
 
 void libtrainsim::extras::snowFx::updateTrainSpeed ( sakurajin::unit_system::common::speed newTrainSpeed ) {
     newTrainSpeed = sakurajin::unit_system::unit_cast(newTrainSpeed,1.0);
-    newTrainSpeed.value += 1.0;
+    auto& val = newTrainSpeed.value;
+    //this guarantees that log2(val) > 0
+    val = val < 1.5 ? 1.5 : val;
     trainSpeed = newTrainSpeed;
 }
 

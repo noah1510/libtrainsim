@@ -64,7 +64,7 @@ namespace libtrainsim{
             std::shared_ptr<libtrainsim::Video::texture> loadSnowflake(const std::filesystem::path& URI);
             
             //a simple multiplier to change the rate at which new snowflakes spawn
-            double weather_intensity = 0.1;
+            double weather_intensity = 0.50;
             
             //draws a snowflake to the output buffer if needed
             void drawSnowflake();
