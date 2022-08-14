@@ -1,5 +1,6 @@
 sources = [
     'src/snowFx.cpp',
+    'src/wiper.cpp',
 ]
 
 snowFxDeps = [
