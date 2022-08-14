@@ -179,8 +179,12 @@ void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {
                         currF++;
                     }
                     
+                    sakurajin::unit_system::base::time_si rendertime;
+                    for(auto time: times){
+                        rendertime += time;
+                    }
                     videoMutex.lock();
-                    libtrainsim::core::Helper::emplaceBack(newRenderTimes, times);
+                    newRenderTimes.emplace_back(rendertime);
                     videoMutex.unlock();
                     
                 }
