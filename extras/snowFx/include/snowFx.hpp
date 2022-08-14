@@ -22,7 +22,6 @@ namespace libtrainsim{
             std::vector< std::shared_ptr<libtrainsim::Video::texture> > snowflake_textures;
             
             //the shader for the opengl operations
-            std::shared_ptr<libtrainsim::Video::Shader> blitShader;
             std::shared_ptr<libtrainsim::Video::Shader> blurShader;
             std::shared_ptr<libtrainsim::Video::Shader> displacementShader;
             

@@ -13,13 +13,6 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     }
     
     //---------------load the shaders and textures---------------
-    //shaders
-    try{
-        blitShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"blit.vert",shaderLocation/"blit.frag");
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("Could not create blit shader"));
-    }
-    
     try{
         blurShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"blur.vert",shaderLocation/"blur.frag");
     }catch(...){
