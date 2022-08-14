@@ -23,7 +23,6 @@ namespace libtrainsim{
             
             //the shader for the opengl operations
             std::shared_ptr<libtrainsim::Video::Shader> blitShader;
-            std::shared_ptr<libtrainsim::Video::Shader> copyShader;
             std::shared_ptr<libtrainsim::Video::Shader> blurShader;
             std::shared_ptr<libtrainsim::Video::Shader> displacementShader;
             
@@ -38,9 +37,6 @@ namespace libtrainsim{
             
             //all of the displacement textures for various types of effects
             std::vector< std::shared_ptr<libtrainsim::Video::texture> > displacementTextures;
-            
-            //all of the other buffers needed for the shaders
-            unsigned int VBO = 0, VAO = 0, EBO = 0;
             
             //initialize random numbers
             std::mt19937_64 number_generator;
@@ -68,9 +64,6 @@ namespace libtrainsim{
             
             //draws a snowflake to the output buffer if needed
             void drawSnowflake();
-            
-            //copies the output buffer into the input buffer
-            void copy(std::shared_ptr<libtrainsim::Video::texture> src, std::shared_ptr<libtrainsim::Video::texture> dest, bool loadTexture = true);
             
             //blur a texture with a given amount of passes
             void blur(std::shared_ptr<libtrainsim::Video::texture> tex, uint64_t passes = 4);
