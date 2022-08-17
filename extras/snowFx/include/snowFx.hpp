@@ -6,6 +6,8 @@
 #include "texture.hpp"
 #include "shader.hpp"
 
+#include "wiper.hpp"
+
 #include "speed.hpp"
 
 #include <chrono>
@@ -72,6 +74,9 @@ namespace libtrainsim{
             
             //The current speed of the train. This modifies in interval in which new snowflakes are spawned.
             sakurajin::unit_system::common::speed trainSpeed;
+            
+            //the object to handle all of the wiper stuff
+            std::shared_ptr<wiper> wiperHandler;
             
           public:
             snowFx(const std::filesystem::path& shaderLocation, const std::filesystem::path& dataLocation);

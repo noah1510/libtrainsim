@@ -64,6 +64,13 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
         std::throw_with_nested(std::runtime_error("could not load snowflake textures"));
     }
     
+    //init the wiper
+    try{
+        wiperHandler = std::make_shared<libtrainsim::extras::wiper>(shaderLocation, dataLocation);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not create wiper"));
+    }
+    
     //---------------initialize the rng variables---------------
     std::random_device random_seed;
     number_generator = std::mt19937_64{random_seed()};
@@ -256,6 +263,7 @@ void libtrainsim::extras::snowFx::updateTexture() {
         blur(imageTexture, 2);
     }
     
+    wiperHandler->updateWiper(outputTexture);
     
 }
 
