@@ -256,14 +256,15 @@ void libtrainsim::extras::snowFx::updateTexture() {
         drawSnowflake();
     }else{
         //if no new snowflake has to be drawn just draw the previous fx layer
-        libtrainsim::Video::imguiHandler::copy(outputTexture, imageTexture);
+        libtrainsim::Video::imguiHandler::copy(imageTexture, outputTexture);
     }
     
-    if(distribution_copyBlur(number_generator) < 0.01){
-        blur(imageTexture, 2);
-    }
+    //if(distribution_copyBlur(number_generator) < 0.01){
+    //    blur(imageTexture, 2);
+    //}
     
-    wiperHandler->updateWiper(outputTexture);
+    wiperHandler->updateWiper(imageTexture);
+    wiperHandler->displayWiper(outputTexture);
     
 }
 
@@ -273,6 +274,7 @@ void libtrainsim::extras::snowFx::updateTrainSpeed ( sakurajin::unit_system::com
     //this guarantees that log2(val) > 0
     val = val < 1.5 ? 1.5 : val;
     trainSpeed = newTrainSpeed;
+    wiperHandler->setWiperSpeed(std::log2(trainSpeed.value-1.0));
 }
 
 

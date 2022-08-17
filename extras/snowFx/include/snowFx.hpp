@@ -62,6 +62,7 @@ namespace libtrainsim{
             
             //a simple multiplier to change the rate at which new snowflakes spawn
             double weather_intensity = 0.50;
+            //double weather_intensity = 10.0;
             
             //draws a snowflake to the output buffer if needed
             void drawSnowflake();
