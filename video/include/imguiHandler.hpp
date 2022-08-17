@@ -68,6 +68,7 @@ namespace libtrainsim{
             void copy_impl(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture);
             void loadShaders_impl(const std::filesystem::path& shaderLocation);
             void bindVAO_impl();
+            void drawRect_impl();
             
           public:
             static void init(){
@@ -123,6 +124,14 @@ namespace libtrainsim{
             
             static unsigned int getMaxTextureUnits(){
                 return static_cast<unsigned int>( getInstance().maxTextureUnits );
+            }
+            
+            static void drawRect(){
+                try{
+                    getInstance().drawRect_impl();
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Error drawing a rectange"));
+                }
             }
             
         };

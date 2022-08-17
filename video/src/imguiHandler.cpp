@@ -204,8 +204,7 @@ void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::
         copyShader->setUniform("sourceImage", 15);
     }
     
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    drawRect();
     
     //reset all of the buffers
     glBindVertexArray(0);
@@ -274,4 +273,15 @@ void libtrainsim::Video::imguiHandler::bindVAO_impl() {
     
     glBindVertexArray(VAO);
 }
+
+void libtrainsim::Video::imguiHandler::drawRect_impl() {
+    //thorw an error if shader are not loaded yet
+    if(!shaderLoaded){
+        throw std::runtime_error("load shader before using the shader parts");
+    }
+    
+    bindVAO();
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
 
