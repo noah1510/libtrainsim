@@ -13,10 +13,12 @@ namespace libtrainsim{
             float minRotation = 0.0;
             float maxRotation = 180.0;
             float currentRotation = 0.0;
+            float wiperSpeed = 0.5;
             bool turningLeft = true;
             
             std::shared_ptr<libtrainsim::Video::texture> wiperImage;
             std::shared_ptr<libtrainsim::Video::texture> wiperFBO;
+            std::shared_ptr<libtrainsim::Video::texture> wiperMask;
             
             std::shared_ptr<libtrainsim::Video::Shader> wiperShader;
             
@@ -24,7 +26,9 @@ namespace libtrainsim{
             wiper(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
             ~wiper();
             
+            void setWiperSpeed(float newSpeed);
             void updateWiper(std::shared_ptr<libtrainsim::Video::texture> outputImage);
+            void displayWiper(std::shared_ptr<libtrainsim::Video::texture> outputImage);
         };
     }
 }

@@ -15,6 +15,13 @@ libtrainsim::extras::wiper::wiper(const std::filesystem::path& shaderLocation, c
     }
     
     try{
+        wiperMask = std::make_shared<libtrainsim::Video::texture>();
+        wiperMask->createFramebuffer({3840,2160});
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not create wiper mask framebuffer"));
+    }
+    
+    try{
         wiperShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"wiper.frag");
         wiperShader->use();
         wiperShader->setUniform("img",0);
@@ -28,88 +35,86 @@ libtrainsim::extras::wiper::wiper(const std::filesystem::path& shaderLocation, c
 libtrainsim::extras::wiper::~wiper() {
 }
 
+void libtrainsim::extras::wiper::setWiperSpeed ( float newSpeed ) {
+    wiperSpeed = newSpeed;
+}
+
+
 void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Video::texture> outputImage ) {
-    //update the angle of the wiper
+    //--update the angle of the wiper--
     if(turningLeft){
-        currentRotation += .5;
+        currentRotation += wiperSpeed;
         if(currentRotation > maxRotation){
             currentRotation = maxRotation;
             turningLeft = false;
         }
     }else{
-        currentRotation -= .5;
+        currentRotation -= wiperSpeed;
         if(currentRotation < minRotation){
             currentRotation = minRotation;
             turningLeft = true;
         }
     }
     
-    //display the current output image in the background
-    //libtrainsim::Video::imguiHandler::copy(outputImage, wiperFBO);
-    
-    //display the wiper
-    wiperFBO->loadFramebuffer();
-    /*
-    glBindFramebuffer(GL_FRAMEBUFFER, wiperFBO->getFBO());
-    glViewport(0, 0, 3840, 2160);
-
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-        
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
-    glBlendEquation(GL_FUNC_ADD);
-    
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    */
-    
-    //get the shader from the imgui handler
-    //auto shader = libtrainsim::Video::imguiHandler::getCopyShader();
-    auto shader = wiperShader;
-    shader->use();
-    //shader->setUniform("sourceImage", 0);
-    
-    outputImage->bind(0);
-    auto mat = glm::mat4(1.0f);
-    shader->setUniform("transform", mat);
-    libtrainsim::Video::imguiHandler::drawRect();
+    //--render the wiper image onto the mask--
     
     //create the base transformation matrix
     
     glm::mat4 transform{1.0f};
-    glm::vec3 offset{0.5,0.5,0.0};
+    glm::vec3 offset{0.0,-0.5,0.0};
     
     //transform = glm::translate(transform, {0.5f,-0.50f,0.0f});
     
-    //transform = glm::translate(transform, -offset);
+    transform = glm::translate(transform, -offset);
     transform = glm::rotate(transform, -glm::radians(currentRotation), {0.0f,0.0f,1.0f});
     //transform = glm::rotate(transform, glm::radians(0.0f), {0.0f,0.0f,1.0f});
-    //transform = glm::translate(transform, offset);
+    transform = glm::translate(transform, offset);
+    
+    transform = glm::translate(transform, {0.5,0.0,0.0});
     transform = glm::scale(transform, {0.5f,0.5f,1.0f});
+    transform = glm::rotate(transform, glm::radians(180.0f), {0.0f,0.0f,1.0f});
+    transform = glm::scale(transform, {-1.0,1.0,0.0});
+    transform = wiperMask->getProjection() * transform;
     
-    //bind the wiper image and set the transformation
-    wiperImage->bind(1);
+    //copy the wiper onto the mask with the correct transformation
+    libtrainsim::Video::imguiHandler::copy(wiperImage, wiperMask, true, transform);
     
-    /*
-    auto orth = glm::ortho(
-        -1.0f, 
-        1.0f,
-        -1.0f,
-        1.0f,
-        -10.0f,
-        10.0f
-    );
-    orth = wiperFBO->getProjection();
-    */
-    transform = glm::inverse(transform);
-    shader->setUniform("maskTransform", transform);
+    //--display the wiper--
+    wiperFBO->loadFramebuffer();
+    
+    //get the shader from the imgui handler
+    wiperShader->use();
+    
+    auto mat = glm::mat4(1.0f);
+    wiperShader->setUniform("transform", mat);
+    
+    //bind the background and mask
+    outputImage->bind(0);
+    wiperMask->bind(1);
     
     //draw the wiper
     libtrainsim::Video::imguiHandler::drawRect();
     
-    //copy the results back into the output image
+    //--copy the results back into the output image--
     libtrainsim::Video::imguiHandler::copy(wiperFBO, outputImage);
     
 }
+
+void libtrainsim::extras::wiper::displayWiper ( std::shared_ptr<libtrainsim::Video::texture> outputImage ) {
+    outputImage->loadFramebuffer();
+    
+    auto shader = libtrainsim::Video::imguiHandler::getCopyShader();
+    shader->use();
+    wiperFBO->bind(0);
+    shader->setUniform("sourceImage",0);
+    libtrainsim::Video::imguiHandler::drawRect();
+    
+    wiperMask->bind(0);
+    glm::mat4 transform{1.0f};
+    transform = glm::scale(transform, {1.0,-1.0,0.0});
+    shader->setUniform("transform", transform);
+    libtrainsim::Video::imguiHandler::drawRect();
+    
+}
+
 
