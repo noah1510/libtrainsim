@@ -196,4 +196,17 @@ void libtrainsim::Video::texture::displayImGui() {
     ImGui::Image((void*)(intptr_t)textureID, ImVec2(imageSize.x(), imageSize.y()));
 }
 
+glm::mat4 libtrainsim::Video::texture::getProjection() noexcept {
+    auto [w,h] = getSize();
+    float camMult = 1/16.0;
+    auto orth = glm::ortho(
+        -1.0f, 
+        camMult * 9.0f * w / h,
+        -1.0f,
+        camMult * 16.0f * h / w,
+        -10.0f,
+        10.0f
+    );
+    return orth;
+}
 

@@ -45,6 +45,7 @@ namespace libtrainsim{
             void loadFramebuffer();
             unsigned int getFBO() const noexcept;
             void displayImGui();
+            glm::mat4 getProjection() noexcept;
             
             std::shared_mutex& getMutex() noexcept;
         };

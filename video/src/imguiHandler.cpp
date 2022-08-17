@@ -159,7 +159,7 @@ void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
         
-    glEnable(GL_BLEND);
+    //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glBlendEquation(GL_MAX);
     
@@ -280,7 +280,7 @@ void libtrainsim::Video::imguiHandler::drawRect_impl() {
         throw std::runtime_error("load shader before using the shader parts");
     }
     
-    bindVAO();
+    glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
