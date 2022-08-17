@@ -243,10 +243,6 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
 
 void libtrainsim::extras::snowFx::updateTexture() {
     
-    if(distribution_copyBlur(number_generator) < 0.01){
-        blur(imageTexture, 2);
-    }
-    
     auto dt = std::chrono::high_resolution_clock::now() - last_snowflake;
     if (dt > next_snowflake){
         //draw a new snowflake if needed
@@ -254,6 +250,10 @@ void libtrainsim::extras::snowFx::updateTexture() {
     }else{
         //if no new snowflake has to be drawn just draw the previous fx layer
         libtrainsim::Video::imguiHandler::copy(outputTexture, imageTexture);
+    }
+    
+    if(distribution_copyBlur(number_generator) < 0.01){
+        blur(imageTexture, 2);
     }
     
     
