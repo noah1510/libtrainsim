@@ -9,8 +9,9 @@ namespace libtrainsim{
     namespace extras{
         class wiper{
         private:
+            //all angles in degrees
             float minRotation = 0.0;
-            float maxRotation = glm::pi<float>();
+            float maxRotation = 180.0;
             float currentRotation = 0.0;
             bool turningLeft = true;
             
@@ -23,7 +24,7 @@ namespace libtrainsim{
             wiper(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
             ~wiper();
             
-            void updateWiper(libtrainsim::Video::texture& outputImage);
+            void updateWiper(std::shared_ptr<libtrainsim::Video::texture> outputImage);
         };
     }
 }
