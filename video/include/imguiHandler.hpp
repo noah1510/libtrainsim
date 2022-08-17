@@ -122,16 +122,23 @@ namespace libtrainsim{
                 }
             }
             
+            //get the maxmimum number of textures in a texture unit
             static unsigned int getMaxTextureUnits(){
                 return static_cast<unsigned int>( getInstance().maxTextureUnits );
             }
             
+            //draw a rectange using the bound shader, FBO and texture
             static void drawRect(){
                 try{
                     getInstance().drawRect_impl();
                 }catch(...){
                     std::throw_with_nested(std::runtime_error("Error drawing a rectange"));
                 }
+            }
+            
+            
+            static std::shared_ptr<Shader> getCopyShader(){
+                return getInstance().copyShader;
             }
             
         };
