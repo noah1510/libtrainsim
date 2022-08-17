@@ -171,7 +171,7 @@ void libtrainsim::Video::imguiHandler::updateRenderThread_impl() {
     SDL_GL_MakeCurrent(window, gl_context);
 }
 
-void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::Video::texture> src, std::shared_ptr<libtrainsim::Video::texture> dest, bool loadTexture ) {
+void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::Video::texture> src, std::shared_ptr<libtrainsim::Video::texture> dest, bool loadTexture, glm::mat4 transformation ) {
     
     //thorw an error if shader are not loaded yet
     if(!shaderLoaded){
@@ -196,7 +196,7 @@ void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::
         -10.0f,
         10.0f
     );
-    copyShader->setUniform("transform", orth);
+    copyShader->setUniform("transform", orth * transformation);
     
     if(loadTexture){
         src->bind(15);

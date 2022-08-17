@@ -65,7 +65,7 @@ namespace libtrainsim{
             void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture, dimensions dims );
             void loadFramebuffer_impl ( unsigned int buf, dimensions dims );
             void updateRenderThread_impl();
-            void copy_impl(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture);
+            void copy_impl(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture, glm::mat4 transformation);
             void loadShaders_impl(const std::filesystem::path& shaderLocation);
             void bindVAO_impl();
             void drawRect_impl();
@@ -96,9 +96,9 @@ namespace libtrainsim{
             }
             
             //copies the output buffer into the input buffer
-            static void copy(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture = true){
+            static void copy(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture = true, glm::mat4 transformation = glm::mat4(1.0f)){
                 try{
-                    getInstance().copy_impl(src, dest, loadTexture);
+                    getInstance().copy_impl(src, dest, loadTexture, transformation);
                 }catch(...){
                     std::throw_with_nested(std::runtime_error("Error copying textrue into frambuffer"));
                 }
