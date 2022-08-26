@@ -58,12 +58,6 @@ namespace libtrainsim {
                 std::unique_ptr<videoReader> decode = nullptr;
                 
                 /**
-                * @brief the name of the window for the simulator
-                * 
-                */
-                std::string windowName = "trainsim";
-                
-                /**
                  * The raw pixel data of the decoded frame
                  */
                 std::vector<uint8_t> frame_data;

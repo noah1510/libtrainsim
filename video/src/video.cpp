@@ -11,14 +11,15 @@ libtrainsim::Video::videoManager::videoManager(){
 }
 
 libtrainsim::Video::videoManager::~videoManager(){
-    
+    std::cout << "locking video manager to prevent draw calls while destroying" << std::endl;
     std::scoped_lock<std::shared_mutex> lock{videoMutex};
     
     try{
+        std::cout << "waiting for queued frame to render" << std::endl;
         nextFrame.wait();
     }catch(...){}
     
-    std::cout << "video manager for window '" << windowName << "' was destroyed" << std::endl;
+    std::cout << "video manager for window '" << currentWindowName << "' was destroyed" << std::endl;
 }
 
 void libtrainsim::Video::videoManager::load(const std::filesystem::path& uri){
