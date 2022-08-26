@@ -14,7 +14,7 @@ namespace libtrainsim{
             float maxRotation = 180.0;
             float currentRotation = 0.0;
             float wiperSpeed = 0.5;
-            bool turningLeft = true;
+            bool turningLeft = false;
             
             std::shared_ptr<libtrainsim::Video::texture> wiperImage;
             std::shared_ptr<libtrainsim::Video::texture> wiperFBO;
