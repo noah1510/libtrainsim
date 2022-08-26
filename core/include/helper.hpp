@@ -191,6 +191,15 @@ namespace libtrainsim{
                 destination.insert(destination.end(), source.begin(), source.end());
             }
             
+            template <typename T>
+            static bool isRoughly(T value1, T value2, T precision = 0.001){
+                auto high = std::max(value1, value2);
+                auto low = std::min(value1, value2);
+                auto epsilon = high*precision;
+                
+                return high-low < epsilon;
+            }
+            
         };
     }
 }
