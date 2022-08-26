@@ -54,7 +54,7 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     
     try{
         //adding all of the displacement textures        
-        for(int i = 0; i < 2; i++){
+        for(int i = 0; i < 3; i++){
             std::stringstream URI{};
             URI << "displacement-" << i << ".tif";
             auto disTex = std::make_shared<libtrainsim::Video::texture>(dataLocation/URI.str());
@@ -124,7 +124,7 @@ std::shared_ptr<libtrainsim::Video::texture> libtrainsim::extras::snowFx::loadSn
     return flake_tex;
 }
 
-void libtrainsim::extras::snowFx::blur ( std::shared_ptr<libtrainsim::Video::texture> tex, uint64_t passes ) {
+void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<libtrainsim::Video::texture> output, std::shared_ptr<libtrainsim::Video::texture> input) {
     if(!tex->hasFramebuffer()){
         throw std::invalid_argument("the texture cannot be blured since it has no framebuffer to be rendered into.");
     }
@@ -167,7 +167,7 @@ void libtrainsim::extras::snowFx::blur ( std::shared_ptr<libtrainsim::Video::tex
 
 void libtrainsim::extras::snowFx::drawSnowflake() {
     glm::mat4 projection = glm::mat4(1.0f);
-    
+    loadFramebuffer(output);
     //render the new snowflake into the output framebuffer
     loadFramebuffer(outputTexture);
     
@@ -177,18 +177,26 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
     displacementShader->setUniform("transform", projection);
     
     //load the fx layer as background
-    imageTexture->bind(0);
+    input->bind(0);
     displacementShader->setUniform("img", 0);
     
-    //load the displacement texture
-    displacementTextures[1]->bind(1);
+    //load move down displacment texture
+    displacementTextures[2]->bind(1);
     displacementShader->setUniform("displacement", 1);
     
     //set the displacement to 0, to not move the fx layer
-    displacementShader->setUniform("multiplier", 0.0f);
+    displacementShader->setUniform("multiplier", 0.003f);
     
     libtrainsim::Video::imguiHandler::bindVAO();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+
+void libtrainsim::extras::snowFx::drawSnowflake() {
+    copyMoveDown(outputTexture, imageTexture);
+    
+    //load the actual displacement map
+    displacementTextures[1]->bind(1);
     
     //draw the snowflake
     auto flake = snowflake_textures[ distribution_image(number_generator) ];
@@ -201,6 +209,7 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
     displacementShader->setUniform("multiplier", displacementStrength);
     
     //create the transformation matrix for the new snowflake
+    glm::mat4 projection = glm::mat4(1.0f);
     projection = glm::translate(
         projection, 
         glm::vec3(
@@ -256,12 +265,8 @@ void libtrainsim::extras::snowFx::updateTexture() {
         drawSnowflake();
     }else{
         //if no new snowflake has to be drawn just draw the previous fx layer
-        libtrainsim::Video::imguiHandler::copy(imageTexture, outputTexture);
+        copyMoveDown(outputTexture, imageTexture);
     }
-    
-    //if(distribution_copyBlur(number_generator) < 0.01){
-    //    blur(imageTexture, 2);
-    //}
     
     wiperHandler->updateWiper(imageTexture);
     wiperHandler->displayWiper(outputTexture);

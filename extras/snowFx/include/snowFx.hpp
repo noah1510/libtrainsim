@@ -67,8 +67,8 @@ namespace libtrainsim{
             //draws a snowflake to the output buffer if needed
             void drawSnowflake();
             
-            //blur a texture with a given amount of passes
-            void blur(std::shared_ptr<libtrainsim::Video::texture> tex, uint64_t passes = 4);
+            //a version of the copy shader that also slightly moves the image down
+            void copyMoveDown(std::shared_ptr<libtrainsim::Video::texture> output, std::shared_ptr<libtrainsim::Video::texture> input);
             
             //load a framebuffer with the wanted loader settigns
             void loadFramebuffer(std::shared_ptr<libtrainsim::Video::texture> buf);
