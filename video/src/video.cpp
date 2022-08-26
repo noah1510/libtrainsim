@@ -13,11 +13,15 @@ libtrainsim::Video::videoManager::videoManager(){
 libtrainsim::Video::videoManager::~videoManager(){
     std::cout << "locking video manager to prevent draw calls while destroying" << std::endl;
     std::scoped_lock<std::shared_mutex> lock{videoMutex};
+    windowFullyCreated = false;
     
     try{
         std::cout << "waiting for queued frame to render" << std::endl;
         nextFrame.wait();
     }catch(...){}
+    
+    std::cout << "destroying video decoder" << std::endl;
+    decode.reset();
     
     std::cout << "video manager for window '" << currentWindowName << "' was destroyed" << std::endl;
 }
@@ -166,9 +170,9 @@ void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {
                 if(diff > 120){
                     auto time = decode->seekFrame(nextF);
                     
-                    videoMutex.lock();
+                    renderTimeMutex.lock();
                     newRenderTimes.emplace_back(time);
-                    videoMutex.unlock();
+                    renderTimeMutex.unlock();
                 
                 }else{
                     bool working = true;
@@ -184,9 +188,9 @@ void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {
                     for(auto time: times){
                         rendertime += time;
                     }
-                    videoMutex.lock();
+                    renderTimeMutex.lock();
                     newRenderTimes.emplace_back(rendertime);
-                    videoMutex.unlock();
+                    renderTimeMutex.unlock();
                     
                 }
             }catch(const std::exception& e){
@@ -344,10 +348,10 @@ void libtrainsim::Video::videoManager::removeTexture ( const std::string& textur
 }
 
 std::optional<std::vector<sakurajin::unit_system::base::time_si>> libtrainsim::Video::videoManager::getNewRendertimes() {
-    videoMutex.lock();
+    renderTimeMutex.lock();
     auto times = newRenderTimes;
     newRenderTimes.clear();
-    videoMutex.unlock();
+    renderTimeMutex.unlock();
     
     if(times.size() > 0){
         return std::make_optional(times);
