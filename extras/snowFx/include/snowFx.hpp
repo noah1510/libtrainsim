@@ -24,7 +24,6 @@ namespace libtrainsim{
             std::vector< std::shared_ptr<libtrainsim::Video::texture> > snowflake_textures;
             
             //the shader for the opengl operations
-            std::shared_ptr<libtrainsim::Video::Shader> blurShader;
             std::shared_ptr<libtrainsim::Video::Shader> displacementShader;
             
             //the texture for the image output
@@ -49,7 +48,6 @@ namespace libtrainsim{
             std::uniform_real_distribution<> distribution_size;
             std::uniform_real_distribution<> distribution_rotation;
             std::uniform_real_distribution<> distribution_deltaT;
-            std::uniform_real_distribution<> distribution_copyBlur;
             std::uniform_real_distribution<> distribution_displacementStrength;
             
             //a time difference since the last snowflake to indicate when the next should be shown

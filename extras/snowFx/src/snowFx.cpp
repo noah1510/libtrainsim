@@ -14,12 +14,6 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     
     //---------------load the shaders and textures---------------
     try{
-        blurShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"blur.vert",shaderLocation/"blur.frag");
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("Could not create blur shader"));
-    }
-    
-    try{
         displacementShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"displacement.vert",shaderLocation/"displacement.frag");
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create displacement shader"));
@@ -45,7 +39,6 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
             std::stringstream URI{};
             URI << "snowflake-" << i << ".tif";
             auto flake = loadSnowflake(dataLocation/URI.str());
-            //blur(flake);
             snowflake_textures.emplace_back(flake);
         }
     }catch(...){
@@ -81,7 +74,6 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     distribution_size = std::uniform_real_distribution<>{0.01,0.025};
     distribution_rotation = std::uniform_real_distribution<> {0.0, 2*std::acos(0.0)};
     distribution_deltaT = std::uniform_real_distribution<> {0.5, 2.0};
-    distribution_copyBlur = std::uniform_real_distribution<> {0.0, 100.0};
     distribution_displacementStrength = std::uniform_real_distribution<> {1.25, 2.25};
     
     updateTrainSpeed(0.0_mps);
@@ -116,60 +108,16 @@ std::shared_ptr<libtrainsim::Video::texture> libtrainsim::extras::snowFx::loadSn
     auto flake = std::make_shared<libtrainsim::Video::texture>();
     flake->createFramebuffer(flake_tex->getSize());
     
-    //copy the texture into the framebuffer and then blur the framebuffer
+    //copy the texture into the framebuffer
     libtrainsim::Video::imguiHandler::copy(flake_tex, flake);
-    blur(flake, 20);
     
     //return the framebuffer texture.
     return flake_tex;
 }
 
 void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<libtrainsim::Video::texture> output, std::shared_ptr<libtrainsim::Video::texture> input) {
-    if(!tex->hasFramebuffer()){
-        throw std::invalid_argument("the texture cannot be blured since it has no framebuffer to be rendered into.");
-    }
-    
-    blurShader->use();
-    
-    blurTexture->bind(14);
-    tex->bind(15);
-    
-    libtrainsim::Video::imguiHandler::bindVAO();
-    
-    auto resolution = glm::vec2{3840.0f, 2160.0f};
-    glm::vec2 off1x = glm::vec2(1.3846153846) * glm::vec2(1.0,0.0) / resolution;
-    glm::vec2 off1y = glm::vec2(1.3846153846) * glm::vec2(0.0,1.0) / resolution;
-    glm::vec2 off2x = glm::vec2(3.2307692308) * glm::vec2(1.0,0.0) / resolution;
-    glm::vec2 off2y = glm::vec2(3.2307692308) * glm::vec2(0.0,1.0) / resolution;
-    
-    uint64_t i = 0;
-    do{
-        //blur into blur fbo
-        loadFramebuffer(blurTexture);
-        
-        blurShader->setUniform("sourceImage", 15);
-        blurShader->setUniform("off1", off1x);
-        blurShader->setUniform("off2", off2x);
-        
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        
-        //blur into output fbo
-        loadFramebuffer(tex);
-        
-        blurShader->setUniform("sourceImage", 14);
-        blurShader->setUniform("off1", off1y);
-        blurShader->setUniform("off2", off2y);
-        
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        i++;
-    }while(i < passes/2);
-}
-
-void libtrainsim::extras::snowFx::drawSnowflake() {
     glm::mat4 projection = glm::mat4(1.0f);
     loadFramebuffer(output);
-    //render the new snowflake into the output framebuffer
-    loadFramebuffer(outputTexture);
     
     displacementShader->use();
     
