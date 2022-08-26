@@ -74,6 +74,7 @@ namespace libtrainsim {
                 
                 std::vector< std::shared_ptr<texture> > displayTextures;
                 
+                std::shared_mutex renderTimeMutex;
                 std::vector<sakurajin::unit_system::base::time_si> newRenderTimes;
 
             public:
