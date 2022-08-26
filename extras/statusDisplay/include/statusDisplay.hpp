@@ -12,6 +12,7 @@
 
 #include "input_axis.hpp"
 #include "helper.hpp"
+#include "statusDisplayGraph.hpp"
 
 namespace libtrainsim{
     namespace extras{
@@ -20,11 +21,8 @@ namespace libtrainsim{
             ImVec4 textColor{0.7,1,0.7,1};
             bool my_tool_active = false;
             
-            const static size_t frametimeValues = 100;
-            const static size_t rendertimeValues = 100;
+            std::vector<statusDisplayGraph<100>> graphs; 
             
-            std::array<float, frametimeValues> frametimes;
-            std::array<float, rendertimeValues> rendertimes;
             ImGuiIO& io();
             
             sakurajin::unit_system::base::length currentPosition;
@@ -55,6 +53,10 @@ namespace libtrainsim{
             void setAcceleration(sakurajin::unit_system::common::acceleration newAcceleration);
             
             void setVelocity(sakurajin::unit_system::common::speed newVelocity);
+            
+            void createCustomGraph(std::string graphName, std::string tooltipMessage);
+            void removeGraph(std::string graphName);
+            void appendToGraph(std::string graphName, float value);
         };
     }
 }

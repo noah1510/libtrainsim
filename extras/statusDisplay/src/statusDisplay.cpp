@@ -5,12 +5,6 @@ using namespace sakurajin::unit_system::common::literals;
 
 libtrainsim::extras::statusDisplay::statusDisplay(){
     libtrainsim::Video::imguiHandler::init();
-    for(auto& x : frametimes){
-        x = 0;
-    }
-    for(auto& x : rendertimes){
-        x = 0;
-    }
     
     currentAcceleration = 0_mps2;
     currentVelocity = 0_mps;
@@ -19,6 +13,9 @@ libtrainsim::extras::statusDisplay::statusDisplay(){
     endPosition = 0_m;
     
     currentSpeedLevel = 0;
+    
+    graphs.emplace_back(statusDisplayGraph<100>{"frametimes", "A Graph with the last 100 frametimes"});
+    graphs.emplace_back(statusDisplayGraph<100>{"rendertimes", "A Graph with the last 100 rendertimes"});
 }
 
 ImGuiIO & libtrainsim::extras::statusDisplay::io() {
@@ -53,16 +50,17 @@ void libtrainsim::extras::statusDisplay::update() {
     ImGui::Begin("Status Window", &my_tool_active, ImGuiWindowFlags_MenuBar);
 
         // Plot the frametimes
-        ImGui::PlotLines("Frame Times", frametimes.data(), frametimeValues);
-        ImGui::PlotLines("Render Times", rendertimes.data(), rendertimeValues);
+        for(auto& graph:graphs){
+            graph.display();
+        }
         
         ImGui::BeginChild("Status Text");
             ImGui::TextColored(textColor, "current Position: %Lfm / %LFm", currentPosition.value, endPosition.value);
             ImGui::TextColored(textColor, "current Velocity: %Lf km/h", currentVelocity.value);
             ImGui::TextColored(textColor, "current Acceleration: %Lf m/s²", currentAcceleration.value);
             ImGui::TextColored(textColor, "current SpeedLevel: %Lf", currentSpeedLevel.get());
-            ImGui::TextColored(textColor, "current Frametime: %f ms", frametimes[frametimeValues-1]);
-            ImGui::TextColored(textColor, "current Rendertime: %f ms", rendertimes[rendertimeValues-1]);
+            ImGui::TextColored(textColor, "current Frametime: %f ms", graphs[0].getLatest());
+            ImGui::TextColored(textColor, "current Rendertime: %f ms", graphs[1].getLatest());
         ImGui::EndChild();
 
     ImGui::End();
@@ -71,12 +69,12 @@ void libtrainsim::extras::statusDisplay::update() {
 
 void libtrainsim::extras::statusDisplay::appendFrametime ( sakurajin::unit_system::base::time_si frametime ) {
     frametime = sakurajin::unit_system::unit_cast(frametime, sakurajin::unit_system::prefix::milli);
-    libtrainsim::core::Helper::appendValue<float,frametimeValues>(frametimes,frametime.value);
+    graphs[0].appendValue(frametime.value);
 }
 
 void libtrainsim::extras::statusDisplay::appendRendertime ( sakurajin::unit_system::base::time_si rendertime ) {
     rendertime = sakurajin::unit_system::unit_cast(rendertime, sakurajin::unit_system::prefix::milli);
-    libtrainsim::core::Helper::appendValue<float,rendertimeValues>(rendertimes,rendertime.value);
+    graphs[1].appendValue(rendertime.value);
 }
 
 
@@ -98,5 +96,41 @@ void libtrainsim::extras::statusDisplay::setVelocity ( sakurajin::unit_system::c
 
 void libtrainsim::extras::statusDisplay::setSpeedLevel ( core::input_axis newSpeedLevel ) {
     currentSpeedLevel = newSpeedLevel;
+}
+
+void libtrainsim::extras::statusDisplay::createCustomGraph ( std::string graphName, std::string tooltipMessage ) {
+    for(auto& graph: graphs){
+        if(graph.getName() == graphName){
+            throw std::invalid_argument("A graph with the given name already exists!");
+        }
+    }
+    
+    graphs.emplace_back(statusDisplayGraph<100>{graphName,tooltipMessage});
+}
+
+void libtrainsim::extras::statusDisplay::removeGraph ( std::string graphName ) {
+    if(graphName == "frametimes" || graphName == "rendertimes"){
+        throw std::invalid_argument("render and frame times may not be removed!");
+    }
+    
+    for(auto i = graphs.begin(); i < graphs.end(); i++){
+        if((*i).getName() == graphName){
+            graphs.erase(i);
+            return;
+        }
+    }
+    
+    throw std::invalid_argument("no graph with this name exists");
+}
+
+void libtrainsim::extras::statusDisplay::appendToGraph ( std::string graphName, float value ) {
+    for(auto& graph: graphs){
+        if(graph.getName() == graphName){
+            graph.appendValue(value);
+            return;
+        }
+    }
+    
+    throw std::invalid_argument("no graph with this name exists");
 }
 
