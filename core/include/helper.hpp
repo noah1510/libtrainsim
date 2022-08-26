@@ -193,11 +193,14 @@ namespace libtrainsim{
             
             template <typename T>
             static bool isRoughly(T value1, T value2, T precision = 0.001){
-                auto high = std::max(value1, value2);
-                auto low = std::min(value1, value2);
-                auto epsilon = high*precision;
+                bool val1Larger = std::abs(value1) > std::abs(value2);
+                auto epsilon = std::abs( val1Larger ? value1 : value2 ) * precision;
                 
-                return high-low < epsilon;
+                if(val1Larger){
+                    return std::abs(value1) - std::abs(value2) < epsilon;
+                }else{
+                    return std::abs(value2) - std::abs(value1) < epsilon;
+                }
             }
             
         };
