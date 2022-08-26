@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include "helper.hpp"
 
 namespace libtrainsim{
     namespace core{
@@ -25,7 +26,7 @@ namespace libtrainsim{
              * 
              * @param other the value the axis should have now.
              */
-            clampedVariable(const clampedVariable<T>& other) noexcept = default;
+            clampedVariable(const clampedVariable<T>& other) noexcept;
             
             /**
              * @brief Just assign any double to it and the value will be automatically clamped.
@@ -55,6 +56,8 @@ namespace libtrainsim{
              */
             T get() const noexcept;
             
+            bool isRoughly(const T& val) const noexcept;
+            bool isRoughly(const clampedVariable<T>& other) const noexcept;
 
             void operator+=(T val) noexcept;
             void operator-=(T val) noexcept;
@@ -101,6 +104,10 @@ libtrainsim::core::clampedVariable<T>::clampedVariable ( T _lower, T _higher, T 
 }
 
 template<typename T>
+libtrainsim::core::clampedVariable<T>::clampedVariable ( const clampedVariable<T>& other ) noexcept : clampedVariable<T>{other.lower, other.higher, other.get()} {}
+
+
+template<typename T>
 void libtrainsim::core::clampedVariable<T>::operator= ( T newVal ) noexcept {
     set(newVal);
 }
@@ -110,6 +117,15 @@ void libtrainsim::core::clampedVariable<T>::operator= ( const clampedVariable<T>
     set(other.get());
 }
 
+
+template<typename T>
+bool libtrainsim::core::clampedVariable<T>::isRoughly ( const T& val ) const noexcept {
+    return libtrainsim::core::Helper::isRoughly<T>(value, val);
+}
+
+template<typename T> bool libtrainsim::core::clampedVariable<T>::isRoughly ( const clampedVariable<T>& other ) const noexcept {
+    return isRoughly(other.get());
+}
 
 template<typename T>
 void libtrainsim::core::clampedVariable<T>::set ( T newVal ) noexcept {
