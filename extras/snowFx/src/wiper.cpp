@@ -68,17 +68,37 @@ glm::mat4 libtrainsim::extras::wiper::getWiperTransform() const {
     return orth*transform*coreTransform;
 }
 
+void libtrainsim::extras::wiper::wiperMaskClear() {
+    wiperMask->loadFramebuffer();
+    auto shader = libtrainsim::Video::imguiHandler::getCopyShader();
+    shader->use();
+    shader->setUniform("sourceImage",0);
+}
+
+void libtrainsim::extras::wiper::updateWiperMask() {
+    auto shader = libtrainsim::Video::imguiHandler::getCopyShader();
+    
+    wiperImage->bind(0);
+    auto transform = getWiperTransform();
+    shader->setUniform("transform", transform);
+    libtrainsim::Video::imguiHandler::drawRect();
+    
+}
+
 
 void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Video::texture> outputImage ) {
     //--update the angle of the wiper--
     libtrainsim::core::clampedVariable<float> nextRot = currentRotation;
+    
+    //clear the wiper mask before updating it
+    wiperMaskClear();
     
     if(turningLeft){
         nextRot += wiperSpeed;
         
         while(currentRotation < nextRot){
             currentRotation += rotationPrecision;
-            //todo add rotation part to mask
+            updateWiperMask();
         }
         
         if(currentRotation.isRoughly(maxRotation)){
@@ -90,7 +110,7 @@ void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Vide
         
         while(currentRotation > nextRot){
             currentRotation -= rotationPrecision;
-            //todo add rotation part to mask
+            updateWiperMask();
         }
         
         if(currentRotation.isRoughly(minRotation)){
@@ -101,19 +121,14 @@ void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Vide
     
     //--render the wiper image onto the mask--
     
-    //create the base transformation matrix
-    
-    auto transform = getWiperTransform();
-    
-    //copy the wiper onto the mask with the correct transformation
-    libtrainsim::Video::imguiHandler::copy(wiperImage, wiperMask, true, transform);
-    
-    //--display the wiper--
+    //--wiper buffer--
     wiperFBO->loadFramebuffer();
     
-    //get the shader from the imgui handler
+    //activate the wiper shader
     wiperShader->use();
     
+    //set the transformation matrix for a 1:1 copy
+    //this assumes that all images are 16:9
     auto mat = glm::mat4(1.0f);
     wiperShader->setUniform("transform", mat);
     
@@ -121,7 +136,7 @@ void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Vide
     outputImage->bind(0);
     wiperMask->bind(1);
     
-    //draw the wiper
+    //draw the mask onto the snow
     libtrainsim::Video::imguiHandler::drawRect();
     
     //--copy the results back into the output image--
@@ -138,9 +153,8 @@ void libtrainsim::extras::wiper::displayWiper ( std::shared_ptr<libtrainsim::Vid
     shader->setUniform("sourceImage",0);
     libtrainsim::Video::imguiHandler::drawRect();
     
-    wiperMask->bind(0);
-    glm::mat4 transform{1.0f};
-    transform = glm::scale(transform, {1.0,-1.0,0.0});
+    wiperImage->bind(0);
+    auto transform = getWiperTransform();
     shader->setUniform("transform", transform);
     libtrainsim::Video::imguiHandler::drawRect();
     

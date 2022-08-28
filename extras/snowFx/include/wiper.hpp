@@ -14,7 +14,7 @@ namespace libtrainsim{
             float minRotation = 0.0;
             float maxRotation = 180.0;
             libtrainsim::core::clampedVariable<float> currentRotation;
-            float rotationPrecision = 0.1;
+            float rotationPrecision = 0.25;
             float wiperSpeed = 0.5;
             bool turningLeft = true;
             
@@ -29,6 +29,9 @@ namespace libtrainsim{
             glm::mat4 coreTransform;
             
             glm::mat4 getWiperTransform() const;
+            
+            void wiperMaskClear();
+            void updateWiperMask();
             
         public:
             wiper(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
