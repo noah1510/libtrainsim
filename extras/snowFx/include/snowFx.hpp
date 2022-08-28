@@ -77,6 +77,8 @@ namespace libtrainsim{
             //the object to handle all of the wiper stuff
             std::shared_ptr<wiper> wiperHandler;
             
+            glm::mat4 getSnowflakeTransformation();
+            
           public:
             snowFx(const std::filesystem::path& shaderLocation, const std::filesystem::path& dataLocation);
             

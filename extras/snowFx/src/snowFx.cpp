@@ -69,7 +69,7 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     number_generator = std::mt19937_64{random_seed()};
     
     distribution_image = std::uniform_int_distribution<>{0, static_cast<int>(snowflake_textures.size()-1)};
-    distribution_x = std::uniform_real_distribution<>{-1.1, 1.0};
+    distribution_x = std::uniform_real_distribution<>{-1.5, 1.5};
     distribution_y = std::uniform_real_distribution<>{-1.1, 1.0};
     distribution_size = std::uniform_real_distribution<>{0.01,0.025};
     distribution_rotation = std::uniform_real_distribution<> {0.0, 2*std::acos(0.0)};
@@ -139,23 +139,7 @@ void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<libtrainsim::Vide
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-
-void libtrainsim::extras::snowFx::drawSnowflake() {
-    copyMoveDown(outputTexture, imageTexture);
-    
-    //load the actual displacement map
-    displacementTextures[1]->bind(1);
-    
-    //draw the snowflake
-    auto flake = snowflake_textures[ distribution_image(number_generator) ];
-    flake->bind(0);
-    
-    //set the displacement multiplier to a random number
-    //the 150 is an arbitray value, it is supposed to be close to the maximum speed of the train
-    //the faster the train is the more mashed up the snowflakes are
-    float displacementStrength = distribution_displacementStrength(number_generator) * 0.1 * std::log2(trainSpeed.value);
-    displacementShader->setUniform("multiplier", displacementStrength);
-    
+glm::mat4 libtrainsim::extras::snowFx::getSnowflakeTransformation() {
     //create the transformation matrix for the new snowflake
     glm::mat4 projection = glm::mat4(1.0f);
     projection = glm::translate(
@@ -177,22 +161,42 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
     projection = glm::scale(
         projection, 
         glm::vec3(size, size, 1.0)
-    );
+    );    
     
     //create the projection matrix for to handle some buffer issues
-    float camMult = 1/16.0;
-    auto [w,h] = outputTexture->getSize();
+    constexpr float halfScreenWidth = (16.0f/9.0f + 1.0f)/2.0f;
     auto orth = glm::ortho(
-        -1.0f, 
-        camMult * 9.0f * w / h,
+        -halfScreenWidth, 
+        halfScreenWidth,
         -1.0f,
-        camMult * 16.0f * h / w,
+        1.0f,
         -10.0f,
         10.0f
     );
     
-    displacementShader->setUniform("transform", orth * projection);
+    return orth * projection;
+}
+
+void libtrainsim::extras::snowFx::drawSnowflake() {
     
+    //load the actual displacement map
+    displacementTextures[1]->bind(1);
+    
+    //draw the snowflake
+    auto flake = snowflake_textures[ distribution_image(number_generator) ];
+    flake->bind(0);
+    
+    //set the displacement multiplier to a random number
+    //the 150 is an arbitray value, it is supposed to be close to the maximum speed of the train
+    //the faster the train is the more mashed up the snowflakes are
+    float displacementStrength = distribution_displacementStrength(number_generator) * 0.1 * std::log2(trainSpeed.value);
+    displacementShader->setUniform("multiplier", displacementStrength);
+    
+    //set the transformation for the snowflake
+    auto transform = getSnowflakeTransformation();
+    displacementShader->setUniform("transform", transform);
+    
+    //actually draw the next snowflake
     libtrainsim::Video::imguiHandler::bindVAO();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     
@@ -200,23 +204,27 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
     last_snowflake = std::chrono::high_resolution_clock::now();
     auto multiplier = distribution_deltaT(number_generator) / (weather_intensity * std::log2(trainSpeed.value));
     next_snowflake = 1000ms * static_cast<long>( multiplier );
-
-    //copy the result back into the input framebuffer
-    libtrainsim::Video::imguiHandler::copy(outputTexture, imageTexture);
 }
 
 void libtrainsim::extras::snowFx::updateTexture() {
     
+    //copy the snowflake layer onto the output
+    copyMoveDown(outputTexture, imageTexture);
+    
+    //draw new snowflak(s) if needed
     auto dt = std::chrono::high_resolution_clock::now() - last_snowflake;
     if (dt > next_snowflake){
         //draw a new snowflake if needed
         drawSnowflake();
-    }else{
-        //if no new snowflake has to be drawn just draw the previous fx layer
-        copyMoveDown(outputTexture, imageTexture);
     }
     
+    //wipe where the wiper is
     wiperHandler->updateWiper(imageTexture);
+    
+    //display the wiped snowflake layer
+    copyMoveDown(outputTexture, imageTexture);
+    
+    //display the wiper with its current position
     wiperHandler->displayWiper(outputTexture);
     
 }
