@@ -1,6 +1,6 @@
 #include "wiper.hpp"
 
-libtrainsim::extras::wiper::wiper(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation){
+libtrainsim::extras::wiper::wiper(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation):currentRotation(minRotation,maxRotation,0.0){
     try{
         wiperImage = std::make_shared<libtrainsim::Video::texture>(textureLocation/"wiper.tif");
     }catch(...){
@@ -30,51 +30,80 @@ libtrainsim::extras::wiper::wiper(const std::filesystem::path& shaderLocation, c
         std::throw_with_nested(std::runtime_error("Could not create wiper shader."));
     }
     
+    coreTransform = glm::mat4{1.0f};
+    
+    coreTransform = glm::translate(coreTransform, {wiperScaling/2,0.0,0.0});
+    coreTransform = glm::scale(coreTransform, {wiperScaling,wiperScaling,1.0f});
+    coreTransform = glm::rotate(coreTransform, glm::radians(180.0f), {0.0f,0.0f,1.0f});
+    coreTransform = glm::scale(coreTransform, {-1.0,1.0,0.0});
 }
 
 libtrainsim::extras::wiper::~wiper() {
+    
 }
 
 void libtrainsim::extras::wiper::setWiperSpeed ( float newSpeed ) {
     wiperSpeed = newSpeed;
 }
 
+glm::mat4 libtrainsim::extras::wiper::getWiperTransform() const {
+    glm::mat4 transform{1.0f};
+    glm::vec3 offset{wiperScaling/2,-wiperScaling,0.0};
+    
+    transform = glm::translate(transform, {wiperScaling/4.0f,wiperScaling/4.0f,0.0f});
+    
+    transform = glm::translate(transform, -offset);
+    transform = glm::rotate(transform, -glm::radians(currentRotation.get()), {0.0f,0.0f,1.0f});
+    transform = glm::translate(transform, offset);
+    constexpr float halfScreenWidth = (16.0f/9.0f + 1.0f)/2.0f;
+    auto orth = glm::ortho(
+        -halfScreenWidth, 
+        halfScreenWidth,
+        -1.0f,
+        1.0f,
+        -10.0f,
+        10.0f
+    );
+    
+    return orth*transform*coreTransform;
+}
+
 
 void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Video::texture> outputImage ) {
     //--update the angle of the wiper--
+    libtrainsim::core::clampedVariable<float> nextRot = currentRotation;
+    
     if(turningLeft){
-        currentRotation += wiperSpeed;
-        if(currentRotation > maxRotation){
-            currentRotation = maxRotation;
+        nextRot += wiperSpeed;
+        
+        while(currentRotation < nextRot){
+            currentRotation += rotationPrecision;
+            //todo add rotation part to mask
+        }
+        
+        if(currentRotation > maxRotation - rotationPrecision){
             turningLeft = false;
         }
+        //turningLeft = !libtrainsim::core::Helper::isRoughly<float>(nextRot, maxRotation);
     }else{
-        currentRotation -= wiperSpeed;
-        if(currentRotation < minRotation){
-            currentRotation = minRotation;
+        nextRot -= wiperSpeed;
+        
+        while(currentRotation > nextRot){
+            currentRotation -= rotationPrecision;
+            //todo add rotation part to mask
+        }
+        
+        if( currentRotation < minRotation + rotationPrecision ){
             turningLeft = true;
         }
+        //turningLeft = libtrainsim::core::Helper::isRoughly<float>(nextRot, minRotation);
     }
     
     //--render the wiper image onto the mask--
     
     //create the base transformation matrix
     
-    glm::mat4 transform{1.0f};
-    glm::vec3 offset{0.0,-0.5,0.0};
-    
-    //transform = glm::translate(transform, {0.5f,-0.50f,0.0f});
-    
-    transform = glm::translate(transform, -offset);
-    transform = glm::rotate(transform, -glm::radians(currentRotation), {0.0f,0.0f,1.0f});
-    //transform = glm::rotate(transform, glm::radians(0.0f), {0.0f,0.0f,1.0f});
-    transform = glm::translate(transform, offset);
-    
-    transform = glm::translate(transform, {0.5,0.0,0.0});
-    transform = glm::scale(transform, {0.5f,0.5f,1.0f});
-    transform = glm::rotate(transform, glm::radians(180.0f), {0.0f,0.0f,1.0f});
-    transform = glm::scale(transform, {-1.0,1.0,0.0});
-    transform = wiperMask->getProjection() * transform;
+    auto transform = getWiperTransform();
     
     //copy the wiper onto the mask with the correct transformation
     libtrainsim::Video::imguiHandler::copy(wiperImage, wiperMask, true, transform);
@@ -117,4 +146,7 @@ void libtrainsim::extras::wiper::displayWiper ( std::shared_ptr<libtrainsim::Vid
     
 }
 
+float libtrainsim::extras::wiper::getRotation() const {
+    return currentRotation.get();
+}
 
