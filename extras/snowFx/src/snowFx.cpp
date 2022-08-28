@@ -79,8 +79,7 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     updateTrainSpeed(0.0_mps);
     
     //the the ime when the lase snowflake was drawn and when the next will be drawn
-    next_snowflake = 100000us * static_cast<long>( distribution_deltaT(number_generator) );
-    last_snowflake = libtrainsim::core::Helper::now();
+    updateDrawTimes();
 }
 
 libtrainsim::extras::snowFx::~snowFx() {
@@ -139,6 +138,44 @@ void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<libtrainsim::Vide
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
+decltype ( libtrainsim::core::Helper::now() ) libtrainsim::extras::snowFx::generateNewTime(const decltype(libtrainsim::core::Helper::now())& timestamp) {
+    auto randVal = distribution_deltaT(number_generator);
+    auto multiplier = randVal * randVal / (weather_intensity * speedModifier);
+    auto deltaT = 100000us * multiplier;
+    return timestamp + std::chrono::duration_cast<std::chrono::milliseconds>(deltaT);
+}
+
+
+void libtrainsim::extras::snowFx::updateDrawTimes() {
+    if(nextSnowflakeDrawTimes.size() == 0){
+        nextSnowflakeDrawTimes.emplace_back( generateNewTime( libtrainsim::core::Helper::now() ));
+    }
+
+    auto currTime = libtrainsim::core::Helper::now();
+    
+    //queue all snowflakes to be drawn in the next 0.5 seconds
+    uint64_t arrSize = nextSnowflakeDrawTimes.size();
+    while( currTime + 0.5s > nextSnowflakeDrawTimes.back() && ++arrSize <= maxSnowflakes){
+        auto nextTime =  generateNewTime( nextSnowflakeDrawTimes.back() );
+        nextSnowflakeDrawTimes.emplace_back(nextTime);
+    }
+}
+
+bool libtrainsim::extras::snowFx::shouldDrawSnowflake(const decltype(libtrainsim::core::Helper::now())& timestamp) {
+    if(nextSnowflakeDrawTimes.size() == 0){
+        updateDrawTimes();
+        return false;
+    }
+
+    if(timestamp > nextSnowflakeDrawTimes.front()){
+        nextSnowflakeDrawTimes.erase(nextSnowflakeDrawTimes.begin());
+        return true;
+    }
+    
+    return false;
+}
+
+
 glm::mat4 libtrainsim::extras::snowFx::getSnowflakeTransformation() {
     //create the transformation matrix for the new snowflake
     glm::mat4 projection = glm::mat4(1.0f);
@@ -189,7 +226,7 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
     //set the displacement multiplier to a random number
     //the 150 is an arbitray value, it is supposed to be close to the maximum speed of the train
     //the faster the train is the more mashed up the snowflakes are
-    float displacementStrength = distribution_displacementStrength(number_generator) * 0.1 * std::log2(trainSpeed.value);
+    float displacementStrength = distribution_displacementStrength(number_generator) * 0.1 * std::cbrt(speedModifier);
     displacementShader->setUniform("multiplier", displacementStrength);
     
     //set the transformation for the snowflake
@@ -199,12 +236,8 @@ void libtrainsim::extras::snowFx::drawSnowflake() {
     //actually draw the next snowflake
     libtrainsim::Video::imguiHandler::bindVAO();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    
-    //update when the time when snowflake was drawn and when the next one should be drawn
-    last_snowflake = std::chrono::high_resolution_clock::now();
-    auto multiplier = distribution_deltaT(number_generator) / (weather_intensity * std::log2(trainSpeed.value));
-    next_snowflake = 1000ms * static_cast<long>( multiplier );
 }
+
 
 void libtrainsim::extras::snowFx::updateTexture() {
     
@@ -212,11 +245,16 @@ void libtrainsim::extras::snowFx::updateTexture() {
     copyMoveDown(outputTexture, imageTexture);
     
     //draw new snowflak(s) if needed
-    auto dt = std::chrono::high_resolution_clock::now() - last_snowflake;
-    if (dt > next_snowflake){
+    snowflakesDrawn = 0;
+    auto currTime = libtrainsim::core::Helper::now();
+    while(shouldDrawSnowflake(currTime)){
         //draw a new snowflake if needed
         drawSnowflake();
+        snowflakesDrawn++;
     }
+    
+    //copy the output back into the input layer to keep snowflakes next draw
+    copyMoveDown(imageTexture, outputTexture);
     
     //wipe where the wiper is
     wiperHandler->updateWiper(imageTexture);
@@ -227,15 +265,19 @@ void libtrainsim::extras::snowFx::updateTexture() {
     //display the wiper with its current position
     wiperHandler->displayWiper(outputTexture);
     
+    //refill the timestamps for the next snowflakes to be generated
+    updateDrawTimes();
+    
 }
 
 void libtrainsim::extras::snowFx::updateTrainSpeed ( sakurajin::unit_system::common::speed newTrainSpeed ) {
     newTrainSpeed = sakurajin::unit_system::unit_cast(newTrainSpeed,1.0);
     auto& val = newTrainSpeed.value;
-    //this guarantees that log2(val) > 0
-    val = val < 1.5 ? 1.5 : val;
-    trainSpeed = newTrainSpeed;
-    wiperHandler->setWiperSpeed(std::log2(trainSpeed.value-1.0));
+    val = val < 1 ? 1 : val;
+    //this guarantees that log2(sqrt(val)) > 0
+    //speedModifier = std::log2( newTrainSpeed.value  + 2) - 0.25;
+    speedModifier = newTrainSpeed.value;
+    wiperHandler->setWiperSpeed( std::sqrt( speedModifier ) );
 }
 
 
@@ -243,7 +285,14 @@ std::shared_ptr<libtrainsim::Video::texture> libtrainsim::extras::snowFx::getOut
     return outputTexture;
 }
 
+uint64_t libtrainsim::extras::snowFx::getSnowflakeCount() const {
+    return snowflakesDrawn;
+}
+
+
 std::shared_ptr<libtrainsim::extras::wiper> libtrainsim::extras::snowFx::getWiper() {
     return wiperHandler;
 }
+
+
 

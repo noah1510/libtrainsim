@@ -50,17 +50,17 @@ namespace libtrainsim{
             std::uniform_real_distribution<> distribution_deltaT;
             std::uniform_real_distribution<> distribution_displacementStrength;
             
-            //a time difference since the last snowflake to indicate when the next should be shown
-            decltype(std::chrono::microseconds(100000)) next_snowflake;
-            //a time point when the last snowflake was drawn
-            decltype(libtrainsim::core::Helper::now()) last_snowflake;
+            //The time stamps at which the next snowflake should be drawn
+            std::vector< decltype(libtrainsim::core::Helper::now()) > nextSnowflakeDrawTimes;
+            decltype(libtrainsim::core::Helper::now()) generateNewTime(const decltype(libtrainsim::core::Helper::now())& timestamp);
             
             //this loads a snowflake file into a texture buffer
             std::shared_ptr<libtrainsim::Video::texture> loadSnowflake(const std::filesystem::path& URI);
             
             //a simple multiplier to change the rate at which new snowflakes spawn
-            double weather_intensity = 0.50;
-            //double weather_intensity = 10.0;
+            double weather_intensity = 1.0;
+            const uint64_t maxSnowflakes = 20;
+            double speedModifier = 1.1;
             
             //draws a snowflake to the output buffer if needed
             void drawSnowflake();
@@ -71,13 +71,15 @@ namespace libtrainsim{
             //load a framebuffer with the wanted loader settigns
             void loadFramebuffer(std::shared_ptr<libtrainsim::Video::texture> buf);
             
-            //The current speed of the train. This modifies in interval in which new snowflakes are spawned.
-            sakurajin::unit_system::common::speed trainSpeed;
-            
             //the object to handle all of the wiper stuff
             std::shared_ptr<wiper> wiperHandler;
             
             glm::mat4 getSnowflakeTransformation();
+            
+            bool shouldDrawSnowflake(const decltype(libtrainsim::core::Helper::now())& timestamp);
+            void updateDrawTimes();
+            
+            uint64_t snowflakesDrawn = 0;
             
           public:
             snowFx(const std::filesystem::path& shaderLocation, const std::filesystem::path& dataLocation);
@@ -91,6 +93,8 @@ namespace libtrainsim{
             void updateTrainSpeed(sakurajin::unit_system::common::speed newTrainSpeed);
             
             std::shared_ptr<wiper> getWiper();
+            
+            uint64_t getSnowflakeCount() const;
             
         };
     }
