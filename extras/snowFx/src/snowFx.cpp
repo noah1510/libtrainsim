@@ -235,3 +235,7 @@ std::shared_ptr<libtrainsim::Video::texture> libtrainsim::extras::snowFx::getOut
     return outputTexture;
 }
 
+std::shared_ptr<libtrainsim::extras::wiper> libtrainsim::extras::snowFx::getWiper() {
+    return wiperHandler;
+}
+

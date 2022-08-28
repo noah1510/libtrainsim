@@ -88,6 +88,8 @@ namespace libtrainsim{
             
             void updateTrainSpeed(sakurajin::unit_system::common::speed newTrainSpeed);
             
+            std::shared_ptr<wiper> getWiper();
+            
         };
     }
 }
