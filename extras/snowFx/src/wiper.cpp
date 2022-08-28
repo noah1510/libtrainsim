@@ -81,7 +81,7 @@ void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Vide
             //todo add rotation part to mask
         }
         
-        if(currentRotation > maxRotation - rotationPrecision){
+        if(currentRotation.isRoughly(maxRotation)){
             turningLeft = false;
         }
         //turningLeft = !libtrainsim::core::Helper::isRoughly<float>(nextRot, maxRotation);
@@ -93,7 +93,7 @@ void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Vide
             //todo add rotation part to mask
         }
         
-        if( currentRotation < minRotation + rotationPrecision ){
+        if(currentRotation.isRoughly(minRotation)){
             turningLeft = true;
         }
         //turningLeft = libtrainsim::core::Helper::isRoughly<float>(nextRot, minRotation);
