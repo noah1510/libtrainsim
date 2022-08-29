@@ -6,6 +6,7 @@
 #include <glad/glad.h>
 #include "imgui.h"
 #include "glm/glm.hpp"
+#include "helper.hpp"
 
 namespace libtrainsim{
     namespace Video{
@@ -26,6 +27,8 @@ namespace libtrainsim{
             
             operator glm::vec2() const noexcept;
             operator ImVec2() const noexcept;
+
+            bool isRoughly(const dimensions& other) const noexcept;
         };
     }
 }
