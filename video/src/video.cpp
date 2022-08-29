@@ -56,6 +56,12 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     }
     
     try{
+        imguiHandler::loadShaders(shaderLocation);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not load imgui shader parts"));
+    }
+
+    try{
         outputBuffer = std::make_shared<texture>("outBuffer"s);
         
         //init the output framebuffer and its texture
@@ -92,40 +98,6 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     */
 
     currentWindowName = windowName;
-    
-    float vertices[] = {
-        // positions    // texture coords
-         16.0f,  9.0f,  1.0f, 1.0f, // top right
-         16.0f, -9.0f,  1.0f, 0.0f, // bottom right
-        -16.0f, -9.0f,  0.0f, 0.0f, // bottom left
-        -16.0f,  9.0f,  0.0f, 1.0f  // top left 
-    };
-    unsigned int indices[] = {  
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-    
-    //create all of the vertex buffers
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    
-    // position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    
-    glBindVertexArray(0);
     
     //reset the last frame and receive the first frame from the decoder
     decode->copyToBuffer(frame_data);
@@ -215,17 +187,19 @@ void libtrainsim::Video::videoManager::updateOutput() {
     auto [w,h] = outputBuffer->getSize();
     
     displayShader->use();
-    
+    auto rot = glm::mat4{1.0f};
+    rot = glm::scale(rot, {1.0f,-1.0f,1.0f});
     float camMult = 1.1;
+    float halfScreenWidth = (1.0 + 1.0f)/2.0f;
     auto orth = glm::ortho(
-        -16.0f, 
-        camMult * 9.0f * w / h,
-        -9.0f,
-        camMult * 16.0f * h / w,
+        -halfScreenWidth, 
+        halfScreenWidth,
+        -1.0f,
+        1.0f,
         -10.0f,
         10.0f
     );
-    displayShader->setUniform("transform", orth);
+    displayShader->setUniform("transform", orth*rot);
     
     glActiveTexture(GL_TEXTURE0);
     displayTextures[0]->updateImage(frame_data, decode->getDimensions());
@@ -234,11 +208,7 @@ void libtrainsim::Video::videoManager::updateOutput() {
         displayTextures[i]->bind(i);
     }
     
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    
-    glBindVertexArray(0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    imguiHandler::drawRect();
 }
 
 
@@ -291,8 +261,10 @@ void libtrainsim::Video::videoManager::refreshWindow() {
         //update the output size
         auto w = ImGui::GetWindowWidth();
         auto h = ImGui::GetWindowHeight();
+
+        libtrainsim::Video::dimensions newSize = ImGui::GetContentRegionAvail();
         
-        outputBuffer->resize({w,h});
+        outputBuffer->resize(newSize);
         
         //render into output texture
         updateOutput();
