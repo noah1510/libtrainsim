@@ -123,7 +123,7 @@ void libtrainsim::Video::texture::updateImage (const std::vector<uint8_t>& data,
 
 void libtrainsim::Video::texture::updateImage (const uint8_t* data, const libtrainsim::Video::dimensions& newSize ) {
     std::scoped_lock lock{acessMutex};
-    if(imageSize == newSize){
+    if( imageSize.isRoughly(newSize)){
         glBindTexture(GL_TEXTURE_2D, textureID);
         
         auto [w,h] = imageSize;
