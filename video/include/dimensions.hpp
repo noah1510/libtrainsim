@@ -16,6 +16,7 @@ namespace libtrainsim{
             dimensions(float x, float y) noexcept;
             dimensions(double x, double y) noexcept;
             dimensions(int x, int y) noexcept;
+            dimensions(const ImVec2& val) noexcept;
             
             float& x() noexcept;
             float& y() noexcept;

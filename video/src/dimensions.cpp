@@ -3,6 +3,7 @@
 libtrainsim::Video::dimensions::dimensions ( float x, float y ) noexcept : std::pair<float,float>{x,y}{}
 libtrainsim::Video::dimensions::dimensions ( double x, double y ) noexcept : dimensions{static_cast<float>(x),static_cast<float>(y)}{}
 libtrainsim::Video::dimensions::dimensions ( int x, int y ) noexcept : dimensions{static_cast<float>(x),static_cast<float>(y)}{}
+libtrainsim::Video::dimensions::dimensions (const ImVec2& val) noexcept : dimensions{val.x, val.y}{}
 
 
 float& libtrainsim::Video::dimensions::x() noexcept {
