@@ -162,7 +162,7 @@ void libtrainsim::Video::videoReader::copyToBuffer ( uint8_t* frame_buffer ) {
         width, 
         height, 
         AV_PIX_FMT_RGB0,
-        SWS_BILINEAR, 
+        SWS_SINC, 
         NULL, 
         NULL, 
         NULL
@@ -177,7 +177,7 @@ void libtrainsim::Video::videoReader::copyToBuffer ( uint8_t* frame_buffer ) {
 
 void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame_buffer ) {
     try{
-        if(frame_buffer.size() < width*height*4){
+        if(frame_buffer.size() < static_cast<size_t>( width*height*4)){
             frame_buffer.resize(width*height*4);
         }
         copyToBuffer(frame_buffer.data());
