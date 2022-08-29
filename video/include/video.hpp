@@ -59,8 +59,13 @@ namespace libtrainsim {
                 
                 /**
                  * The raw pixel data of the decoded frame
+                 * 
+                 * @note this is a double buffer implementation. This way the time
+                 * copy operation can be done while a frame is being drawn
                  */
-                std::vector<uint8_t> frame_data;
+                std::array<std::vector<uint8_t>, 2> frame_data;
+                bool frontBufferActive = true;
+                std::shared_mutex frameBuffer_mutex;
                 
                 bool isActive = true;
                 

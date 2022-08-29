@@ -100,7 +100,7 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     currentWindowName = windowName;
     
     //reset the last frame and receive the first frame from the decoder
-    decode->copyToBuffer(frame_data);
+    decode->copyToBuffer(frame_data[0]);
     
     //refresh the window to display stuff
     updateOutput();
@@ -148,23 +148,26 @@ void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {
                 
                 }else{
                     bool working = true;
-                    std::vector<sakurajin::unit_system::base::time_si> times;
+                    sakurajin::unit_system::base::time_si rendertime;
                     while(currF < nextF && working){
                         auto time = decode->readNextFrame();
                     
-                        times.emplace_back(time);
+                        rendertime += time;
                         currF++;
                     }
-                    
-                    sakurajin::unit_system::base::time_si rendertime;
-                    for(auto time: times){
-                        rendertime += time;
-                    }
+
                     renderTimeMutex.lock();
                     newRenderTimes.emplace_back(rendertime);
-                    renderTimeMutex.unlock();
-                    
+                    renderTimeMutex.unlock();   
                 }
+                
+                
+                frameBuffer_mutex.lock();
+                uint64_t inactiveBuffer = frontBufferActive ? 1 : 0;
+                frameBuffer_mutex.unlock();
+
+                decode->copyToBuffer(frame_data[inactiveBuffer]);
+
             }catch(const std::exception& e){
                 libtrainsim::core::Helper::print_exception(e);
                 return false;
@@ -189,8 +192,8 @@ void libtrainsim::Video::videoManager::updateOutput() {
     displayShader->use();
     auto rot = glm::mat4{1.0f};
     rot = glm::scale(rot, {1.0f,-1.0f,1.0f});
-    float camMult = 1.1;
-    float halfScreenWidth = (1.0 + 1.0f)/2.0f;
+    float camMult = 1;
+    float halfScreenWidth = camMult * (16.0f/9.0f * h / w + 1.0f)/2.0f;
     auto orth = glm::ortho(
         -halfScreenWidth, 
         halfScreenWidth,
@@ -201,10 +204,7 @@ void libtrainsim::Video::videoManager::updateOutput() {
     );
     displayShader->setUniform("transform", orth*rot);
     
-    glActiveTexture(GL_TEXTURE0);
-    displayTextures[0]->updateImage(frame_data, decode->getDimensions());
-    
-    for(unsigned int i = 1; i < displayTextures.size(); i++){
+    for(unsigned int i = 0; i < displayTextures.size(); i++){
         displayTextures[i]->bind(i);
     }
     
@@ -223,13 +223,18 @@ void libtrainsim::Video::videoManager::refreshWindow() {
         auto status = nextFrame.wait_for(1ns);
         if(status == std::future_status::ready){
             if(!nextFrame.get()){
-                std::cerr << "Error getting next frame" << std::endl;
+                videoMutex.unlock();
+                throw std::runtime_error("Error getting next frame");
             }
-            try{
-                decode->copyToBuffer(frame_data);
-            }catch(...){
-                std::throw_with_nested(std::runtime_error("Could not read current frame into buffer"));
-            }
+            
+            frameBuffer_mutex.lock();
+
+            frontBufferActive = !frontBufferActive;
+            uint64_t activeBuffer = frontBufferActive ? 0 : 1;
+            displayTextures[0]->updateImage(frame_data[activeBuffer], decode->getDimensions());
+
+            frameBuffer_mutex.unlock();
+
             fetchingFrame = false;
         }
     }
@@ -245,9 +250,7 @@ void libtrainsim::Video::videoManager::refreshWindow() {
     //set size and pos on program start to initial values
     static bool firstStart = true;
     if(firstStart){
-        auto [w,h] = decode->getDimensions();
-        ImVec2 initialSize {static_cast<float>(w),static_cast<float> (h)};
-        ImGui::SetNextWindowContentSize( initialSize );
+        ImGui::SetNextWindowContentSize( decode->getDimensions() );
         
         ImVec2 initialPos {0,0};
         ImGui::SetNextWindowPos(initialPos);
