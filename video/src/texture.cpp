@@ -123,22 +123,40 @@ void libtrainsim::Video::texture::updateImage (const std::vector<uint8_t>& data,
 
 void libtrainsim::Video::texture::updateImage (const uint8_t* data, const libtrainsim::Video::dimensions& newSize ) {
     std::scoped_lock lock{acessMutex};
-    imageSize = newSize;
-    
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    
-    auto [w,h] = imageSize;
-    glTexImage2D(
-        GL_TEXTURE_2D, 
-        0, 
-        GL_RGBA, 
-        w, 
-        h, 
-        0,
-        GL_RGBA, 
-        GL_UNSIGNED_BYTE, 
-        data
-    );
+    if(imageSize == newSize){
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        
+        auto [w,h] = imageSize;
+        glTexSubImage2D(
+            GL_TEXTURE_2D, 
+            0, 
+            0,
+            0,
+            w, 
+            h, 
+            GL_RGBA, 
+            GL_UNSIGNED_BYTE, 
+            data
+        );
+    }else{
+
+        imageSize = newSize;
+        
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        
+        auto [w,h] = imageSize;
+        glTexImage2D(
+            GL_TEXTURE_2D, 
+            0, 
+            GL_RGBA, 
+            w, 
+            h, 
+            0,
+            GL_RGBA, 
+            GL_UNSIGNED_BYTE, 
+            data
+        );
+    }
 }
 
 void libtrainsim::Video::texture::resize ( const libtrainsim::Video::dimensions& newSize ) {
