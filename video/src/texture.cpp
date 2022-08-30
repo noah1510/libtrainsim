@@ -83,6 +83,7 @@ libtrainsim::Video::texture::texture ( const std::filesystem::path& URI ) :textu
     imageSize.x() = w;
     imageSize.y() = h;
     
+    
     name = URI.string();
 }
 
@@ -182,7 +183,7 @@ void libtrainsim::Video::texture::bind(unsigned int unit) {
     glBindTexture(GL_TEXTURE_2D, textureID);
 }
 
-void libtrainsim::Video::texture::createFramebuffer ( libtrainsim::Video::dimensions framebufferSize ) {
+void libtrainsim::Video::texture::createFramebuffer ( const libtrainsim::Video::dimensions& framebufferSize ) {
     std::scoped_lock lock{acessMutex};
     
     imguiHandler::initFramebuffer(FBO, textureID, framebufferSize);
@@ -208,20 +209,23 @@ unsigned int libtrainsim::Video::texture::getFBO() const noexcept {
 }
 
 
-void libtrainsim::Video::texture::displayImGui() {
+void libtrainsim::Video::texture::displayImGui(const libtrainsim::Video::dimensions& displaySize) {
     std::shared_lock lock{acessMutex};
     
-    ImGui::Image((void*)(intptr_t)textureID, ImVec2(imageSize.x(), imageSize.y()));
+    auto displayS = displaySize;
+    if(displayS.isRoughly({0.0f,0.0f})){
+        displayS = imageSize;
+    }
+    
+    ImGui::Image((void*)(intptr_t)textureID, displayS);
 }
 
 glm::mat4 libtrainsim::Video::texture::getProjection() noexcept {
-    auto [w,h] = getSize();
-    float camMult = 1/16.0;
     auto orth = glm::ortho(
         -1.0f, 
-        camMult * 9.0f * w / h,
+        1.0f,
         -1.0f,
-        camMult * 16.0f * h / w,
+        1.0f,
         -10.0f,
         10.0f
     );
