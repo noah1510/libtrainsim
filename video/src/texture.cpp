@@ -146,8 +146,9 @@ void libtrainsim::Video::texture::resize ( const libtrainsim::Video::dimensions&
 }
 
 
-void libtrainsim::Video::texture::bind() {
+void libtrainsim::Video::texture::bind(unsigned int unit) {
     std::scoped_lock lock{acessMutex};
+    glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, textureID);
 }
 

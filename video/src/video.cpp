@@ -212,8 +212,7 @@ void libtrainsim::Video::videoManager::updateOutput() {
     displayTextures[0]->updateImage(frame_data, decode->getDimensions());
     
     for(unsigned int i = 1; i < displayTextures.size(); i++){
-        glActiveTexture(GL_TEXTURE0+i);
-        displayTextures[i]->bind();
+        displayTextures[i]->bind(i);
     }
     
     glBindVertexArray(VAO);
