@@ -63,6 +63,15 @@ namespace libtrainsim{
             //a texture that does a displacement of 0
             std::shared_ptr<libtrainsim::Video::texture> displacement0;
             
+            //the last size the viewport was set to
+            dimensions lastViewportSize = {0,0};
+            
+            //set the viewport to the given size
+            void setViewport(const dimensions& viewportSize);
+            
+            //force the viewport to be updated even if the viewport size is the same as the last
+            bool forceViewportUpdate = true;
+            
             int maxTextureUnits = 0;
             
             void init_impl();

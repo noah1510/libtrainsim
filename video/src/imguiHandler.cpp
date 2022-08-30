@@ -101,7 +101,7 @@ void libtrainsim::Video::imguiHandler::endRender_impl() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     ImGui::Render();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+    setViewport(io.DisplaySize);
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -154,11 +154,9 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
 
 void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, dimensions dims ) {
         
-    auto width = static_cast<unsigned int>(dims.x());
-    auto height = static_cast<unsigned int>(dims.y());
     
     glBindFramebuffer(GL_FRAMEBUFFER, buf);
-    glViewport(0, 0, width, height);
+    setViewport(dims);
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
@@ -170,6 +168,18 @@ void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
+
+void libtrainsim::Video::imguiHandler::setViewport ( const libtrainsim::Video::dimensions& viewportSize ) {
+    if(forceViewportUpdate || viewportSize != lastViewportSize){
+        forceViewportUpdate = false;
+        lastViewportSize = viewportSize;
+        
+        auto width = static_cast<unsigned int>(lastViewportSize.x());
+        auto height = static_cast<unsigned int>(lastViewportSize.y());
+        glViewport(0, 0, width, height);
+    }
+}
+
 
 void libtrainsim::Video::imguiHandler::updateRenderThread_impl() {
     SDL_GL_MakeCurrent(window, gl_context);
