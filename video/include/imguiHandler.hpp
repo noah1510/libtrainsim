@@ -47,6 +47,15 @@ namespace libtrainsim{
                 return instance;
             }
             
+            //the last size the viewport was set to
+            dimensions lastViewportSize = {0,0};
+            
+            //set the viewport to the given size
+            void setViewport(const dimensions& viewportSize);
+            
+            //force the viewport to be updated even if the viewport size is the same as the last
+            bool forceViewportUpdate = true;
+            
             void init_impl();
             void startRender_impl();
             void endRender_impl();
