@@ -177,12 +177,9 @@ bool libtrainsim::Video::videoManager::reachedEndOfFile() {
 void libtrainsim::Video::videoManager::updateOutput() {
     
     outputBuffer->loadFramebuffer();
-    auto [w,h] = outputBuffer->getSize();
     
     displayShader->use();
-    auto rot = glm::mat4{1.0f};
-    rot = glm::scale(rot, {1.0f,-1.0f,1.0f});
-    displayShader->setUniform("transform", outputBuffer->getProjection() *rot);
+    displayShader->setUniform("transform", outputBuffer->getProjection());
     
     for(unsigned int i = 0; i < displayTextures.size(); i++){
         displayTextures[i]->bind(i);
