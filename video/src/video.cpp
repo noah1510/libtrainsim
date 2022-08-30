@@ -79,16 +79,6 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not init video image"));
     }
-    
-    /*
-    //This is the sample code to add an additional texture to the render code to be displayed on top of the background
-    try{
-        auto snow_tex = std::make_shared<texture>(shaderLocation / "../snowflake_textures/snowflake-0.tif");
-        addTexture(snow_tex);
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("could not create the test snowflake texture"));
-    }
-    */
 
     currentWindowName = windowName;
     
@@ -214,17 +204,9 @@ void libtrainsim::Video::videoManager::updateOutput() {
     auto [w,h] = outputBuffer->getSize();
     
     displayShader->use();
-    
-    float camMult = 1.1;
-    auto orth = glm::ortho(
-        -16.0f, 
-        camMult * 9.0f * w / h,
-        -9.0f,
-        camMult * 16.0f * h / w,
-        -10.0f,
-        10.0f
-    );
-    displayShader->setUniform("transform", orth);
+    auto rot = glm::mat4{1.0f};
+    rot = glm::scale(rot, {1.0f,-1.0f,1.0f});
+    displayShader->setUniform("transform", outputBuffer->getProjection() *rot);
     
     glActiveTexture(GL_TEXTURE0);
     displayTextures[0]->updateImage(frame_data, decode->getDimensions());
@@ -287,25 +269,30 @@ void libtrainsim::Video::videoManager::refreshWindow() {
     
     //actually start drawing the window
     ImGui::Begin(currentWindowName.c_str(), &isActive);
-    
-        //update the output size
-        auto w = ImGui::GetWindowWidth();
-        auto h = ImGui::GetWindowHeight();
-        
-        outputBuffer->resize({w,h});
         
         //render into output texture
         updateOutput();
+
+        //get the image size
+        libtrainsim::Video::dimensions newSize = ImGui::GetContentRegionAvail();
+        auto dim = newSize.x()/newSize.y();
+        
+        //correct the new image size to keep the image ratio at 16:9
+        if(dim > 16.0/9.0){
+            newSize.x() = newSize.y() / 9.0 * 16.0;
+        }else{
+            newSize.y() = newSize.x() / 16.0 * 9.0;
+        }
         
         //draw the output texture
-        outputBuffer->displayImGui();
+        outputBuffer->displayImGui(newSize);
         
         //show a tooltip when the window is hovered
-        if(ImGui::IsItemHovered()){
+        /*if(ImGui::IsItemHovered()){
             ImGui::BeginTooltip();
             ImGui::Text("size = %f x %f", w, h);
             ImGui::EndTooltip();
-        }
+        }*/
     
     ImGui::End();
 
