@@ -5,9 +5,9 @@ using namespace sakurajin::unit_system::common::literals;
 
 libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation, const std::filesystem::path& dataLocation){
     
-    //load the shaders for imgui handler in case they are not loaded yet
+    //ensure the imgui has the shaders and texture loaded
     try{
-        libtrainsim::Video::imguiHandler::loadShaders(shaderLocation);
+        libtrainsim::Video::imguiHandler::bindVAO();
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not init imguiHandler opengl parts"));
     }
