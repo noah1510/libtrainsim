@@ -29,3 +29,7 @@ libtrainsim::Video::dimensions::operator ImVec2() const  noexcept{
 libtrainsim::Video::dimensions::operator glm::vec2 () const  noexcept{
     return glm::vec2{first,second};
 }
+
+bool libtrainsim::Video::dimensions::isRoughly(const dimensions& other) const noexcept{
+    return libtrainsim::core::Helper::isRoughly(x(),other.x()) && libtrainsim::core::Helper::isRoughly(y(),other.y());
+}
