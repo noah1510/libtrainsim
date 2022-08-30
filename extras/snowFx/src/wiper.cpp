@@ -34,8 +34,6 @@ libtrainsim::extras::wiper::wiper(const std::filesystem::path& shaderLocation, c
     
     coreTransform = glm::translate(coreTransform, {wiperScaling/2,0.0,0.0});
     coreTransform = glm::scale(coreTransform, {wiperScaling,wiperScaling,1.0f});
-    coreTransform = glm::rotate(coreTransform, glm::radians(180.0f), {0.0f,0.0f,1.0f});
-    coreTransform = glm::scale(coreTransform, {-1.0,1.0,0.0});
 }
 
 libtrainsim::extras::wiper::~wiper() {
@@ -55,7 +53,8 @@ glm::mat4 libtrainsim::extras::wiper::getWiperTransform() const {
     transform = glm::translate(transform, -offset);
     transform = glm::rotate(transform, -glm::radians(currentRotation.get()), {0.0f,0.0f,1.0f});
     transform = glm::translate(transform, offset);
-    constexpr float halfScreenWidth = (16.0f/9.0f + 1.0f)/2.0f;
+    
+    constexpr float halfScreenWidth = 16.0f/9.0f;
     auto orth = glm::ortho(
         -halfScreenWidth, 
         halfScreenWidth,
