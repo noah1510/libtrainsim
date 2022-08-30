@@ -191,6 +191,19 @@ namespace libtrainsim{
                 destination.insert(destination.end(), source.begin(), source.end());
             }
             
+            template <typename T>
+            static bool isRoughly(T value1, T value2, double precision = 0.001){
+                if(value1 == value2){return true;}; //this should get 0 comparison working
+                bool val1Larger = std::abs(value1) > std::abs(value2);
+                T epsilon = std::abs( val1Larger ? value1 : value2 ) * precision;
+                
+                if(val1Larger){
+                    return std::abs(value1) - std::abs(value2) < epsilon;
+                }else{
+                    return std::abs(value2) - std::abs(value1) < epsilon;
+                }
+            }
+            
         };
     }
 }
