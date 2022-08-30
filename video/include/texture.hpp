@@ -38,10 +38,13 @@ namespace libtrainsim{
             void updateImage(const uint8_t* data, const dimensions& newSize);
             void resize(const dimensions& newSize);
             
-            void bind();
-            void createFramebuffer(dimensions framebufferSize);
+            void bind(unsigned int unit);
+            void createFramebuffer(const dimensions& framebufferSize);
+            bool hasFramebuffer() const noexcept;
             void loadFramebuffer();
-            void displayImGui();
+            unsigned int getFBO() const noexcept;
+            void displayImGui(const dimensions& displaySize = {0.0f,0.0f});
+            glm::mat4 getProjection() noexcept;
             
             std::shared_mutex& getMutex() noexcept;
         };
