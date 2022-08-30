@@ -84,10 +84,10 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     
     float vertices[] = {
         // positions    // texture coords
-         16.0f,  9.0f,  1.0f, 1.0f, // top right
-         16.0f, -9.0f,  1.0f, 0.0f, // bottom right
-        -16.0f, -9.0f,  0.0f, 0.0f, // bottom left
-        -16.0f,  9.0f,  0.0f, 1.0f  // top left 
+         1.0f,  1.0f,  1.0f, 1.0f, // top right
+         1.0f, -1.0f,  1.0f, 0.0f, // bottom right
+        -1.0f, -1.0f,  0.0f, 0.0f, // bottom left
+        -1.0f,  1.0f,  0.0f, 1.0f  // top left 
     };
     unsigned int indices[] = {  
         0, 1, 3, // first triangle
@@ -201,12 +201,9 @@ bool libtrainsim::Video::videoManager::reachedEndOfFile() {
 void libtrainsim::Video::videoManager::updateOutput() {
     
     outputBuffer->loadFramebuffer();
-    auto [w,h] = outputBuffer->getSize();
     
     displayShader->use();
-    auto rot = glm::mat4{1.0f};
-    rot = glm::scale(rot, {1.0f,-1.0f,1.0f});
-    displayShader->setUniform("transform", outputBuffer->getProjection() *rot);
+    displayShader->setUniform("transform", outputBuffer->getProjection() );
     
     glActiveTexture(GL_TEXTURE0);
     displayTextures[0]->updateImage(frame_data, decode->getDimensions());
