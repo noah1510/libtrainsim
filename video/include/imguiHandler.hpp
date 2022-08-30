@@ -35,7 +35,7 @@ namespace libtrainsim{
         //forward declarations
         class texture;
         class Shader;
-        
+        const std::array<unsigned int, 5> darkenStrengths{0,20,40,60,80};
         class imguiHandler{
           private:
             std::string glsl_version = "#version 460 core";
@@ -57,6 +57,12 @@ namespace libtrainsim{
             std::shared_ptr<Shader> copyShader;
             bool shaderLoaded = false;
             
+            //The textures with specific amounts of darken
+            std::vector<std::shared_ptr<libtrainsim::Video::texture>> darkSteps;
+            
+            //a texture that does a displacement of 0
+            std::shared_ptr<libtrainsim::Video::texture> displacement0;
+            
             int maxTextureUnits = 0;
             
             void init_impl();
@@ -66,9 +72,10 @@ namespace libtrainsim{
             void loadFramebuffer_impl ( unsigned int buf, dimensions dims );
             void updateRenderThread_impl();
             void copy_impl(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture, glm::mat4 transformation);
-            void loadShaders_impl(const std::filesystem::path& shaderLocation);
+            void loadShaders_impl(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
             void bindVAO_impl();
             void drawRect_impl();
+            std::shared_ptr<texture> getDarkenTexture_impl(unsigned int strength);
             
           public:
             static void init(){
@@ -105,9 +112,9 @@ namespace libtrainsim{
             }
             
             //load the shaders and other buffer objects
-            static void loadShaders(const std::filesystem::path& shaderLocation){
+            static void loadShaders(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation){
                 try{
-                    getInstance().loadShaders_impl(shaderLocation);
+                    getInstance().loadShaders_impl(shaderLocation, textureLocation);
                 }catch(...){
                     std::throw_with_nested(std::runtime_error("Error copying textrue into frambuffer"));
                 }
@@ -136,9 +143,14 @@ namespace libtrainsim{
                 }
             }
             
-            
+            //get access to the copy shader to do more complex operations manually
             static std::shared_ptr<Shader> getCopyShader(){
                 return getInstance().copyShader;
+            }
+            
+            //get access to the texture to darken a texture
+            static std::shared_ptr<texture> getDarkenTexture(unsigned int strength = 20){
+                return getInstance().getDarkenTexture_impl(strength);
             }
             
         };

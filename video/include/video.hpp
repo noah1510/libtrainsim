@@ -132,7 +132,7 @@ namespace libtrainsim {
                 * @param windowName the name the window is going to have
                 * @param shaderLocation The folder where all of the shader files are stored
                 */
-                void createWindow(const std::string& windowName, const std::filesystem::path& shaderLocation);
+                void createWindow(const std::string& windowName, const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
 
                 /**
                 * @brief just refresh the window contents without changing the displayed content.

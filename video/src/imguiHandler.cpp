@@ -74,6 +74,10 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
 libtrainsim::Video::imguiHandler::~imguiHandler() {
     if(shaderLoaded){
         copyShader.reset();
+        displacement0.reset();
+        for(auto& tex: darkSteps){
+            tex.reset();
+        }
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
@@ -211,7 +215,7 @@ void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void libtrainsim::Video::imguiHandler::loadShaders_impl ( const std::filesystem::path& shaderLocation ) {
+void libtrainsim::Video::imguiHandler::loadShaders_impl ( const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation ) {
     
     //do not reload if shader are already loaded
     if(shaderLoaded){
@@ -224,6 +228,24 @@ void libtrainsim::Video::imguiHandler::loadShaders_impl ( const std::filesystem:
         copyShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"copy.frag");
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create copy shader"));
+    }
+    
+    //---------------load textures---------------
+    try{
+        for(auto strength : darkenStrengths){
+            std::stringstream URI{};
+            URI << "darken-" << strength << ".tif";
+            auto tex = std::make_shared<libtrainsim::Video::texture>(textureLocation/URI.str());
+            darkSteps.emplace_back(tex);
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not init darken texture"));
+    }
+    
+    try{
+        displacement0 = std::make_shared<libtrainsim::Video::texture>(textureLocation/"displacement-0.tif");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not init displacement-0 texture"));
     }
     
     //---------------init vertex buffers---------------
@@ -282,6 +304,20 @@ void libtrainsim::Video::imguiHandler::drawRect_impl() {
     
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+std::shared_ptr<libtrainsim::Video::texture> libtrainsim::Video::imguiHandler::getDarkenTexture_impl ( unsigned int strength ) {
+    if(!shaderLoaded){
+        return nullptr;
+    }
+    
+    for(size_t i = 0; i < darkenStrengths.size(); i++){
+        if(darkenStrengths[i] >= strength){
+            return darkSteps[i];
+        }
+    }
+    
+    return darkSteps.back();
 }
 
 

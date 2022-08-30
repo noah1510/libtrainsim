@@ -38,7 +38,7 @@ const std::filesystem::path& libtrainsim::Video::videoManager::getFilePath() con
     return decode->getLoadedFile();
 }
 
-void libtrainsim::Video::videoManager::createWindow ( const std::string& windowName, const std::filesystem::path& shaderLocation ) {
+void libtrainsim::Video::videoManager::createWindow ( const std::string& windowName, const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation ) {
     if(currentWindowName != "" || windowFullyCreated){
         throw std::runtime_error("window alread exists");
     }
@@ -56,7 +56,7 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     }
     
     try{
-        imguiHandler::loadShaders(shaderLocation);
+        imguiHandler::loadShaders(shaderLocation, textureLocation);
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not load imgui shader parts"));
     }
