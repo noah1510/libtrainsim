@@ -62,6 +62,11 @@ namespace libtrainsim{
             std::filesystem::path shaderFolderLocation;
             
             /**
+             * @brief the folder that contains all of the texture files
+             */
+            std::filesystem::path textureFolderLocation;
+            
+            /**
              * @brief indicates if the settings are allowed to write changes back into the file
              */
             bool readOnly = false;
@@ -133,6 +138,13 @@ namespace libtrainsim{
              * @return const std::filesystem::path& the shader folder location
              */
             const std::filesystem::path& getShaderLocation() const noexcept;
+            
+            /**
+             * @brief returns the location of the texture folder
+             * 
+             * @return const std::filesystem::path& the texture folder location
+             */
+            const std::filesystem::path& getTextureLocation() const noexcept;
         };
     }
 }
