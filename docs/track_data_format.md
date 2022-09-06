@@ -10,10 +10,11 @@ Each data_point has the following fields:
 * frame (unsigned int) (since 0.4.0)
 * location (double) (since 0.4.0)
 
-
 **Optional:**
 
-* slope (float) (not implemented yet)
+* slope (float) (since 0.9.0)
+* radius (float or string) (since 0.9.0)
+* frictionMultiplier (float) (since 0.9.0)
 * acceleration (object) (not implemented yet)
 
 ### Detailed descriptions
@@ -28,13 +29,25 @@ The location of this point along the track in m.
 
 #### slope
 
-***This field is not implemented yet***
-
 This field stores the rotation of the train to allow a calculation of gravity.
+The value has to be in degrees.
+If no value is given this is set to 0.
+
+#### radius
+
+The radius of the Track at this point.
+If the Track is straight at that point the radius should be set to the string INFINITY.
+Otherwise it has to be set to a floating point value.
+This value is the radius in km.
+If no value is given it is set to INFINITY.
+
+#### frictionMultiplier
+
+The multiplier of the base friction value (0.3).
+This may be used to specify the condition of the Track at this point.
+If no value if given the defaultTrackFrictionMultiplier from the Track configuraion is used.
 
 #### acceleration
-
-***This field is not implemented yet***
 
 This field stores the acceleration of the train mesured by an gyroscope.
 The object has the following fields:
@@ -43,3 +56,4 @@ The object has the following fields:
 * y (float) The acceleration in y direction
 * z (float) The acceleration in z direction
 * orientation (string) which axis shows the direction along the track
+
