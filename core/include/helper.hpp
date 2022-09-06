@@ -76,6 +76,25 @@ namespace libtrainsim{
             }
             
             /**
+             * @brief Get a json field from an json data object
+             * 
+             * This function prevents the program from crashing if the field does not exist.
+             * 
+             * @param data_json the json data object
+             * @param location the name of the wanted field
+             * @return nlohmann::json the value of the field
+             */
+            static std::optional<nlohmann::json> getOptionalJsonField(const nlohmann::json& data_json, const std::string& location){
+                try{
+                    auto val = getJsonField(data_json,location);
+                    return val;
+                }catch(...){
+                    return {};
+                }
+                
+            }
+            
+            /**
              * @brief Get a value from a json field
              * 
              * This function prevents the program from crashing if the field does not exist.
