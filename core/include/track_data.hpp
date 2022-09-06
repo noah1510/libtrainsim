@@ -13,6 +13,7 @@
 
 #include <filesystem>
 #include <algorithm>
+#include <limits>
 
 #include "length.hpp"
 #include "helper.hpp"
@@ -32,12 +33,27 @@ namespace libtrainsim {
             /**
              * @brief The frame number of the data point
              */
-            uint64_t _frame;
+            uint64_t Frame;
             
             /**
              * @brief The location along the track in m.
              */
-            sakurajin::unit_system::base::length _location;
+            sakurajin::unit_system::base::length Location;
+            
+            /**
+             * @brief This is the current Radius of the Track
+             */
+            std::optional<double> Radius;
+            
+            /**
+             * @brief This is the current slope of the Track in degrees
+             */
+            std::optional<double> Slope;
+            
+            /**
+             * @brief The multiplier for the Track friction for the current position
+             */
+            std::optional<double> FrictionMultiplier;
             
         public:
             
@@ -52,9 +68,30 @@ namespace libtrainsim {
             sakurajin::unit_system::base::length location() const;
             
             /**
+             * @brief This is the current Radius of the Track
+             */
+            std::optional<double> radius() const;
+            
+            /**
+             * @brief This is the current slope of the Track in degrees
+             */
+            std::optional<double> slope() const;
+            
+            /**
+             * @brief The multiplier for the Track friction for the current position
+             */
+            std::optional<double> frictionMultiplier() const;
+            
+            /**
              * @brief Create the minimum required Data point without any optional value set.
              */
-            Track_data_point(uint64_t Frame, sakurajin::unit_system::base::length Location);
+            Track_data_point(
+                uint64_t _frame, 
+                sakurajin::unit_system::base::length _location, 
+                std::optional<double> _radius, 
+                std::optional<double> _slope, 
+                std::optional<double> _frictionMultiplier
+            );
             
         };
         
@@ -69,12 +106,6 @@ namespace libtrainsim {
              * 
              */
             std::vector<Track_data_point> data;
-
-            /**
-             * @brief This saves the last value returned by getFrame to speed the binary search up.
-             *
-             */
-            uint64_t last_frame_index = 0;
             
             /**
              * @brief Parses the track data json format into the data array.
@@ -95,7 +126,7 @@ namespace libtrainsim {
              * @param upper the upper serch bound
              * @return int64_t the nearest frame to that location
              */
-            uint64_t getFrame_c(sakurajin::unit_system::base::length location, uint64_t index, uint64_t lower, uint64_t upper) const;
+            uint64_t getFrame_c(sakurajin::unit_system::base::length location) const;
 
         public:
 
@@ -124,21 +155,22 @@ namespace libtrainsim {
             /**
              * @brief Get the Frame to the given location.
              * Because a binary search is used to find the frame and the location is a floating point value, the returned Frame might not be the nearest.
-             *
-             * @param location the location on the track in meters
-             * @return int64_t the nearest frame to that location
-             */
-            uint64_t getFrame(sakurajin::unit_system::base::length location);
-
-            /**
-             * @brief Get the Frame to the given location.
-             * Because a binary search is used to find the frame and the location is a floating point value, the returned Frame might not be the nearest.
              * This const version does not save the last returned index to speed the search up.
              *
              * @param location the location on the track in meters
              * @return int64_t the nearest frame to that location
              */
             uint64_t getFrame(sakurajin::unit_system::base::length location) const;
+            
+            /**
+             * @brief Get the data point to the given location.
+             * Because a binary search is used to find the frame and the location is a floating point value, the returned Frame might not be the nearest.
+             * This const version does not save the last returned index to speed the search up.
+             *
+             * @param location the location on the track in meters
+             * @return const Track_data_point& the nearest data point to that location
+             */
+            const Track_data_point& getDataPointAt(sakurajin::unit_system::base::length location) const;
 
             /**
              * @brief Get the number of elements in the loaded json file

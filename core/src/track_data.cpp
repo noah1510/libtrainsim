@@ -7,15 +7,41 @@ using namespace libtrainsim::core;
 using namespace sakurajin::unit_system::base;
 using namespace sakurajin::unit_system::base::literals;
 
-Track_data_point::Track_data_point(uint64_t Frame, length Location):_frame{Frame},_location{Location}{};
+Track_data_point::Track_data_point(
+    uint64_t _frame, 
+    length _location, 
+    std::optional<double> _radius, 
+    std::optional<double> _slope, 
+    std::optional<double> _frictionMultiplier
+):
+    Frame{_frame},
+    Location{_location},
+    Radius{_radius},
+    Slope{_slope},
+    FrictionMultiplier{_frictionMultiplier}
+{};
 
-uint64_t Track_data_point::frame() const{
-    return _frame;
+uint64_t libtrainsim::core::Track_data_point::frame() const {
+    return Frame;
 }
 
-length Track_data_point::location() const{
-    return _location;
+std::optional<double> libtrainsim::core::Track_data_point::frictionMultiplier() const {
+    return FrictionMultiplier;
 }
+
+sakurajin::unit_system::base::length libtrainsim::core::Track_data_point::location() const {
+    return Location;
+}
+
+std::optional<double> libtrainsim::core::Track_data_point::radius() const {
+    return Radius;
+}
+
+std::optional<double> libtrainsim::core::Track_data_point::slope() const {
+    return Slope;
+}
+
+
 
 Track_data::Track_data(const std::filesystem::path& URI){
     if(!std::filesystem::exists(URI)){
@@ -65,8 +91,17 @@ void Track_data::parseJsonData(const nlohmann::json& data_json){
         for (auto dat:data_json){
             length location{ Helper::getJsonField<double>(dat,"location")};
             auto frame = Helper::getJsonField<uint64_t>(dat, "frame");
+            auto slope = Helper::getOptionalJsonField<double>(dat,"slope");
+            auto frictionMultiplier = Helper::getOptionalJsonField<double>(dat,"frictionMultiplier");
+            auto radiusJson = Helper::getOptionalJsonField(dat,"radius");
+            std::optional<double> radius = std::optional<double>{std::numeric_limits<double>::infinity()};
+            if(radiusJson.has_value()){
+                if(radiusJson->is_number_float()){
+                    radius = std::make_optional(radiusJson->get<double>());
+                }
+            }
             
-            libtrainsim::core::Track_data_point point{frame,location};
+            libtrainsim::core::Track_data_point point{frame,location,radius,slope,frictionMultiplier};
             data.emplace_back(point);
         }
     }catch(...){
@@ -77,17 +112,10 @@ void Track_data::parseJsonData(const nlohmann::json& data_json){
 
 Track_data::~Track_data(){}
 
-uint64_t Track_data::getFrame_c(length location, uint64_t index, uint64_t lower, uint64_t upper) const{
-    if(
-        lower > getSize() || 
-        upper < lower || 
-        upper > getSize() || 
-        index < lower || 
-        index > upper
-    ){
-        return 0;
-        
-    };
+uint64_t Track_data::getFrame_c(length location) const{
+    uint64_t index = data.size()/2;
+    uint64_t lower = 0;
+    uint64_t upper = data.size();
 
     location = sakurajin::unit_system::unit_cast(location,1);
     
@@ -119,12 +147,13 @@ uint64_t Track_data::getFrame_c(length location, uint64_t index, uint64_t lower,
     return index;
 }
 
-uint64_t Track_data::getFrame(length location){
-    return last_frame_index = getFrame_c(location,last_frame_index,0,getSize());
+const libtrainsim::core::Track_data_point & libtrainsim::core::Track_data::getDataPointAt ( sakurajin::unit_system::base::length location ) const {
+    return data[getFrame_c(location)];
 }
 
+
 uint64_t Track_data::getFrame(length location) const{
-    return getFrame_c(location,getSize()/2,0,getSize());
+    return getDataPointAt(location).frame();
 }
             
 uint64_t Track_data::getSize() const{
@@ -132,7 +161,6 @@ uint64_t Track_data::getSize() const{
 }
 
 length Track_data::lastLocation() const{
-    
     return data.back().location();
 }
             
