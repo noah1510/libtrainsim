@@ -77,6 +77,7 @@ libtrainsim::Video::imguiHandler::~imguiHandler() {
 void libtrainsim::Video::imguiHandler::init_impl() {}
 
 void libtrainsim::Video::imguiHandler::startRender_impl() {
+    IOLock.lock();
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
@@ -91,6 +92,7 @@ void libtrainsim::Video::imguiHandler::endRender_impl() {
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window);
+    IOLock.unlock();
 }
 
 void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO, unsigned int& texture, dimensions dims ) {

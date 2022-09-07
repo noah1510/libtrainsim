@@ -12,7 +12,7 @@ std::vector<std::string> libtrainsim::control::input_handler::getKeyFunctions() 
     std::vector<std::string> functions;
     
     #ifdef HAS_VIDEO_SUPPORT
-
+        std::scoped_lock<std::mutex>{ libtrainsim::Video::imguiHandler::getIOLock() };
         SDL_Event event;
         while(SDL_PollEvent(&event)){
             

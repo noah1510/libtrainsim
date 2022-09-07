@@ -5,6 +5,7 @@
 #include <string>
 #include <filesystem>
 #include <iostream>
+#include <mutex>
 
 #include "video_config.hpp"
 
@@ -47,6 +48,9 @@ namespace libtrainsim{
                 return instance;
             }
             
+            //lock the io while rendering a frame
+            std::mutex IOLock;
+            
             //the last size the viewport was set to
             dimensions lastViewportSize = {0,0};
             
@@ -86,6 +90,10 @@ namespace libtrainsim{
             
             static void updateRenderThread(){
                 getInstance().updateRenderThread_impl();
+            }
+            
+            static std::mutex& getIOLock(){
+                return getInstance().IOLock;
             }
             
         };
