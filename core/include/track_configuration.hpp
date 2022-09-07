@@ -19,6 +19,7 @@
 
 #include <filesystem>
 #include <optional>
+#include <cmath>
 #include <nlohmann/json.hpp>
 
 namespace libtrainsim{
