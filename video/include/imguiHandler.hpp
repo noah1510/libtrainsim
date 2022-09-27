@@ -105,7 +105,6 @@ namespace libtrainsim{
             }
             
             
-                        
             /**
              * @brief display a warning when opengl operations are done outside of the main thread
              */
@@ -120,6 +119,7 @@ namespace libtrainsim{
              */
             static void errorOffThread(){
                 if(getMainTreadID() != std::this_thread::get_id()){
+                    std::cerr << "make sure to only call the render on the main thread or update the render thread" << std::endl;
                     throw std::runtime_error("make sure to only call the render on the main thread or update the render thread");
                 }
             }
