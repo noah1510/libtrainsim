@@ -45,7 +45,7 @@ int serialcontrol::hex2int(char hex) const{
 
 void serialcontrol::update(){
     
-    auto [message, serialError] = rs232_obj->ReadUntil({'Y'}, 10ms);
+    auto [message, serialError] = rs232_obj->ReadUntil({'Y'}, 100ms);
     if(serialError < 0){
         return;
     }

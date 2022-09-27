@@ -1,7 +1,12 @@
 #include "control.hpp"
 
+using namespace std::literals;
+
 libtrainsim::control::input_handler::input_handler(const std::filesystem::path& URI) noexcept(false): serial{URI}{
     keys = libtrainsim::control::keymap();
+    if(serial.IsConnected()){
+        asyncSerialUpdate = std::async(std::launch::async,[&](){serial.update();});
+    }
 }
 
 libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap() noexcept {
@@ -15,7 +20,6 @@ std::vector<std::string> libtrainsim::control::input_handler::getKeyFunctions() 
         std::scoped_lock<std::mutex>{ libtrainsim::Video::imguiHandler::getIOLock() };
         SDL_Event event;
         while(SDL_PollEvent(&event)){
-            
             ImGui_ImplSDL2_ProcessEvent(&event);
 
             if(event.type == SDL_QUIT){
@@ -26,7 +30,6 @@ std::vector<std::string> libtrainsim::control::input_handler::getKeyFunctions() 
                 functions.emplace_back(keys.getFunction(event.key.keysym.sym));
             };
         }
-        
     #endif
     
     return functions;
@@ -44,8 +47,15 @@ bool libtrainsim::control::input_handler::emergencyFlag() const noexcept {
     return shouldEmergencyBreak;
 }
 
-void libtrainsim::control::input_handler::update() noexcept{
-
+void libtrainsim::control::input_handler::update() {
+    #ifdef HAS_VIDEO_SUPPORT
+    try{
+        libtrainsim::Video::imguiHandler::errorOffThread();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("make sure to update the controls on the main render thread"));
+    }
+    #endif
+    
     auto function = getKeyFunctions();
     
     if(libtrainsim::core::Helper::contains<std::string>(function,"CLOSE")){
@@ -54,10 +64,16 @@ void libtrainsim::control::input_handler::update() noexcept{
 
     //if there is harware input update most flags from there
     if(serial.IsConnected()){
-        serial.update();
+        auto status = asyncSerialUpdate.wait_for(1ns);
+        if(status == std::future_status::ready){
+            asyncSerialUpdate.get();
+            
+            shouldEmergencyBreak = serial.get_emergencyflag();
+            currentInputAxis = serial.get_slvl();
+            
+            asyncSerialUpdate = std::async(std::launch::async,[&](){serial.update();});
+        }
 
-        shouldEmergencyBreak = serial.get_emergencyflag();
-        currentInputAxis = serial.get_slvl();
     }else{
 
         if(libtrainsim::core::Helper::contains<std::string>(function,"EMERGENCY_BREAK")){
