@@ -223,6 +223,23 @@ namespace libtrainsim{
                 }
             }
             
+            /**
+             * @brief This functions kind of allows strings to be used for a stringSwitch
+             * 
+             * This function needs a value which would go into the switch() expression and a vector
+             * with all of the cases. It then returns the first matched index which can be used in cases.
+             * 
+             * If no item matches -1 is returned.
+             * 
+             */
+            static int64_t stringSwitch(const std::string& value, const std::vector<std::string>& cases){
+                for(size_t i = 0; i < cases.size(); i++){
+                    if(cases[i] == value){return i;};
+                }
+                
+                return -1;
+            }
+            
         };
     }
 }
