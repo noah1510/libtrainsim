@@ -118,30 +118,16 @@ namespace libtrainsim {
              * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
+             * @deprecated will be removed in the near future
              */
             std::optional<double> getAirDrag() const;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
              * The default value is 0.002.
+             * @deprecated will be removed in the near future
              */
             double getTrackDrag() const;
-
-            /**
-             * @brief clamps the given velocity to the max velocity
-             *
-             * @param currentVelocity the verlocity that should be clamped
-             * @return double the clamped velocity
-             */
-            sakurajin::unit_system::common::speed clampVelocity(sakurajin::unit_system::common::speed currentVelocity) const;
-
-            /**
-             * @brief clamps the given accelleration to the max velocity
-             *
-             * @param currentVelocity the accelleration that should be clamped
-             * @return double the clamped accelleration
-             */
-            sakurajin::unit_system::common::acceleration clampAcceleration(sakurajin::unit_system::common::acceleration currentAcceleration) const;
 
         };
     }
