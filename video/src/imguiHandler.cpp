@@ -64,6 +64,8 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     }
     
     std::cout << "OpenGL version loaded: " << GLVersion.major << "." << GLVersion.minor << std::endl;
+    
+    mainThreadID = std::this_thread::get_id();
 }
 
 libtrainsim::Video::imguiHandler::~imguiHandler() {    
@@ -95,8 +97,22 @@ void libtrainsim::Video::imguiHandler::endRender_impl() {
     IOLock.unlock();
 }
 
+void libtrainsim::Video::imguiHandler::warnOffThread() const {
+    if(mainThreadID != std::this_thread::get_id()){
+        std::cerr << "creating a framebuffer outside of the main thread! This may work or not depending on the driver and os be careful with this!" << std::endl;
+    }
+}
+
+void libtrainsim::Video::imguiHandler::errorOffThread() const {
+    if(mainThreadID != std::this_thread::get_id()){
+        throw std::runtime_error("make sure to only call the render on the main thread or update the render thread");
+    }
+}
+
+
 void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO, unsigned int& texture, dimensions dims ) {
-        
+    warnOffThread();
+    
     auto width = static_cast<unsigned int>(dims.x());
     auto height = static_cast<unsigned int>(dims.y());
     
@@ -140,7 +156,7 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
 }
 
 void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, dimensions dims ) {
-        
+    warnOffThread();
     
     glBindFramebuffer(GL_FRAMEBUFFER, buf);
     setViewport(dims);
@@ -157,6 +173,7 @@ void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, 
 }
 
 void libtrainsim::Video::imguiHandler::setViewport ( const libtrainsim::Video::dimensions& viewportSize ) {
+    warnOffThread();
     if(forceViewportUpdate || viewportSize != lastViewportSize){
         forceViewportUpdate = false;
         lastViewportSize = viewportSize;
@@ -169,6 +186,8 @@ void libtrainsim::Video::imguiHandler::setViewport ( const libtrainsim::Video::d
 
 
 void libtrainsim::Video::imguiHandler::updateRenderThread_impl() {
+    std::scoped_lock lock{IOLock};
     SDL_GL_MakeCurrent(window, gl_context);
+    mainThreadID = std::this_thread::get_id();
 }
 

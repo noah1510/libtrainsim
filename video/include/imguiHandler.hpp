@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <iostream>
 #include <mutex>
+#include <thread>
 
 #include "video_config.hpp"
 
@@ -67,16 +68,38 @@ namespace libtrainsim{
             void loadFramebuffer_impl ( unsigned int buf, dimensions dims );
             void updateRenderThread_impl();
             
+            std::thread::id mainThreadID;
+            
+            /**
+             * @brief display a warning when opengl operations are done outside of the main thread
+             */
+            void warnOffThread() const;
+            
+            /**
+             * @brief throw an error if certain operations are done off thread.
+             */
+            void errorOffThread() const;
+            
           public:
             static void init(){
                 getInstance().init_impl();
             }
             
             static void startRender(){
+                try{
+                    getInstance().errorOffThread();
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Cannot start rendering a frame"));
+                }
                 getInstance().startRender_impl();
             }
             
             static void endRender(){
+                try{
+                    getInstance().errorOffThread();
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Cannot end rendering a frame"));
+                }
                 getInstance().endRender_impl();
             }
             
@@ -90,6 +113,11 @@ namespace libtrainsim{
             
             static void updateRenderThread(){
                 getInstance().updateRenderThread_impl();
+            }
+            
+            
+            static const std::thread::id& getMainTreadID(){
+                return getInstance().mainThreadID;
             }
             
             static std::mutex& getIOLock(){
