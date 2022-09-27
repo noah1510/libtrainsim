@@ -16,7 +16,6 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 
-
 #if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
     #include <SDL2/SDL.h>
     #include <SDL2/SDL_thread.h>
@@ -70,16 +69,6 @@ namespace libtrainsim{
             
             std::thread::id mainThreadID;
             
-            /**
-             * @brief display a warning when opengl operations are done outside of the main thread
-             */
-            void warnOffThread() const;
-            
-            /**
-             * @brief throw an error if certain operations are done off thread.
-             */
-            void errorOffThread() const;
-            
           public:
             static void init(){
                 getInstance().init_impl();
@@ -87,7 +76,7 @@ namespace libtrainsim{
             
             static void startRender(){
                 try{
-                    getInstance().errorOffThread();
+                    errorOffThread();
                 }catch(...){
                     std::throw_with_nested(std::runtime_error("Cannot start rendering a frame"));
                 }
@@ -96,7 +85,7 @@ namespace libtrainsim{
             
             static void endRender(){
                 try{
-                    getInstance().errorOffThread();
+                    errorOffThread();
                 }catch(...){
                     std::throw_with_nested(std::runtime_error("Cannot end rendering a frame"));
                 }
@@ -115,6 +104,25 @@ namespace libtrainsim{
                 getInstance().updateRenderThread_impl();
             }
             
+            
+                        
+            /**
+             * @brief display a warning when opengl operations are done outside of the main thread
+             */
+            static void warnOffThread(){
+                if(getMainTreadID() != std::this_thread::get_id()){
+                    std::cerr << "creating a framebuffer outside of the main thread! This may work or not depending on the driver and os be careful with this!" << std::endl;
+                }
+            }
+            
+            /**
+             * @brief throw an error if certain operations are done off thread.
+             */
+            static void errorOffThread(){
+                if(getMainTreadID() != std::this_thread::get_id()){
+                    throw std::runtime_error("make sure to only call the render on the main thread or update the render thread");
+                }
+            }
             
             static const std::thread::id& getMainTreadID(){
                 return getInstance().mainThreadID;
