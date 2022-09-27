@@ -80,10 +80,17 @@ void train_properties::loadJsonData(const nlohmann::json& data_json){
     try{
         auto unit = Helper::getOptionalJsonField<std::string>(data_json, "powerUnit");
         if(unit.has_value()){
-            if(unit.value() == "kW"){
-                powerUnit = 1000.0;
-            }else{
-                throw std::runtime_error("unknown power unit given");
+            switch(Helper::stringSwitch(unit.value(),{"W","kW"})){
+                case(0):
+                    powerUnit = 1.0;
+                    break;
+                case(1):
+                    powerUnit = 1000.0;
+                    break;
+                default:
+                    powerUnit = 1.0;
+                    std::cerr << "Unknown power unit given, please update config to a valid one! Falling back to W as specified in the docs." << std::endl;
+                    break;
             }
         }
     }catch(...){
@@ -97,27 +104,50 @@ void train_properties::loadJsonData(const nlohmann::json& data_json){
     }
     
     try{
-        track_drag = Helper::getJsonField<double>(data_json,"trackDrag");
+        surfaceArea = sakurajin::unit_system::common::area{Helper::getJsonField<double>(data_json, "surfaceArea"), 1.0};
     }catch(...){
-        std::throw_with_nested(std::runtime_error("error reading track drag"));
+        std::throw_with_nested(std::runtime_error("error reading train surface area"));
     }
-
+    
     try{
-        air_drag = Helper::getOptionalJsonField<double>(data_json, "airDrag");
+        numberWagons = Helper::getJsonField<unsigned int>(data_json, "numberWagons");
     }catch(...){
-        std::throw_with_nested("error reading air drag");
+        std::throw_with_nested(std::runtime_error("error reading number of wagons"));
+    }
+    
+    try{
+        wagonLength = sakurajin::unit_system::base::length{Helper::getJsonField<double>(data_json, "wagonLength"),1.0};
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error reading length of wagons"));
+    }
+    
+    try{
+        driverLength = sakurajin::unit_system::base::length{Helper::getJsonField<double>(data_json, "driverLength"),1.0};
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error reading length of driver"));
+    }
+    
+    try{
+        auto _type = Helper::getOptionalJsonField<std::string>(data_json, "trainType");
+        if(_type.has_value()){
+            switch(Helper::stringSwitch(_type.value(),{"passenger","cargo"})){
+                case(0):
+                    type = trainType::passenger;
+                    break;
+                case(1):
+                    type = trainType::cargo;
+                    break;
+                default:
+                    type = trainType::passenger;
+                    std::cerr << "Unknown train type given, please update config to a valid one! Falling back to passenger as specified in the docs." << std::endl;
+                    break;
+            }
+        }
+    }catch(...){
+        std::throw_with_nested("error reading train type");
     }
 
-}
 
-force train_properties::calulateDrag(speed currentVelocity) const{
-    currentVelocity = unit_cast(currentVelocity,1);
-    auto t_drag = (mass * 1_G) * track_drag;
-    if(!air_drag.has_value()){
-        return t_drag;
-    }
-    auto a_drag = 1_N * 0.5 * currentVelocity.value * currentVelocity.value * airDensity * air_drag.value();
-    return t_drag + a_drag;
 }
 
 const std::string& train_properties::getName() const{
@@ -133,9 +163,9 @@ common::power train_properties::getMaxPower() const{
 }
 
 std::optional<double> train_properties::getAirDrag() const{
-    return air_drag;
+    return {};
 }
 
 double train_properties::getTrackDrag() const{
-    return track_drag;
+    return 0.2;
 }
