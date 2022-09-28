@@ -9,8 +9,6 @@ using namespace sakurajin::unit_system::common::literals;
 using namespace sakurajin::unit_system;
 using namespace sakurajin::unit_system::base::literals;
 
-static const long double airDensity = 1.2041;
-
 train_properties::train_properties(const std::filesystem::path& URI){
     if(!std::filesystem::exists(URI)){
         throw std::invalid_argument("The Train file location is empty:" + URI.string());
@@ -169,3 +167,28 @@ std::optional<double> train_properties::getAirDrag() const{
 double train_properties::getTrackDrag() const{
     return 0.2;
 }
+
+
+sakurajin::unit_system::base::length libtrainsim::core::train_properties::getDriverLength() const {
+    return driverLength;
+}
+
+sakurajin::unit_system::common::area libtrainsim::core::train_properties::getSurfaceArea() const {
+    return surfaceArea;
+}
+
+libtrainsim::core::trainType libtrainsim::core::train_properties::getTrainType() const {
+    return type;
+}
+
+sakurajin::unit_system::base::length libtrainsim::core::train_properties::getWagonLength() const {
+    return wagonLength;
+}
+
+unsigned int libtrainsim::core::train_properties::getNumberWagons() const {
+    return numberWagons;
+}
+
+
+
+

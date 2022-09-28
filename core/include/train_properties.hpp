@@ -110,22 +110,31 @@ namespace libtrainsim {
             /**
              * @brief The maximum of Power in W the Train can have.
              */
-
             sakurajin::unit_system::common::power getMaxPower() const;
 
+            
+            sakurajin::unit_system::common::area getSurfaceArea() const;
+            
+            unsigned int getNumberWagons() const;
+
+            sakurajin::unit_system::base::length getWagonLength() const;
+
+            sakurajin::unit_system::base::length getDriverLength() const;
+            
+            trainType getTrainType() const;
 
             /**
              * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
-             * @deprecated will be removed in the near future
+             * @deprecated will be removed in the near future. For now this will always return {} and thus is useless.
              */
             std::optional<double> getAirDrag() const;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
-             * The default value is 0.002.
-             * @deprecated will be removed in the near future
+             * The default value is 0.2.
+             * @deprecated will be removed in the near future. For now it always returns the default of 0.2
              */
             double getTrackDrag() const;
 
