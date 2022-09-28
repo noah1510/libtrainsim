@@ -2,8 +2,11 @@
 
 #include <iostream>
 #include "track_data.hpp"
+#include "libtrainsim_config.hpp"
 
 using namespace sakurajin::unit_system::base::literals;
+
+const static std::filesystem::path testPath = std::filesystem::path{TEST_DATA_DIRECTORY} / "core";
 
 void test_nearest(const libtrainsim::core::Track_data& dat){
     EXPECT_TRUE(dat.getSize() == 10);
@@ -16,7 +19,7 @@ void test_nearest(const libtrainsim::core::Track_data& dat){
 
 TEST(TrackData, getNearestFrame){
     
-    std::filesystem::path loc = "../core/tests/data/test_track_data.json";
+    std::filesystem::path loc = testPath / "test_track_data.json";
     std::optional<libtrainsim::core::Track_data> dat;
     EXPECT_NO_THROW(dat = libtrainsim::core::Track_data{loc});
 
@@ -33,7 +36,7 @@ TEST(TrackData, InValidCheck){
 };
 
 TEST(TrackData, ValidCheck){
-    std::filesystem::path loc = "../core/tests/data/test_track_data.json";
+    std::filesystem::path loc = testPath / "test_track_data.json";
     std::optional<libtrainsim::core::Track_data> dat;
     EXPECT_NO_THROW(dat = libtrainsim::core::Track_data{loc});
     
