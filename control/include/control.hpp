@@ -72,7 +72,7 @@ namespace libtrainsim {
                  * @brief the serial interface to the connected hardware input
                  * 
                  */
-                serialcontrol serial;
+                std::unique_ptr<serialcontrol> serial;
                 
                 /**
                  * @brief this stores the job to update the serial interface on a different thread

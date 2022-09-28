@@ -7,6 +7,8 @@
 #include <rs232.hpp>
 #include <memory>
 #include <vector>
+#include <mutex>
+#include <shared_mutex>
 
 namespace libtrainsim{
     namespace control{
@@ -54,6 +56,11 @@ namespace libtrainsim{
         */
         class serialcontrol{
             private:
+                
+                /**
+                 * @brief a single mutex to secure the data access
+                 */
+                std::shared_mutex accessMutex;
 
                 /**
                 * @brief comport given by config-file.

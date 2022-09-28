@@ -17,6 +17,8 @@ using namespace std::literals;
 //*********************serialcontrol*****************************************
 
 serialcontrol::serialcontrol(const std::filesystem::path& filename){
+    std::scoped_lock lock{accessMutex};
+    
     std::cout << "starte startup..." << std::endl;
     try{
         read_config(filename);
@@ -109,6 +111,7 @@ std::tuple<uint8_t, uint8_t, bool, int> serialcontrol::decodeTelegram(const std:
 }
 
 int serialcontrol::get_serial(std::string name){
+    std::shared_lock lock{accessMutex};
     for (size_t i = 0; i < serial_channels.size(); i++){
         if (serial_channels[i].name == name){
             return serial_channels[i].value;
@@ -118,43 +121,46 @@ int serialcontrol::get_serial(std::string name){
 }
 
 void serialcontrol::set_serial(int i, int value, bool isAnalog){
-    if(isAnalog){
-        for (size_t n = 0; n < serial_channels.size(); n++){
-            if (serial_channels[n].type == "analog" && serial_channels[n].channel == i){
-                serial_channels[n].value = value;
+    std::scoped_lock lock{accessMutex};
+    
+    size_t index = 0;
+    for(size_t n = 0; n < serial_channels.size(); n++){
+        if(serial_channels[n].channel == i){
+            if(serial_channels[n].type == (isAnalog ? "analog" : "digital")){
+                index = n;
+                break;
             }
         }
-    }else{
-        for (size_t n = 0; n < serial_channels.size(); n++){
-            if (serial_channels[n].type == "digital" && serial_channels[n].channel == i){
-                serial_channels[n].value = value;
+    }
+
+    serial_channels[index].value = value;
+    
+    //handle special cases for some channels
+    switch(core::Helper::stringSwitch(serial_channels[index].name,{"emergency_brake","analog_drive"})){
+        case(0):
+            emergency_flag = true;
+            break;
+        case(1):
+            if(emergency_flag && value < 2){
+                emergency_flag = false;
             }
-        }
+            break;
+        default:
+            break;
     }
 }
 
 libtrainsim::core::input_axis serialcontrol::get_slvl(){
-    if (get_serial("emergency_brake") == 1){
-        emergency_flag = true;         
-        return -1.0;
-    }else if (get_emergencyflag()){
-        if (get_serial("analog_drive") < 2){
-            emergency_flag = false;
-        }else {
-            return 0.0;
-        }
-    }else if (!get_emergencyflag()){
-        double acc = get_serial("analog_drive");
-        double dec = get_serial("analog_brake");
+    
+    double acc = get_serial("analog_drive");
+    double dec = get_serial("analog_brake");
 
-        acc = acc / 255;
-        dec = dec / 255;
+    acc = acc / 255;
+    dec = dec / 255;
 
-        libtrainsim::core::input_axis slvl = acc - dec;
+    libtrainsim::core::input_axis slvl = acc - dec;
 
-        return slvl;
-    }
-    return 0.0;
+    return slvl;
 }
 
 bool serialcontrol::IsConnected(){
@@ -162,6 +168,7 @@ bool serialcontrol::IsConnected(){
 }
 
 bool serialcontrol::get_emergencyflag(){
+    std::shared_lock lock{accessMutex};
     return emergency_flag;
 }
 
