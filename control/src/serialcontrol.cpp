@@ -45,19 +45,24 @@ int serialcontrol::hex2int(char hex) const{
     return -1;
 }
 
-void serialcontrol::update(){
+std::future<void> serialcontrol::update(){
     
-    auto [message, serialError] = rs232_obj->ReadUntil({'Y'}, 100ms);
-    if(serialError < 0){
-        return;
-    }
-    
-    auto [port, value, isDigital, decodeError] = decodeTelegram(message);
-    if(decodeError < 0){
-        return;
-    }
-    
-    set_serial(port, value, !isDigital);
+    return std::async(std::launch::async,[&](){
+        do{
+            auto [message, serialError] = rs232_obj->ReadUntil({'Y'}, 100ms);
+            if(serialError < 0){
+                continue;
+            }
+            
+            auto [port, value, isDigital, decodeError] = decodeTelegram(message);
+            if(decodeError < 0){
+                continue;
+            }
+            
+            set_serial(port, value, !isDigital);
+            break;
+        }while(true);
+    });
 }
 
 std::tuple<uint8_t, uint8_t, bool, int> serialcontrol::decodeTelegram(const std::string& telegram) const{
@@ -124,13 +129,16 @@ void serialcontrol::set_serial(int i, int value, bool isAnalog){
     std::scoped_lock lock{accessMutex};
     
     size_t index = 0;
-    for(size_t n = 0; n < serial_channels.size(); n++){
-        if(serial_channels[n].channel == i){
-            if(serial_channels[n].type == (isAnalog ? "analog" : "digital")){
-                index = n;
-                break;
-            }
+    while(index < serial_channels.size()){
+        if(serial_channels[index].channel == i){
+            if(serial_channels[index].type == (isAnalog ? "analog" : "digital")){break;}
         }
+        index++;
+    }
+    
+    if(index == serial_channels.size()){
+        std::cerr << "somehow got an unidentified channel" << std::endl;
+        return;
     }
 
     serial_channels[index].value = value;

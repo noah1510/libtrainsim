@@ -9,6 +9,7 @@
 #include <vector>
 #include <mutex>
 #include <shared_mutex>
+#include <future>
 
 namespace libtrainsim{
     namespace control{
@@ -124,7 +125,7 @@ namespace libtrainsim{
                 /**
                 * @brief This function updates the serial status, reads and analyses new incoming telegrams.
                 */
-                void update();
+                std::future<void> update();
 
                 /**
                 * @brief This function returns the value of searched channel by name / funciton. Return value is the current value of searched channel. Can be used to get the last known value of different functions the hardware input has.

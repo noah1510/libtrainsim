@@ -89,6 +89,11 @@ namespace libtrainsim {
                 * @param URI The location of the serial configuration file (should be given by the settings)
                 */
                 input_handler(const std::filesystem::path& URI) noexcept(false);
+                
+                /**
+                 * @brief destory the input handler
+                 */
+                ~input_handler();
 
                 /**
                  * @brief Get the function of the currently pressed keys.

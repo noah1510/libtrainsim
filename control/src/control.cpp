@@ -11,9 +11,17 @@ libtrainsim::control::input_handler::input_handler(const std::filesystem::path& 
     
     keys = libtrainsim::control::keymap();
     if(serial->IsConnected()){
-        asyncSerialUpdate = std::async(std::launch::async,[&](){serial->update();});
+        asyncSerialUpdate = serial->update();
     }
 }
+
+libtrainsim::control::input_handler::~input_handler() {
+    if(asyncSerialUpdate.valid()){
+        asyncSerialUpdate.wait();
+        asyncSerialUpdate.get();
+    }
+}
+
 
 libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap() noexcept {
     return keys;
@@ -77,7 +85,7 @@ void libtrainsim::control::input_handler::update() {
             shouldEmergencyBreak = serial->get_emergencyflag();
             currentInputAxis = serial->get_slvl();
             
-            asyncSerialUpdate = std::async(std::launch::async,[&](){serial->update();});
+            asyncSerialUpdate = serial->update();
         }
 
     }else{
