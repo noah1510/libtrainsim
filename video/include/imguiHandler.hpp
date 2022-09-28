@@ -133,8 +133,8 @@ namespace libtrainsim{
              */
             static void warnOffThread(){
                 if(getMainTreadID() != std::this_thread::get_id()){
-                }
                     std::cerr << "creating a framebuffer outside of the main thread! This may work or not depending on the driver and os be careful with this!" << std::endl;
+                }
             }
             
             /**
