@@ -73,11 +73,6 @@ namespace libtrainsim {
                  * 
                  */
                 std::unique_ptr<serialcontrol> serial;
-                
-                /**
-                 * @brief this stores the job to update the serial interface on a different thread
-                 */
-                std::future<void> asyncSerialUpdate;
 
             public:
 

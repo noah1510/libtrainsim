@@ -77,6 +77,11 @@ namespace libtrainsim{
                 * @brief flag, true if COMPort successfully opened.
                 */
                 bool isConnected = false;
+                
+                /**
+                 * @brief a separate mutex for the isConnected variable
+                 */
+                std::shared_mutex connectedMutex;
 
                 /**
                 * @brief flag, true if emergency-brake-button was pressed until train has stopped.
@@ -114,18 +119,23 @@ namespace libtrainsim{
                 */
                 void read_config(const std::filesystem::path& filename);
                 
+                /**
+                 * @brief this stores the job to update the serial interface on a different thread
+                 */
+                std::future<void> updateLoop;
+                
             public:
-
 
                 /**
                 * @brief constructor creates an object with all needed parts to handle hardware input.
+                * @note as soon as it is contructed it automatically updates the values from a second thread until the object should be destroyed.
                 */
                 serialcontrol(const std::filesystem::path& filename);
-
+                
                 /**
-                * @brief This function updates the serial status, reads and analyses new incoming telegrams.
-                */
-                std::future<void> update();
+                 * @brief destroy the serial control object
+                 */
+                ~serialcontrol();
 
                 /**
                 * @brief This function returns the value of searched channel by name / funciton. Return value is the current value of searched channel. Can be used to get the last known value of different functions the hardware input has.

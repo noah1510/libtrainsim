@@ -35,23 +35,12 @@ serialcontrol::serialcontrol(const std::filesystem::path& filename){
     isConnected = true;
     emergency_flag = false;
     std::cout << "beende startup..." << std::endl;
-};
-
-int serialcontrol::hex2int(char hex) const{
-    if (hex >= '0' && hex <= '9')
-        return hex - '0';
-    if (hex >= 'A' && hex <= 'F')
-        return hex - 'A' + 10;
-    return -1;
-}
-
-std::future<void> serialcontrol::update(){
     
-    return std::async(std::launch::async,[&](){
+    updateLoop = std::async(std::launch::async,[&](){
         do{
             auto [message, serialError] = rs232_obj->ReadUntil({'Y'}, 100ms);
             if(serialError < 0){
-                break;
+                continue;
             }
             
             auto [port, value, isDigital, decodeError] = decodeTelegram(message);
@@ -60,9 +49,32 @@ std::future<void> serialcontrol::update(){
             }
             
             set_serial(port, value, !isDigital);
-            break;
-        }while(true);
+        }while(IsConnected());
     });
+    
+}
+
+libtrainsim::control::serialcontrol::~serialcontrol() {
+    if(IsConnected()){
+        connectedMutex.lock();
+        isConnected = false;
+        connectedMutex.unlock();
+    }
+    
+    if(updateLoop.valid()){
+        updateLoop.wait();
+        updateLoop.get();
+    }
+    
+}
+
+
+int serialcontrol::hex2int(char hex) const{
+    if (hex >= '0' && hex <= '9')
+        return hex - '0';
+    if (hex >= 'A' && hex <= 'F')
+        return hex - 'A' + 10;
+    return -1;
 }
 
 std::tuple<uint8_t, uint8_t, bool, int> serialcontrol::decodeTelegram(const std::string& telegram) const{
@@ -172,6 +184,7 @@ libtrainsim::core::input_axis serialcontrol::get_slvl(){
 }
 
 bool serialcontrol::IsConnected(){
+    std::shared_lock lock{accessMutex};
     return isConnected;
 }
 

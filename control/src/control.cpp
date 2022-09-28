@@ -10,16 +10,10 @@ libtrainsim::control::input_handler::input_handler(const std::filesystem::path& 
     }
     
     keys = libtrainsim::control::keymap();
-    if(serial->IsConnected()){
-        asyncSerialUpdate = serial->update();
-    }
 }
 
 libtrainsim::control::input_handler::~input_handler() {
-    if(asyncSerialUpdate.valid()){
-        asyncSerialUpdate.wait();
-        asyncSerialUpdate.get();
-    }
+    serial.reset();
 }
 
 
@@ -78,15 +72,9 @@ void libtrainsim::control::input_handler::update() {
 
     //if there is harware input update most flags from there
     if(serial->IsConnected()){
-        auto status = asyncSerialUpdate.wait_for(1ns);
-        if(status == std::future_status::ready){
-            asyncSerialUpdate.get();
-            
-            shouldEmergencyBreak = serial->get_emergencyflag();
-            currentInputAxis = serial->get_slvl();
-            
-            asyncSerialUpdate = serial->update();
-        }
+        
+        shouldEmergencyBreak = serial->get_emergencyflag();
+        currentInputAxis = serial->get_slvl();
 
     }else{
 
