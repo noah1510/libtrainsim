@@ -2,12 +2,20 @@
 
 using namespace std::literals;
 
-libtrainsim::control::input_handler::input_handler(const std::filesystem::path& URI) noexcept(false): serial{URI}{
-    keys = libtrainsim::control::keymap();
-    if(serial.IsConnected()){
-        asyncSerialUpdate = std::async(std::launch::async,[&](){serial.update();});
+libtrainsim::control::input_handler::input_handler(const std::filesystem::path& URI) noexcept(false){
+    try{
+        serial = std::make_unique<serialcontrol>(URI);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error initializing the serial control"));
     }
+    
+    keys = libtrainsim::control::keymap();
 }
+
+libtrainsim::control::input_handler::~input_handler() {
+    serial.reset();
+}
+
 
 libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap() noexcept {
     return keys;
@@ -63,16 +71,10 @@ void libtrainsim::control::input_handler::update() {
     }
 
     //if there is harware input update most flags from there
-    if(serial.IsConnected()){
-        auto status = asyncSerialUpdate.wait_for(1ns);
-        if(status == std::future_status::ready){
-            asyncSerialUpdate.get();
-            
-            shouldEmergencyBreak = serial.get_emergencyflag();
-            currentInputAxis = serial.get_slvl();
-            
-            asyncSerialUpdate = std::async(std::launch::async,[&](){serial.update();});
-        }
+    if(serial->IsConnected()){
+        
+        shouldEmergencyBreak = serial->get_emergencyflag();
+        currentInputAxis = serial->get_slvl();
 
     }else{
 

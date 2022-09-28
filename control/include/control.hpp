@@ -72,12 +72,7 @@ namespace libtrainsim {
                  * @brief the serial interface to the connected hardware input
                  * 
                  */
-                serialcontrol serial;
-                
-                /**
-                 * @brief this stores the job to update the serial interface on a different thread
-                 */
-                std::future<void> asyncSerialUpdate;
+                std::unique_ptr<serialcontrol> serial;
 
             public:
 
@@ -89,6 +84,11 @@ namespace libtrainsim {
                 * @param URI The location of the serial configuration file (should be given by the settings)
                 */
                 input_handler(const std::filesystem::path& URI) noexcept(false);
+                
+                /**
+                 * @brief destory the input handler
+                 */
+                ~input_handler();
 
                 /**
                  * @brief Get the function of the currently pressed keys.
