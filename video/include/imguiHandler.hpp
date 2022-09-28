@@ -5,6 +5,8 @@
 #include <string>
 #include <filesystem>
 #include <iostream>
+#include <mutex>
+#include <thread>
 
 #include "video_config.hpp"
 
@@ -13,7 +15,6 @@
 
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
-
 
 #if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
     #include <SDL2/SDL.h>
@@ -74,6 +75,9 @@ namespace libtrainsim{
             
             int maxTextureUnits = 0;
             
+            std::mutex IOLock;
+            //lock the io while rendering a frame
+            
             void init_impl();
             void startRender_impl();
             void endRender_impl();
@@ -86,16 +90,28 @@ namespace libtrainsim{
             void drawRect_impl();
             std::shared_ptr<texture> getDarkenTexture_impl(unsigned int strength);
             
+            std::thread::id mainThreadID;
+            
           public:
             static void init(){
                 getInstance().init_impl();
             }
             
             static void startRender(){
+                try{
+                    errorOffThread();
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Cannot start rendering a frame"));
+                }
                 getInstance().startRender_impl();
             }
             
             static void endRender(){
+                try{
+                    errorOffThread();
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Cannot end rendering a frame"));
+                }
                 getInstance().endRender_impl();
             }
             
@@ -109,6 +125,34 @@ namespace libtrainsim{
             
             static void updateRenderThread(){
                 getInstance().updateRenderThread_impl();
+            }
+            
+            
+            /**
+             * @brief display a warning when opengl operations are done outside of the main thread
+             */
+            static void warnOffThread(){
+                if(getMainTreadID() != std::this_thread::get_id()){
+                }
+                    std::cerr << "creating a framebuffer outside of the main thread! This may work or not depending on the driver and os be careful with this!" << std::endl;
+            }
+            
+            /**
+             * @brief throw an error if certain operations are done off thread.
+             */
+            static void errorOffThread(){
+                if(getMainTreadID() != std::this_thread::get_id()){
+                    std::cerr << "make sure to only call the render on the main thread or update the render thread" << std::endl;
+                    throw std::runtime_error("make sure to only call the render on the main thread or update the render thread");
+                }
+            }
+            
+            static const std::thread::id& getMainTreadID(){
+                return getInstance().mainThreadID;
+            }
+            
+            static std::mutex& getIOLock(){
+                return getInstance().IOLock;
             }
             
             //copies the output buffer into the input buffer

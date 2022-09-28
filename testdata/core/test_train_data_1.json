@@ -1,0 +1,12 @@
+{
+    "name":"DB-Baureihe 423/433",
+    "mass":119400.0,
+    "formatVersion":"0.9.0",
+    "maxPower":2350.0,
+    "powerUnit":"kW",
+    "surfaceArea":10.4,
+    "numberWagons":2,
+    "wagonLength":67.400,
+    "driverLength":67.400,
+    "trainType":"passenger"
+}

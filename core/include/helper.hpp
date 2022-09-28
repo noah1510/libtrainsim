@@ -67,12 +67,31 @@ namespace libtrainsim{
                     throw nlohmann::json::out_of_range::create(1001, "field does not exist", nlohmann::basic_json());
                 }
                 
-                auto val = data_json[location];
+                auto val = it.value();
                 if(val.empty()){
                     throw nlohmann::json::invalid_iterator::create(1002, "field exists but is empty", nlohmann::basic_json());
                 }
                 
                 return val;
+            }
+            
+            /**
+             * @brief Get a json field from an json data object
+             * 
+             * This function prevents the program from crashing if the field does not exist.
+             * 
+             * @param data_json the json data object
+             * @param location the name of the wanted field
+             * @return nlohmann::json the value of the field
+             */
+            static std::optional<nlohmann::json> getOptionalJsonField(const nlohmann::json& data_json, const std::string& location){
+                try{
+                    auto val = getJsonField(data_json,location);
+                    return val;
+                }catch(...){
+                    return {};
+                }
+                
             }
             
             /**
@@ -191,17 +210,61 @@ namespace libtrainsim{
                 destination.insert(destination.end(), source.begin(), source.end());
             }
             
+            /**
+             * @brief compares if two values are equal with a tolerance
+             * 
+             * 
+             * @tparam T The type of the values
+             * @param value1 The first value
+             * @param value2 The second value
+             * @param precision The allowed tolerance. The default value of 1 per 1000 shoould be fine for most cases.
+             * @return will return true if they are equal within the tolerance and false if not
+             */
             template <typename T>
             static bool isRoughly(T value1, T value2, double precision = 0.001){
                 if(value1 == value2){return true;}; //this should get 0 comparison working
-                bool val1Larger = std::abs(value1) > std::abs(value2);
-                T epsilon = std::abs( val1Larger ? value1 : value2 ) * precision;
                 
-                if(val1Larger){
-                    return std::abs(value1) - std::abs(value2) < epsilon;
-                }else{
-                    return std::abs(value2) - std::abs(value1) < epsilon;
+                bool val1Larger = std::abs(value1) > std::abs(value2);
+                double epsilon = static_cast<double>(std::abs( val1Larger ? value1 : value2 )) * precision;
+                
+                return std::abs(value1 - value2) <= static_cast<T>(epsilon);
+            }
+            
+            /**
+             * @brief This functions kind of allows strings to be used for a stringSwitch
+             * 
+             * This function needs a value which would go into the switch() expression and a vector
+             * with all of the cases. It then returns the first matched index which can be used in cases.
+             * 
+             * If no item matches -1 is returned.
+             * 
+             * So the intendet use is the following:
+             * 
+             *    ```cpp
+             *       switch(Helper::stringSwitch(myString,{"a","b"})){
+             *           case(0):
+             *               std::cout << "is a" << std::endl;
+             *               break;
+             *           case(1):
+             *               std::cout << "is b" << std::endl;
+             *               break;
+             *           default:
+             *               std::cout << "is something else" << std::endl;
+             *               break;
+             *       }
+             *    ```
+             * 
+             * @param value The variable that is going to be checked in the switch
+             * @param cases An array (vector) containing all of the cases in order
+             * @return The index of the case that matches
+             * 
+             */
+            static int64_t stringSwitch(const std::string& value, const std::vector<std::string>& cases){
+                for(size_t i = 0; i < cases.size(); i++){
+                    if(cases[i] == value){return i;};
                 }
+                
+                return -1;
             }
             
         };

@@ -8,6 +8,44 @@ using namespace libtrainsim::core;
 using namespace sakurajin::unit_system::common;
 using namespace sakurajin::unit_system::base;
 
+const length& libtrainsim::core::undergorundDataPoint::begin() const {
+    return std::get<0>(*this);
+}
+
+const length& libtrainsim::core::undergorundDataPoint::end() const {
+    return std::get<1>(*this);
+}
+
+const sakurajin::unit_system::common::area& libtrainsim::core::undergorundDataPoint::area() const {
+    return std::get<2>(*this);
+}
+
+libtrainsim::core::undergorundDataPoint::undergorundDataPoint(
+    sakurajin::unit_system::base::length _begin,
+    sakurajin::unit_system::base::length _end,
+    sakurajin::unit_system::common::area _area
+):tuple{_begin, _end, _area}{}
+
+
+const std::string & libtrainsim::core::stopDataPoint::name() const {
+    return std::get<0>(*this);
+}
+
+const sakurajin::unit_system::base::length & libtrainsim::core::stopDataPoint::position() const {
+    return std::get<1>(*this);
+}
+
+const libtrainsim::core::stopTypes & libtrainsim::core::stopDataPoint::type() const {
+    return std::get<2>(*this);
+}
+
+libtrainsim::core::stopDataPoint::stopDataPoint (
+    std::string _name, 
+    sakurajin::unit_system::base::length _position, 
+    libtrainsim::core::stopTypes _type 
+): tuple{_name,_position,_type}{}
+
+
 Track::Track(const std::filesystem::path& URI, bool lazyLoad){
         
     if(!std::filesystem::exists(URI)){
@@ -30,14 +68,60 @@ Track::Track(const std::filesystem::path& URI, bool lazyLoad){
     }
     
     try{
+        parseJsonData();
         if(!lazyLoad){
-            parseJsonData();
+            parseTrack();
+            data_json.reset();
         }
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not parse json data"));
     }
     
 }
+
+void libtrainsim::core::Track::parseTrack() {
+    if(!data_json.has_value()){
+        return;
+    }
+    
+    if(!data_json->is_object()){
+        throw std::invalid_argument("the given data is not a json object");
+    }
+    
+    try{
+        auto dat = Helper::getJsonField(data_json.value(),"data");
+        if(dat.is_string()){
+            std::filesystem::path da = parentPath / dat.get<std::string>();
+            track_dat = std::make_optional<Track_data>(da);
+        }else if(dat.is_array()){
+            track_dat = std::make_optional<Track_data>(dat);
+        }else{
+            throw std::runtime_error("invalid track data format");
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error constructing the track object"));
+    }
+    
+    try{
+        startingPoint.value = Helper::getJsonField<double>(data_json.value(),"startingPoint");
+    }catch(...){
+        startingPoint = track_dat->firstLocation();
+    }
+    
+    try{
+        endPoint.value = Helper::getJsonField<double>(data_json.value(),"endPoint");
+    }catch(...){
+        endPoint = track_dat->lastLocation();
+    }
+    
+    startingPoint = std::clamp(startingPoint,track_dat->firstLocation(),track_dat->lastLocation());
+    endPoint = std::clamp(endPoint,track_dat->firstLocation(),track_dat->lastLocation());
+    
+    if(startingPoint > endPoint){
+        throw std::runtime_error("the last location was smaller than the first position");
+    };
+}
+
 
 void Track::parseJsonData(){
     
@@ -77,20 +161,6 @@ void Track::parseJsonData(){
     }
     
     try{
-        auto dat = Helper::getJsonField(data_json.value(),"data");
-        if(dat.is_string()){
-            std::filesystem::path da = parentPath / dat.get<std::string>();
-            track_dat = Track_data(da);
-        }else if(dat.is_array()){
-            track_dat = Track_data(dat);
-        }else{
-            throw std::runtime_error("invalid track data format");
-        }
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("Error constructing the track object"));
-    }
-    
-    try{
         auto dat = Helper::getJsonField(data_json.value(),"train");
         if(dat.is_string()){
             std::filesystem::path tr = parentPath/dat.get<std::string>();
@@ -105,24 +175,67 @@ void Track::parseJsonData(){
     }
     
     try{
-        startingPoint.value = Helper::getJsonField<double>(data_json.value(),"startingPoint");
+        auto mult = Helper::getOptionalJsonField<double>(data_json.value(), "defaultTrackFrictionMultiplier");
+        if(mult.has_value()){
+            defaultTrackFrictionMultiplier = mult.value();
+        }
     }catch(...){
-        startingPoint = track_dat->firstLocation();
+        std::throw_with_nested(std::runtime_error("Error reading defaultTrackFrictionMultiplier"));
     }
     
     try{
-        endPoint.value = Helper::getJsonField<double>(data_json.value(),"endPoint");
+        auto under = Helper::getOptionalJsonField(data_json.value(), "undergroundData");
+        if(under.has_value()){
+            if(!under->is_array()){throw std::runtime_error("Could not read undergroundData. Not an array");};
+            
+            for(auto _dat : under.value() ){
+                auto sta = Helper::getJsonField<double>(_dat, "begin");
+                auto en = Helper::getJsonField<double>(_dat, "end");
+                auto _ar = Helper::getOptionalJsonField<double>(_dat, "tunnelArea");
+                
+                auto start = sakurajin::unit_system::base::length{sta};
+                auto end = sakurajin::unit_system::base::length{en};
+                sakurajin::unit_system::common::area area;
+                if(_ar.has_value()){
+                    area = sakurajin::unit_system::common::area{_ar.value()};
+                }else{
+                    area = std::acos(0) * sakurajin::unit_system::common::square(3.5_m);
+                }
+                
+                undergroundData.emplace_back(undergorundDataPoint{start, end, area});
+            }
+        }
     }catch(...){
-        endPoint = track_dat->lastLocation();
+        std::throw_with_nested(std::runtime_error("Error reading the underground data"));
     }
     
-    startingPoint = std::clamp(startingPoint,track_dat->firstLocation(),track_dat->lastLocation());
-    endPoint = std::clamp(endPoint,track_dat->firstLocation(),track_dat->lastLocation());
-    if(startingPoint > endPoint){
-        throw std::runtime_error("the last location was smaller than the first position");
-    };
+    try{
+        auto stops = Helper::getOptionalJsonField(data_json.value(), "stops");
+        if(stops.has_value()){
+            if(!stops->is_array()){throw std::runtime_error("Could not read stops data. Not an array");};
+            
+            for(auto _dat : stops.value() ){
+                
+                auto name = Helper::getJsonField<std::string>(_dat, "name");
+                auto loc = Helper::getJsonField<double>(_dat, "location");
+                auto ty = Helper::getJsonField<std::string>(_dat, "type");
+                
+                auto location = sakurajin::unit_system::base::length{loc};
+                stopTypes type;
+                if(ty == "station"){
+                    type = station;
+                }else{
+                    throw std::runtime_error("Invalid stop type:" + ty);
+                }
+                
+                stopsData.emplace_back(stopDataPoint{name, location, type});
+            }
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error reading the stops data"));
+    }
     
-    data_json.reset();
+    
 }
 
 const Track_data& Track::data() const{
@@ -140,21 +253,11 @@ const train_properties& Track::train() const{
 }
 
 length Track::lastLocation() const{
-    try{
-        auto loc = data().lastLocation();
-        return (endPoint < loc) ? endPoint : loc;
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("error acessing data"));
-    }
+    return endPoint;
 }
 
 length Track::firstLocation() const{
-    try{
-        auto loc = data().firstLocation();
-        return (startingPoint > loc) ? startingPoint : loc;
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("error acessing data"));
-    }
+    return startingPoint;
 }
 
 const std::string & libtrainsim::core::Track::getName() const {
@@ -172,7 +275,8 @@ std::filesystem::path Track::getVideoFilePath() const{
 
 void libtrainsim::core::Track::ensure() {
     try{
-        parseJsonData();
+        parseTrack();
+        data_json.reset();
     }catch(...){
         std::throw_with_nested(std::runtime_error("Error parsing the json data"));
     }

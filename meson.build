@@ -10,6 +10,10 @@ project(
 conf_data = configuration_data()
 conf_data.set('HAS_CORE_SUPPORT', true)
 
+if get_option('force_build_tests') or (get_option('build_tests') and not meson.is_subproject())
+    conf_data.set_quoted('TEST_DATA_DIRECTORY', meson.project_source_root()+'/'+get_option('test_data_location'))
+endif
+
 if get_option('build_video') or get_option('build_full')
     conf_data.set('HAS_VIDEO_SUPPORT', true)
 endif

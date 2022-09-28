@@ -40,7 +40,7 @@ namespace libtrainsim {
         *
         * Using the Keymap() function you can get a reference to the keymap of the input_handler and register addtional keys and functions,
         * that can be handled by an implementation of the simulator.
-        *
+        * 
         * @warning this interface is only really useful is you use libtrainsim::video to handle window management otherwise
         * it is not possible to retrieve the currently pressed keys. You can use this a a base to implement you own input_handler
         * if you some other window management.
@@ -73,6 +73,11 @@ namespace libtrainsim {
                  * 
                  */
                 serialcontrol serial;
+                
+                /**
+                 * @brief this stores the job to update the serial interface on a different thread
+                 */
+                std::future<void> asyncSerialUpdate;
 
             public:
 
@@ -122,9 +127,9 @@ namespace libtrainsim {
 
                 /**
                  * @brief update all of the flags and the speed axis value
-                 * 
+                 * @warning This needs to be called on the render thread. Otherwise this function throws an error.
                  */
-                void update() noexcept;
+                void update();
         };
     }
 }

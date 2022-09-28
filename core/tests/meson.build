@@ -10,6 +10,7 @@ tests = [
     'train_properties',
     'version',
     'input-axis',
+    'helper',
 ]
 
 #create all the tests

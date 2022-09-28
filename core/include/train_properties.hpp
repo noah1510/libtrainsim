@@ -13,6 +13,7 @@
 
 #include "types.hpp"
 
+#include "base.hpp"
 #include "common.hpp"
 #include "helper.hpp"
 
@@ -21,6 +22,11 @@
 
 namespace libtrainsim {
     namespace core {
+        enum class trainType{
+            passenger,
+            cargo
+        };
+        
         /**
          * @brief This class loads all the relevant properties of a train from a json file and provides an interface to get them.
          * Look [here](@ref train_properties_format) for more details on the json format.
@@ -44,20 +50,31 @@ namespace libtrainsim {
             */
             sakurajin::unit_system::common::power maxPower;
 
-
             /**
-             * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
-             * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
-             * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
+             * @brief the surface area of the train
              */
-
-            std::optional<double> air_drag = 0.0;
-
+            sakurajin::unit_system::common::area surfaceArea;
+            
             /**
-             * @brief the rolling resistance coefficient between the train and the rails (no unit).
-             * The default value is 0.02.
+             * @brief the number of wagon the train has
              */
-            double track_drag = 0.02;
+            unsigned int numberWagons;
+            
+            /**
+             * @brief the length of each wagon
+             */
+            sakurajin::unit_system::base::length wagonLength;
+            
+            /**
+             * @brief the length of the driving part of the train
+             */
+            sakurajin::unit_system::base::length driverLength;
+            
+            /**
+             * The type of this train.
+             * All of the valid types are defined in the trainType enum
+             */
+            trainType type = trainType::passenger;
 
             /**
              * @brief Loads the data_json into the other menbers;
@@ -93,46 +110,33 @@ namespace libtrainsim {
             /**
              * @brief The maximum of Power in W the Train can have.
              */
-
             sakurajin::unit_system::common::power getMaxPower() const;
 
+            
+            sakurajin::unit_system::common::area getSurfaceArea() const;
+            
+            unsigned int getNumberWagons() const;
+
+            sakurajin::unit_system::base::length getWagonLength() const;
+
+            sakurajin::unit_system::base::length getDriverLength() const;
+            
+            trainType getTrainType() const;
 
             /**
              * @brief This value is the cv value multiplied by the area the front of the train has (unit: N/Pa).
              * It is used to calulate the air drag force of the train, by multiplying it with the dynamic pressure using the current velocity.
              * This calculation is done by the calculateDrag function, which also adds the rolling resistance.
+             * @deprecated will be removed in the near future. For now this will always return {} and thus is useless.
              */
             std::optional<double> getAirDrag() const;
 
             /**
              * @brief the rolling resistance coefficient between the train and the rails (no unit).
-             * The default value is 0.002.
+             * The default value is 0.2.
+             * @deprecated will be removed in the near future. For now it always returns the default of 0.2
              */
             double getTrackDrag() const;
-
-            /**
-             * @brief This function calculates the drag force based on the current velocity.
-             *
-             * @param currentVelocity the current velocity in m/s
-             * @return double the drag force in N
-             */
-            sakurajin::unit_system::common::force calulateDrag(sakurajin::unit_system::common::speed currentVelocity) const;
-
-            /**
-             * @brief clamps the given velocity to the max velocity
-             *
-             * @param currentVelocity the verlocity that should be clamped
-             * @return double the clamped velocity
-             */
-            sakurajin::unit_system::common::speed clampVelocity(sakurajin::unit_system::common::speed currentVelocity) const;
-
-            /**
-             * @brief clamps the given accelleration to the max velocity
-             *
-             * @param currentVelocity the accelleration that should be clamped
-             * @return double the clamped accelleration
-             */
-            sakurajin::unit_system::common::acceleration clampAcceleration(sakurajin::unit_system::common::acceleration currentAcceleration) const;
 
         };
     }

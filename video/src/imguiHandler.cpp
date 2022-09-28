@@ -67,6 +67,8 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     
     std::cout << "OpenGL version loaded: " << GLVersion.major << "." << GLVersion.minor << std::endl;
     
+    mainThreadID = std::this_thread::get_id();
+    
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
     std::cout << "maxTextureUnits: " << maxTextureUnits << std::endl;
 }
@@ -92,6 +94,7 @@ libtrainsim::Video::imguiHandler::~imguiHandler() {
 void libtrainsim::Video::imguiHandler::init_impl() {}
 
 void libtrainsim::Video::imguiHandler::startRender_impl() {
+    IOLock.lock();
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
@@ -106,10 +109,12 @@ void libtrainsim::Video::imguiHandler::endRender_impl() {
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window);
+    IOLock.unlock();
 }
 
 void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO, unsigned int& texture, dimensions dims ) {
-        
+    warnOffThread();
+    
     auto width = static_cast<unsigned int>(dims.x());
     auto height = static_cast<unsigned int>(dims.y());
     
@@ -153,7 +158,7 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
 }
 
 void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, dimensions dims ) {
-        
+    warnOffThread();
     
     glBindFramebuffer(GL_FRAMEBUFFER, buf);
     setViewport(dims);
@@ -170,6 +175,7 @@ void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, 
 }
 
 void libtrainsim::Video::imguiHandler::setViewport ( const libtrainsim::Video::dimensions& viewportSize ) {
+    warnOffThread();
     if(forceViewportUpdate || viewportSize != lastViewportSize){
         forceViewportUpdate = false;
         lastViewportSize = viewportSize;
@@ -182,7 +188,10 @@ void libtrainsim::Video::imguiHandler::setViewport ( const libtrainsim::Video::d
 
 
 void libtrainsim::Video::imguiHandler::updateRenderThread_impl() {
+    std::scoped_lock lock{IOLock};
+    forceViewportUpdate = true;
     SDL_GL_MakeCurrent(window, gl_context);
+    mainThreadID = std::this_thread::get_id();
 }
 
 void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::Video::texture> src, std::shared_ptr<libtrainsim::Video::texture> dest, bool loadTexture, glm::mat4 transformation ) {

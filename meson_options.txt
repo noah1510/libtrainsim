@@ -1,13 +1,15 @@
-option('build_tests', type : 'boolean', value : true, description: 'set to false if you do not want to compile the tests.')
-option('force_build_tests', type : 'boolean', value : false, description: 'set to true if you do not want to compile the tests even with libtrainsim as subproject.')
-option('build_video', type : 'boolean', value : true, description: 'set to false if you do not want to compile the video component.')
-option('build_control', type : 'boolean', value : true, description: 'set to false if you do not want to compile the control component.')
-option('build_physics', type : 'boolean', value : true, description: 'set to false if you do not want to compile the physics component.')
-option('build_extras', type : 'boolean', value : true, description: 'set to false if you do not want to compile the extra component.')
+option('build_tests', type: 'boolean', value: true, description: 'set to false if you do not want to compile the tests.')
+option('force_build_tests', type: 'boolean', value: false, description: 'set to true if you do not want to compile the tests even with libtrainsim as subproject.')
+option('test_data_location', type: 'string', value: 'testdata', description: 'the location of the folder containgin all of the test files')
+option('build_video', type: 'boolean', value: true, description: 'set to false if you do not want to compile the video component.')
+option('build_control', type: 'boolean', value: true, description: 'set to false if you do not want to compile the control component.')
+option('build_physics', type: 'boolean', value: true, description: 'set to false if you do not want to compile the physics component.')
+option('build_extras', type: 'boolean', value: true, description: 'set to false if you do not want to compile the extra component.')
 
 option('build_extras_statusDisplay', type : 'boolean', value : true, description: 'set to false if you do not want to compile the statusDisplay component.')
 option('build_extras_snowFx', type : 'boolean', value : true, description: 'set to false if you do not want to compile the snow effects component.')
+option('build_extras_statusDisplay', type: 'boolean', value: true, description: 'set to false if you do not want to compile the statusDisplay component.')
 
-option('build_full', type : 'boolean', value : false, description: 'set to true if you to build all components and create libtrainsim_full as dependency.')
+option('build_full', type: 'boolean', value: false, description: 'set to true if you to build all components and create libtrainsim_full as dependency.')
 
 option('video_use_vsync', type: 'boolean', value: true, description: 'set this to true to sync the framerate with the screen and lower the amount of tearing (might lower the accuracy of the simulation speed in favor of better visuals)')
