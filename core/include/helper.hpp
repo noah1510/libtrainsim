@@ -210,17 +210,24 @@ namespace libtrainsim{
                 destination.insert(destination.end(), source.begin(), source.end());
             }
             
+            /**
+             * @brief compares if two values are equal with a tolerance
+             * 
+             * 
+             * @tparam T The type of the values
+             * @param value1 The first value
+             * @param value2 The second value
+             * @param precision The allowed tolerance. The default value of 1 per 1000 shoould be fine for most cases.
+             * @return will return true if they are equal within the tolerance and false if not
+             */
             template <typename T>
             static bool isRoughly(T value1, T value2, double precision = 0.001){
                 if(value1 == value2){return true;}; //this should get 0 comparison working
-                bool val1Larger = std::abs(value1) > std::abs(value2);
-                T epsilon = std::abs( val1Larger ? value1 : value2 ) * precision;
                 
-                if(val1Larger){
-                    return std::abs(value1) - std::abs(value2) < epsilon;
-                }else{
-                    return std::abs(value2) - std::abs(value1) < epsilon;
-                }
+                bool val1Larger = std::abs(value1) > std::abs(value2);
+                double epsilon = static_cast<double>(std::abs( val1Larger ? value1 : value2 )) * precision;
+                
+                return std::abs(value1 - value2) <= static_cast<T>(epsilon);
             }
             
             /**
@@ -230,6 +237,26 @@ namespace libtrainsim{
              * with all of the cases. It then returns the first matched index which can be used in cases.
              * 
              * If no item matches -1 is returned.
+             * 
+             * So the intendet use is the following:
+             * 
+             *    ```cpp
+             *       switch(Helper::stringSwitch(myString,{"a","b"})){
+             *           case(0):
+             *               std::cout << "is a" << std::endl;
+             *               break;
+             *           case(1):
+             *               std::cout << "is b" << std::endl;
+             *               break;
+             *           default:
+             *               std::cout << "is something else" << std::endl;
+             *               break;
+             *       }
+             *    ```
+             * 
+             * @param value The variable that is going to be checked in the switch
+             * @param cases An array (vector) containing all of the cases in order
+             * @return The index of the case that matches
              * 
              */
             static int64_t stringSwitch(const std::string& value, const std::vector<std::string>& cases){
