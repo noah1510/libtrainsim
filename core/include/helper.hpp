@@ -67,7 +67,7 @@ namespace libtrainsim{
                     throw nlohmann::json::out_of_range::create(1001, "field does not exist", nlohmann::basic_json());
                 }
                 
-                auto val = data_json[location];
+                auto val = it.value();
                 if(val.empty()){
                     throw nlohmann::json::invalid_iterator::create(1002, "field exists but is empty", nlohmann::basic_json());
                 }
