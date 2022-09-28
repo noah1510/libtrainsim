@@ -51,7 +51,7 @@ std::future<void> serialcontrol::update(){
         do{
             auto [message, serialError] = rs232_obj->ReadUntil({'Y'}, 100ms);
             if(serialError < 0){
-                continue;
+                break;
             }
             
             auto [port, value, isDigital, decodeError] = decodeTelegram(message);
