@@ -39,7 +39,7 @@ namespace libtrainsim{
         const std::array<unsigned int, 5> darkenStrengths{0,20,40,60,80};
         class imguiHandler{
           private:
-            std::string glsl_version = "#version 460 core";
+            std::string glsl_version = "#version 410 core";
             SDL_GLContext gl_context;
             SDL_Window* window = nullptr;
             ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
