@@ -4,7 +4,8 @@
 using namespace sakurajin::unit_system;
 using namespace std::literals;
 
-std::string libtrainsim::Video::videoReader::makeAVError ( int errnum ) {
+//create a full error message from an av error id
+static inline std::string makeAVError ( int errnum ) {
     std::string errMsg;
     errMsg.resize(AV_ERROR_MAX_STRING_SIZE);
     av_make_error_string(errMsg.data(), AV_ERROR_MAX_STRING_SIZE, errnum);
@@ -12,9 +13,8 @@ std::string libtrainsim::Video::videoReader::makeAVError ( int errnum ) {
     return errMsg;
 }
 
-
-static AVPixelFormat correct_for_deprecated_pixel_format(AVPixelFormat pix_fmt) {
-    // Fix swscaler deprecated pixel format warning
+//correct pixel format to longer give swscale warnings
+static inline AVPixelFormat correctForDeprecatedPixelFormat(AVPixelFormat pix_fmt) {
     // (YUVJ has been deprecated, change pixel format to regular YUV)
     switch (pix_fmt) {
         case AV_PIX_FMT_YUVJ420P: return AV_PIX_FMT_YUV420P;
@@ -23,6 +23,11 @@ static AVPixelFormat correct_for_deprecated_pixel_format(AVPixelFormat pix_fmt) 
         case AV_PIX_FMT_YUVJ440P: return AV_PIX_FMT_YUV440P;
         default:                  return pix_fmt;
     }
+}
+
+inline void libtrainsim::Video::videoReader::incrementFramebuffer(uint8_t& currentBuffer) const{
+    currentBuffer++;
+    currentBuffer%=FRAME_BUFFER_COUNT;
 }
 
 libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filename){
@@ -58,7 +63,6 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
             auto framerate_tmp = av_format_ctx->streams[i]->avg_frame_rate;
             framerate = static_cast<double>(framerate_tmp.num)/static_cast<double>(framerate_tmp.den);
             std::cout << "video average framerate:" << framerate << " fps" << std::endl;
-            time_base = av_format_ctx->streams[i]->time_base;
             break;
         }
     }
@@ -87,6 +91,12 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
         throw std::runtime_error("Couldn't allocate AVPacket");
     }
     
+    for(auto& buf:frame_data){
+        if(buf.size() < static_cast<size_t>( renderSize.x()*renderSize.y()*4)){
+            buf.resize(renderSize.x()*renderSize.y()*4);
+        }
+    }
+    
     try{
         readNextFrame();
         std::scoped_lock lock{frameBuffer_mutex};
@@ -107,8 +117,9 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
             frameBuffer_mutex.lock_shared();
             auto backBuffer = activeBuffer;
             frameBuffer_mutex.unlock_shared();
-            backBuffer++;
-            backBuffer%=2;
+            
+            //select the next buffer from the active buffer as back buffer
+            incrementFramebuffer(backBuffer);
             
             uint64_t diff = nextF - currF;
             sakurajin::unit_system::base::time_si rendertime;
@@ -137,8 +148,7 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
                 //switch to the next framebuffer
                 frameBuffer_mutex.lock();
                 if(bufferExported){
-                    activeBuffer++;
-                    activeBuffer%=2;
+                    incrementFramebuffer(activeBuffer);
                     bufferExported = false;
                 }
                 frameBuffer_mutex.unlock();
@@ -236,8 +246,9 @@ void libtrainsim::Video::videoReader::seekFrame ( uint64_t framenumber ) {
 
 }
 
-void libtrainsim::Video::videoReader::copyToBuffer ( uint8_t* frame_buffer ) {
-    auto source_pix_fmt = correct_for_deprecated_pixel_format(av_codec_ctx->pix_fmt);
+void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame_buffer ) {
+
+    auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
     sws_scaler_ctx = sws_getContext(
         renderSize.x(), 
         renderSize.y(), 
@@ -253,20 +264,10 @@ void libtrainsim::Video::videoReader::copyToBuffer ( uint8_t* frame_buffer ) {
     
     if (!sws_scaler_ctx) {throw std::runtime_error("Couldn't initialize sw scaler");}
 
-    uint8_t* dest[4] = { frame_buffer, NULL, NULL, NULL };
+    uint8_t* dest[4] = { frame_buffer.data(), NULL, NULL, NULL };
     int dest_linesize[4] = { static_cast<int>(renderSize.x()) * 4, 0, 0, 0 };
     sws_scale(sws_scaler_ctx, av_frame->data, av_frame->linesize, 0, av_frame->height, dest, dest_linesize);
-}
 
-void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame_buffer ) {
-    try{
-        if(frame_buffer.size() < static_cast<size_t>( renderSize.x()*renderSize.y()*4)){
-            frame_buffer.resize(renderSize.x()*renderSize.y()*4);
-        }
-        copyToBuffer(frame_buffer.data());
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("Could not copy frame into framebuffer"));
-    }
 }
 
 const std::vector<uint8_t> & libtrainsim::Video::videoReader::getUsableFramebufferBuffer() {
