@@ -161,22 +161,22 @@ void libtrainsim::core::clampedVariable<T>::operator-=(const clampedVariable& ot
 
 template<typename T>
 auto libtrainsim::core::clampedVariable<T>::operator+(T val) const noexcept -> clampedVariable{
-    return clampedVariable(this->value + val);
+    return clampedVariable(this->lower,this->higher,this->value + val);
 }
 
 template<typename T>
 auto libtrainsim::core::clampedVariable<T>::operator-(T val) const noexcept -> clampedVariable{
-    return clampedVariable(this->value - val);
+    return clampedVariable(this->lower,this->higher,this->value - val);
 }
 
 template<typename T>
 auto libtrainsim::core::clampedVariable<T>::operator+(const clampedVariable& other) const noexcept -> clampedVariable{
-    return clampedVariable(this->value + other.value);
+    return clampedVariable(this->lower,this->higher,this->value + other.value);
 }
 
 template<typename T>
 auto libtrainsim::core::clampedVariable<T>::operator-(const clampedVariable& other) const noexcept -> clampedVariable{
-    return clampedVariable(this->value - other.value);
+    return clampedVariable(this->lower,this->higher,this->value - other.value);
 }
 
 
@@ -204,22 +204,22 @@ void libtrainsim::core::clampedVariable<T>::operator/=(const clampedVariable& ot
 
 template<typename T>
 auto libtrainsim::core::clampedVariable<T>::operator*(T val) const noexcept -> clampedVariable{
-    return clampedVariable(this->value * val);
+    return clampedVariable(this->lower,this->higher,this->value * val);
 }
 
 template<typename T>
 auto libtrainsim::core::clampedVariable<T>::operator/(T val) const noexcept -> clampedVariable{
-    return clampedVariable(this->value / val);
+    return clampedVariable(this->lower,this->higher,this->value / val);
 }
 
 template<typename T>
 auto libtrainsim::core::clampedVariable<T>::operator*(const clampedVariable& other) const noexcept -> clampedVariable{
-    return clampedVariable(this->value * other.value);
+    return clampedVariable(this->lower,this->higher,this->value * other.value);
 }
 
 template<typename T>
 auto libtrainsim::core::clampedVariable<T>::operator/(const clampedVariable& other) const noexcept -> clampedVariable{
-    return clampedVariable(this->value / other.value);
+    return clampedVariable(this->lower,this->higher,this->value / other.value);
 }
 
 
