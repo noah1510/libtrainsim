@@ -11,14 +11,14 @@ namespace libtrainsim{
         class wiper{
         private:
             //all angles in degrees
-            float minRotation = 0.0;
-            float maxRotation = 180.0;
+            float minRotation = 7.5;
+            float maxRotation = 167.5;
             libtrainsim::core::clampedVariable<float> currentRotation;
             float rotationPrecision = 0.25;
             float wiperSpeed = 0.5;
             bool turningLeft = true;
             
-            const float wiperScaling = 0.75f;
+            const float wiperScaling = 0.85f;
             
             std::shared_ptr<libtrainsim::Video::texture> wiperImage;
             std::shared_ptr<libtrainsim::Video::texture> wiperFBO;

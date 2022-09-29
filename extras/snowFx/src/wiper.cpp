@@ -48,7 +48,7 @@ glm::mat4 libtrainsim::extras::wiper::getWiperTransform() const {
     glm::mat4 transform{1.0f};
     glm::vec3 offset{wiperScaling/2,-wiperScaling,0.0};
     
-    transform = glm::translate(transform, {wiperScaling/4.0f,wiperScaling/4.0f,0.0f});
+    transform = glm::translate(transform, {wiperScaling/2.0f,wiperScaling/4.0f,0.0f});
     
     transform = glm::translate(transform, -offset);
     transform = glm::rotate(transform, -glm::radians(currentRotation.get()), {0.0f,0.0f,1.0f});
