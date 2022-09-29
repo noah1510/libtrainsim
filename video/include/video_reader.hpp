@@ -1,5 +1,4 @@
-#ifndef video_reader_hpp
-#define video_reader_hpp
+#pragma once
 
 #include <filesystem>
 #include <iostream>
@@ -13,10 +12,9 @@
 #include "base.hpp"
 
 extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-#include <inttypes.h>
+    #include <libavcodec/avcodec.h>
+    #include <libavformat/avformat.h>
+    #include <libswscale/swscale.h>
 }
 
 namespace libtrainsim{
@@ -117,5 +115,3 @@ namespace libtrainsim{
         };
     }
 }
-
-#endif

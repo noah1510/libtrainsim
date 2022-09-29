@@ -10,17 +10,21 @@
 
 #include "video_config.hpp"
 
-#include <glad/glad.h>
-#include "imgui.h"
+extern "C" {
+    #include <glad/glad.h>
+}
 
+#include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 
-#if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h")
-    #include <SDL2/SDL.h>
-    #include <SDL2/SDL_thread.h>
-    #include <SDL_image.h>
-    #include <SDL_opengl.h>
+#if  __has_include("SDL2/SDL.h") && __has_include("SDL2/SDL_thread.h") && __has_include("SDL_image.h") && __has_include("SDL_opengl.h")
+    extern "C" {
+        #include <SDL2/SDL.h>
+        #include <SDL2/SDL_thread.h>
+        #include <SDL_image.h>
+        #include <SDL_opengl.h>
+    }
 #else
     #error "cannot include sdl2" 
 #endif
