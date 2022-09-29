@@ -6,10 +6,9 @@ namespace libtrainsim {
     namespace core {
         /**
          * @brief The input axis is a type to confine an input between -1.0 and 1.0.
-         * All of the needed operators are overloaded, so that it can be a simple replacement
-         * for using a double to keep track of the value. All of the operators make sure, that
-         * the value is in the expected range.
-         * 
+         * The input axis is now a child class of the clampedVariable since they behave the same way.
+         * It inherits all operatator overloads from the parent class, so in most cases it
+         * can be used like a normal double just with contricted values.
          */
         class input_axis : public clampedVariable<long double>{
         private:

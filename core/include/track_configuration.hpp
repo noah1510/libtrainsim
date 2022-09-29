@@ -146,9 +146,13 @@ namespace libtrainsim{
              */
             std::filesystem::path videoFile;
 
+            //this gets rid of a defauolt constructor
             Track() = delete;
             
+            //the parent Path to the json data
             std::filesystem::path parentPath;
+            
+            //if it has a value it is the (partly) unparsed json data
             std::optional<nlohmann::json> data_json;
             
             //load the track data in case it was not loaded yet

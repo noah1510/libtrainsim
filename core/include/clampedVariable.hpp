@@ -6,6 +6,11 @@
 
 namespace libtrainsim{
     namespace core{
+        /**
+         * @brief a simple type that contricts a variable between two values
+         * 
+         * @tparam T the type that should be clamped between two values 
+         */
         template <typename T>
         class clampedVariable{
         private:
