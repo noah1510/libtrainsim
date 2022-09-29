@@ -15,11 +15,6 @@ libtrainsim::Video::videoManager::~videoManager(){
     std::scoped_lock<std::shared_mutex> lock{videoMutex};
     windowFullyCreated = false;
     
-    try{
-        std::cout << "waiting for queued frame to render" << std::endl;
-        nextFrame.wait();
-    }catch(...){}
-    
     std::cout << "destroying video decoder" << std::endl;
     decode.reset();
     
@@ -89,9 +84,6 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
 
     currentWindowName = windowName;
     
-    //reset the last frame and receive the first frame from the decoder
-    decode->copyToBuffer(frame_data[0]);
-    
     //refresh the window to display stuff
     updateOutput();
     
@@ -107,66 +99,7 @@ double libtrainsim::Video::videoManager::getWidth() {
 }
 
 void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {
-    
-    std::scoped_lock<std::shared_mutex> lock{videoMutex};
-
-    nextFrameToGet = frame_num > nextFrameToGet ? frame_num : nextFrameToGet;
-    
-    if(fetchingFrame){
-        return;
-    }
-    
-    if(decode->getFrameNumber() >= nextFrameToGet){
-        return;
-    }
-    
-    nextFrame = std::async(
-        std::launch::async, 
-        [this](){
-            uint64_t nextF = nextFrameToGet;
-            uint64_t currF = decode->getFrameNumber();
-            uint64_t diff = nextF - currF;
-            
-            try{
-                
-                if(diff > 120){
-                    auto time = decode->seekFrame(nextF);
-                    
-                    renderTimeMutex.lock();
-                    newRenderTimes.emplace_back(time);
-                    renderTimeMutex.unlock();
-                
-                }else{
-                    bool working = true;
-                    sakurajin::unit_system::base::time_si rendertime;
-                    while(currF < nextF && working){
-                        auto time = decode->readNextFrame();
-                    
-                        rendertime += time;
-                        currF++;
-                    }
-
-                    renderTimeMutex.lock();
-                    newRenderTimes.emplace_back(rendertime);
-                    renderTimeMutex.unlock();   
-                }
-                
-                
-                frameBuffer_mutex.lock();
-                uint64_t inactiveBuffer = frontBufferActive ? 1 : 0;
-                frameBuffer_mutex.unlock();
-
-                decode->copyToBuffer(frame_data[inactiveBuffer]);
-
-            }catch(const std::exception& e){
-                libtrainsim::core::Helper::print_exception(e);
-                return false;
-            }
-            
-            return true;
-        }
-    );
-    fetchingFrame = true;
+    decode->requestFrame(frame_num);
 }
 
 bool libtrainsim::Video::videoManager::reachedEndOfFile() {
@@ -194,33 +127,7 @@ void libtrainsim::Video::videoManager::refreshWindow() {
         return;
     }
     
-    videoMutex.lock();
-    
-    if(fetchingFrame){
-        auto status = nextFrame.wait_for(1ns);
-        if(status == std::future_status::ready){
-            if(!nextFrame.get()){
-                videoMutex.unlock();
-                throw std::runtime_error("Error getting next frame");
-            }
-            
-            frameBuffer_mutex.lock();
-
-            frontBufferActive = !frontBufferActive;
-            uint64_t activeBuffer = frontBufferActive ? 0 : 1;
-            displayTextures[0]->updateImage(frame_data[activeBuffer], decode->getDimensions());
-
-            frameBuffer_mutex.unlock();
-
-            fetchingFrame = false;
-        }
-    }
-    
-    videoMutex.unlock();
-    
-    //start fetching the next queued fram asap
-    //if no higher frame number is queued then this call does nothing
-    gotoFrame(0);
+    displayTextures[0]->updateImage(decode->getUsableFramebufferBuffer(), decode->getDimensions());
 
     //draw the render window
     
@@ -303,16 +210,7 @@ void libtrainsim::Video::videoManager::removeTexture ( const std::string& textur
 }
 
 std::optional<std::vector<sakurajin::unit_system::base::time_si>> libtrainsim::Video::videoManager::getNewRendertimes() {
-    renderTimeMutex.lock();
-    auto times = newRenderTimes;
-    newRenderTimes.clear();
-    renderTimeMutex.unlock();
-    
-    if(times.size() > 0){
-        return std::make_optional(times);
-    }else{
-        return {};
-    }
+    return decode->getNewRendertimes();
 }
 
 

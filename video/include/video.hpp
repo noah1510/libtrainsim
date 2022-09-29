@@ -44,34 +44,17 @@ namespace libtrainsim {
                 bool windowFullyCreated = false;
                 
                 std::shared_mutex videoMutex;
-                //std::future<std::shared_ptr<libtrainsim::Video::Frame>> nextFrame;
-                std::future<bool> nextFrame;
-                bool fetchingFrame = false;
-                uint64_t nextFrameToGet = 0;
                 
                 /**
                  * @brief the decoder used to decode the video file into frames
                  */
                 std::unique_ptr<videoReader> decode = nullptr;
                 
-                /**
-                 * The raw pixel data of the decoded frame
-                 * 
-                 * @note this is a double buffer implementation. This way the time
-                 * copy operation can be done while a frame is being drawn
-                 */
-                std::array<std::vector<uint8_t>, 2> frame_data;
-                bool frontBufferActive = true;
-                std::shared_mutex frameBuffer_mutex;
-                
                 bool isActive = true;
                 
                 void updateOutput();
                 
                 std::vector< std::shared_ptr<texture> > displayTextures;
-                
-                std::shared_mutex renderTimeMutex;
-                std::vector<sakurajin::unit_system::base::time_si> newRenderTimes;
 
             public:
                 /**
