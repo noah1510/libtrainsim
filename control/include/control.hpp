@@ -119,7 +119,7 @@ namespace libtrainsim {
                 /**
                  * @brief return true if getSpeedAxis came across a emergency break command
                  */
-                bool emergencyFlag() const noexcept;
+                bool emergencyFlag() noexcept;
                 
                 /**
                  * @brief Get the Speed Axis of the current input.

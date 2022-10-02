@@ -70,8 +70,12 @@ bool libtrainsim::control::input_handler::closingFlag() noexcept {
     return false;;
 }
 
-bool libtrainsim::control::input_handler::emergencyFlag() const noexcept {
-    return shouldEmergencyBreak;
+bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
+    if(shouldEmergencyBreak){
+        shouldEmergencyBreak = false;
+        return true;
+    }
+    return false;
 }
 
 void libtrainsim::control::input_handler::update() {
