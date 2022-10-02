@@ -31,7 +31,7 @@ std::vector<std::string> libtrainsim::control::input_handler::getKeyFunctions() 
             ImGui_ImplSDL2_ProcessEvent(&event);
 
             if(event.type == SDL_QUIT){
-                functions.emplace_back("CLOSE");
+                functions.emplace_back("TERMINATE");
             };
 
             if(event.type == SDL_KEYDOWN){
@@ -47,8 +47,13 @@ libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis(
     return currentInputAxis;
 }
 
-bool libtrainsim::control::input_handler::closingFlag() const noexcept {
-    return shouldClose;
+bool libtrainsim::control::input_handler::closingFlag() noexcept {
+    if(shouldClose || shouldTeminate){
+        shouldClose = false;
+        return true;
+    }
+    
+    return false;;
 }
 
 bool libtrainsim::control::input_handler::emergencyFlag() const noexcept {
@@ -65,6 +70,10 @@ void libtrainsim::control::input_handler::update() {
     #endif
     
     auto function = getKeyFunctions();
+    
+    if(libtrainsim::core::Helper::contains<std::string>(function,"TERMINATE")){
+        shouldTeminate = true;
+    }
     
     if(libtrainsim::core::Helper::contains<std::string>(function,"CLOSE")){
         shouldClose = true;

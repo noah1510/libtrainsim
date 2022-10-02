@@ -32,7 +32,8 @@ namespace libtrainsim {
         * The following Key functions are defined:
         *
         *   * NONE -> Does nothing
-        *   * CLOSE -> indicates that the windows chould close and the program should end
+        *   * CLOSE -> indicates that the windows should close
+        *   * TERMINATE -> indicates that all windows shoudl be closed and the program ends
         *   * OTHER -> some other random event
         *   * BREAK -> indicates the train should break
         *   * ACCELERATE -> indicates the train should accelerate
@@ -62,6 +63,11 @@ namespace libtrainsim {
                  * @brief a bool to indicate if the window should be closed
                  */
                 bool shouldClose = false;
+                
+                /**
+                 * @brief a bool to indicate if all windows need to be closed
+                 */
+                bool shouldTeminate = false;
                 
                 /**
                  * @brief a bool to indicate if the emergency break should activate
@@ -108,7 +114,7 @@ namespace libtrainsim {
                 /**
                  * @brief return true if getSpeedAxis came across a close command
                  */
-                bool closingFlag() const noexcept;
+                bool closingFlag() noexcept;
                 
                 /**
                  * @brief return true if getSpeedAxis came across a emergency break command
