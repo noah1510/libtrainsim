@@ -143,6 +143,10 @@ const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getC
     return tracks[currentTrack];
 }
 
+uint64_t libtrainsim::core::simulatorConfiguration::getCurrentTrackID() const noexcept {
+    return currentTrack;
+}
+
 uint64_t libtrainsim::core::simulatorConfiguration::getTrackCount() const noexcept {
     return tracks.size();
 }

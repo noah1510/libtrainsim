@@ -127,6 +127,12 @@ namespace libtrainsim{
             const libtrainsim::core::Track& getCurrentTrack() const noexcept;
             
             /**
+             * @brief return the id of the currently selected Track
+             * 
+             */
+            uint64_t getCurrentTrackID() const noexcept;
+            
+            /**
              * @brief ensures that the track with the given index is fully loaded
              * @param index the index which should be loaded
              */
