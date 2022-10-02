@@ -50,7 +50,7 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     io.IniFilename = NULL;
     
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -95,6 +95,13 @@ void libtrainsim::Video::imguiHandler::init_impl() {}
 
 void libtrainsim::Video::imguiHandler::startRender_impl() {
     IOLock.lock();
+    SDL_Event event;
+    while(SDL_PollEvent(&event)){
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        if(event.type == SDL_QUIT){
+            teminateProgram = true;
+        }
+    }
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();

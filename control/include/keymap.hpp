@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <tuple>
 
 namespace libtrainsim {
     namespace control{
@@ -16,7 +17,7 @@ namespace libtrainsim {
              * @brief The underlying map that assigns a function to each key.
              * 
              */
-            std::map<char, std::string> _keymap;
+            std::map<int, std::string> _keymap;
         public:
             /**
              * @brief Construct a new keymap object.
@@ -31,15 +32,15 @@ namespace libtrainsim {
              * @param function the function that the keys perform
              * @return std::vector<char> the list with all of the keys
              */
-            std::vector<char> getKeyList(const std::string& function) const;
+            std::vector<int> getKeyList(const std::string& function) const;
             
             /**
              * @brief Get a list of all of the keys that have a function.
              * This returns any keys that have a functions assigned to them.
              * 
-             * @return std::vector<char> the list with all of the keys
+             * @return std::vector<std::pair<char, std::string>> the list with all of the keys and their function
              */
-            std::vector<char> getAllKeys() const;
+            std::vector<std::pair<int, std::string>> getAllKeys() const;
             
             /**
              * @brief add a key to the keymap.
@@ -47,7 +48,7 @@ namespace libtrainsim {
              * @param key the key that should be added.
              * @param function the function that the key should have
              */
-            void add(char key, const std::string& function);
+            void add(int key, const std::string& function);
 
             /**
              * @brief remove a key from the map.
@@ -56,7 +57,7 @@ namespace libtrainsim {
              * unless you have a different method to close the program.
              * @param key the key that should no longer be part of the map
              */
-            void remove(char key);
+            void remove(int key);
             
             /**
              * @brief Get the Function a given key has.
@@ -65,7 +66,7 @@ namespace libtrainsim {
              * @param key the key you want to check
              * @return std::string the function that that key has or NONE
              */
-            std::string getFunction(char key);
+            std::string getFunction(int key);
         };
     }
 }

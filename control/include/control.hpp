@@ -43,8 +43,8 @@ namespace libtrainsim {
         * that can be handled by an implementation of the simulator.
         * 
         * @warning this interface is only really useful is you use libtrainsim::video to handle window management otherwise
-        * it is not possible to retrieve the currently pressed keys. You can use this a a base to implement you own input_handler
-        * if you some other window management.
+        * it is not possible to retrieve the currently pressed keys. If libtrainsim::video is not available the serialcontrol
+        * part still works, its just that this can no longer detect window events and the closing flag is always false.
         */
         class input_handler{
             private:

@@ -94,6 +94,8 @@ namespace libtrainsim{
             void drawRect_impl();
             std::shared_ptr<texture> getDarkenTexture_impl(unsigned int strength);
             
+            bool teminateProgram = false;
+            
             std::thread::id mainThreadID;
             
           public:
@@ -153,6 +155,10 @@ namespace libtrainsim{
             
             static const std::thread::id& getMainTreadID(){
                 return getInstance().mainThreadID;
+            }
+            
+            static bool shouldTerminate(){
+                return getInstance().teminateProgram;
             }
             
             static std::mutex& getIOLock(){

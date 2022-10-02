@@ -10,6 +10,20 @@ libtrainsim::control::input_handler::input_handler(const std::filesystem::path& 
     }
     
     keys = libtrainsim::control::keymap();
+    #ifdef HAS_VIDEO_SUPPORT
+    auto keyList = keys.getAllKeys();
+    for(auto key:keyList){
+        keys.remove(key.first);
+    }
+    
+    keys.add(ImGuiKey_Escape ,"CLOSE");
+    keys.add(ImGuiKey_W ,"ACCELERATE");
+    keys.add(ImGuiKey_S ,"BREAK");
+    keys.add(ImGuiKey_P ,"EMERGENCY_BREAK");
+    
+    keys.add(ImGuiKey_GamepadBack, "CLOSE");
+    keys.add(ImGuiKey_GamepadFaceUp ,"EMERGENCY_BREAK");
+    #endif
 }
 
 libtrainsim::control::input_handler::~input_handler() {
@@ -25,19 +39,19 @@ std::vector<std::string> libtrainsim::control::input_handler::getKeyFunctions() 
     std::vector<std::string> functions;
     
     #ifdef HAS_VIDEO_SUPPORT
-        std::scoped_lock<std::mutex>{ libtrainsim::Video::imguiHandler::getIOLock() };
-        SDL_Event event;
-        while(SDL_PollEvent(&event)){
-            ImGui_ImplSDL2_ProcessEvent(&event);
 
-            if(event.type == SDL_QUIT){
-                functions.emplace_back("TERMINATE");
-            };
-
-            if(event.type == SDL_KEYDOWN){
-                functions.emplace_back(keys.getFunction(event.key.keysym.sym));
-            };
+        if(libtrainsim::Video::imguiHandler::shouldTerminate()){
+            functions.emplace_back("TERMINATE");
         }
+    
+        auto keysToCheck = keys.getAllKeys();
+        for(size_t i = 0; i < keysToCheck.size();i++){
+            ImGuiKey key = static_cast<ImGuiKey>(keysToCheck[i].first);
+            if(ImGui::IsKeyPressed(key)){
+                functions.emplace_back(keysToCheck[i].second);
+            }
+        }
+        
     #endif
     
     return functions;
@@ -91,6 +105,13 @@ void libtrainsim::control::input_handler::update() {
             shouldEmergencyBreak = true;
         }
 
+        #ifdef HAS_VIDEO_SUPPORT
+        if((ImGui::GetIO().BackendFlags & ImGuiBackendFlags_HasGamepad) > 0){
+            auto acc = ImGui::GetIO().KeysData[ImGui::GetKeyIndex(ImGuiKey_GamepadR2)].AnalogValue;
+            auto dcc = ImGui::GetIO().KeysData[ImGui::GetKeyIndex(ImGuiKey_GamepadL2)].AnalogValue;
+            currentInputAxis = acc - dcc;
+        }else{
+        #endif
         if (libtrainsim::core::Helper::contains<std::string>(function,"ACCELERATE")){
             currentInputAxis += 0.1;
             if(abs(currentInputAxis.get()) < 0.07){
@@ -103,6 +124,9 @@ void libtrainsim::control::input_handler::update() {
                 currentInputAxis = 0.0;
             }
         }
+        #ifdef HAS_VIDEO_SUPPORT
+        }
+        #endif
     }  
 
 }
