@@ -136,14 +136,14 @@ void libtrainsim::Video::videoManager::refreshWindow() {
     if(firstStart){
         ImGui::SetNextWindowContentSize( decode->getDimensions() );
         
-        ImVec2 initialPos {0,0};
+        ImVec2 initialPos {0, ImGui::GetStyle().DisplayWindowPadding.y};
         ImGui::SetNextWindowPos(initialPos);
         
         firstStart = false;
     }
     
     //actually start drawing the window
-    ImGui::Begin(currentWindowName.c_str(), &isActive);
+    ImGui::Begin(currentWindowName.c_str(), NULL, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav);
         
         //render into output texture
         updateOutput();

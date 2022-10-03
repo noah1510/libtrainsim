@@ -50,8 +50,6 @@ namespace libtrainsim {
                  */
                 std::unique_ptr<videoReader> decode = nullptr;
                 
-                bool isActive = true;
-                
                 void updateOutput();
                 
                 std::vector< std::shared_ptr<texture> > displayTextures;
