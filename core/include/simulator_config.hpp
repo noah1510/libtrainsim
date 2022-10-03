@@ -118,6 +118,20 @@ namespace libtrainsim{
             const libtrainsim::core::Track& getTrack(uint64_t index) const noexcept(false);
 
             /**
+             * @brief Get a track with a given index
+             * 
+             * This function throws std::out_out_bounds if the index is larger than the amount of tracks.
+             * To get the amount of tracks use getTrackCount()
+             * 
+             * @note this function is for cases when changes to a track need to be made
+             * usually it should be preferred to access the track as read only
+             * 
+             * @param index the index of the requested track
+             * @return libtrainsim::core::Track& the track at the given index
+             */
+            libtrainsim::core::Track& getTrack(uint64_t index) noexcept(false);
+
+            /**
              * @brief Get the currently selected track
              * 
              * use selectTrack() to change which track will be returned by this function

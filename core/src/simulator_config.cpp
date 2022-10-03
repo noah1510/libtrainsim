@@ -169,6 +169,14 @@ const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getT
     return tracks[index];
 }
 
+libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getTrack ( uint64_t index ) noexcept(false) {
+    if(index > getTrackCount()){
+        throw std::invalid_argument("track index too high");
+    }
+    
+    return tracks[index];
+}
+
 void libtrainsim::core::simulatorConfiguration::ensureTrack ( uint64_t index ) noexcept(false) {
     if(getTrackCount() <= index){
         throw std::invalid_argument("track index too high");
