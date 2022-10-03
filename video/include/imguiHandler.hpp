@@ -47,6 +47,7 @@ namespace libtrainsim{
             SDL_GLContext gl_context;
             SDL_Window* window = nullptr;
             ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+            bool displayImGUiSettings = false;
               
             imguiHandler();
             ~imguiHandler();

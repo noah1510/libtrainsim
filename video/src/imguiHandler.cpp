@@ -49,12 +49,12 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = NULL;
     
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
+    ImGui::GetStyle().WindowTitleAlign.y = 0.5;
 
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
@@ -105,6 +105,60 @@ void libtrainsim::Video::imguiHandler::startRender_impl() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+    
+    ImGui::BeginMainMenuBar();
+        ImGui::MenuItem("Settings", NULL, &displayImGUiSettings);
+    ImGui::EndMainMenuBar();
+    
+    float clearCol[3] = {clear_color.x,clear_color.y,clear_color.z};
+    if(displayImGUiSettings){
+        ImGui::Begin(
+            "Settings Window", 
+            &displayImGUiSettings,
+            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize
+        );
+            
+            if(ImGui::BeginTabBar("settings tabs")){
+                if(ImGui::BeginTabItem("basic")){
+                    ImGui::BeginTable("basic Settings table", 1, (ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp));
+                        //display the style changer with its tooltip
+                        ImGui::TableNextColumn();
+                        ImGui::ShowStyleSelector("active imgui style");
+                        if(ImGui::IsItemHovered()){
+                            ImGui::SetTooltip("change the style of the windows");
+                        }
+                        
+                        //add an 'empty' line between the options
+                        ImGui::TableNextColumn();
+                        ImGui::Text("");
+                        
+                        //display the color changer for the clear color
+                        ImGui::TableNextColumn();
+                        ImGui::ColorPicker3("clear color picker", clearCol);
+                        if(ImGui::IsItemHovered()){
+                            ImGui::SetTooltip("change the background color of the background window");
+                        }
+        
+                        clear_color = ImVec4{clearCol[0],clearCol[1],clearCol[2],1.0};
+                        
+                    ImGui::EndTable();
+                    ImGui::EndTabItem();
+                }
+                if(ImGui::BeginTabItem("style")){
+                    //diplay the style editor to configure the active style
+                    ImGui::ShowStyleEditor(&ImGui::GetStyle());
+                        
+                    ImGui::EndTabItem();
+                }
+                
+                ImGui::EndTabBar();
+            }
+            
+            
+        ImGui::End();
+    }
+    
+    
 }
 
 void libtrainsim::Video::imguiHandler::endRender_impl() {
