@@ -237,6 +237,22 @@ namespace libtrainsim{
              * @brief this function ensures that the data is fully loaded.
              */
             void ensure();
+            
+            /**
+             * @brief set where this track should end
+             * 
+             * @note this function is not needed for operation but can be used to
+             * specify at which stop the simulator should close
+             */
+            void setLastLocation(sakurajin::unit_system::base::length);
+            
+            /**
+             * @brief set where this track should begin
+             * 
+             * @note this function is not needed for operation but can be used to
+             * specify at which stop the simulator should open
+             */
+            void setFirstLocation(sakurajin::unit_system::base::length);
 
         };
     }

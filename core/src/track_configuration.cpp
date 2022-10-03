@@ -321,4 +321,22 @@ void libtrainsim::core::Track::ensure() {
     }
 }
 
+void libtrainsim::core::Track::setFirstLocation ( sakurajin::unit_system::base::length pos) {
+    try{
+        ensure();
+        startingPoint = sakurajin::unit_system::clamp(pos, track_dat->firstLocation(), track_dat->lastLocation());
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not update start position"));
+    }
+}
+
+void libtrainsim::core::Track::setLastLocation ( sakurajin::unit_system::base::length pos) {
+    try{
+        ensure();
+        endPoint = sakurajin::unit_system::clamp(pos, track_dat->firstLocation(), track_dat->lastLocation());
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not update start position"));
+    }
+}
+
 
