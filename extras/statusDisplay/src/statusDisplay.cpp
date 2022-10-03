@@ -48,7 +48,7 @@ void libtrainsim::extras::statusDisplay::update() {
     ImGui::Begin("Status Window");
         
         //display the prograss bar for the position
-        ImGui::ProgressBar(currentPosition/(endPosition-beginPosition));
+        ImGui::ProgressBar((currentPosition-beginPosition)/(endPosition-beginPosition));
         if(ImGui::IsItemHovered()){
             ImGui::SetTooltip("The position along the Track. Begin: %Lfm, End: %LFm, Current: %LFm", beginPosition.value, endPosition.value, currentPosition.value);
         }
