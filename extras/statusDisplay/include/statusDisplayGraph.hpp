@@ -15,7 +15,7 @@ namespace libtrainsim{
         public:
             statusDisplayGraph(std::string graphName, std::string tooltipMessage);
             
-            void display();
+            void display(bool showLatest = true);
             
             void appendValue(float newValue);
             const std::string& getName();
@@ -40,10 +40,16 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue ( float n
 }
 
 template<size_t VALUE_COUNT>
-void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::display() {
+void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::display(bool showLatest) {
     ImGui::BeginGroup();
     
-        ImGui::PlotLines(name.c_str(), values.data(), static_cast<int>(VALUE_COUNT) );
+        std::stringstream ss;
+        ss << name;
+        if(showLatest){
+            ss << ": " << getLatest();
+        }
+        
+        ImGui::PlotLines(ss.str().c_str(), values.data(), static_cast<int>(VALUE_COUNT) );
         
         if(ImGui::IsItemHovered()){
             ImGui::BeginTooltip();

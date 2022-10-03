@@ -19,17 +19,24 @@ namespace libtrainsim{
         class statusDisplay{
           private:
             
-            std::vector<statusDisplayGraph<100>> graphs; 
+            /**
+             * @brief a vector with all of graphs that are displayed
+             */
+            std::vector<statusDisplayGraph<100>> graphs;
             
-            ImGuiIO& io();
+            /**
+             * @brief the names of all of the graphs that have to exist and cannot be deleted
+             */
+            std::vector<std::string> defaultGraphNames;
             
+            //The position where the track begins
+            sakurajin::unit_system::base::length beginPosition;
+            
+            //the current position along the track
             sakurajin::unit_system::base::length currentPosition;
+            
+            //the position where the track ends
             sakurajin::unit_system::base::length endPosition;
-            
-            sakurajin::unit_system::common::acceleration currentAcceleration;
-            sakurajin::unit_system::common::speed currentVelocity;
-            
-            libtrainsim::core::input_axis currentSpeedLevel;
             
           public:
             statusDisplay();
@@ -45,6 +52,7 @@ namespace libtrainsim{
             void changePosition(sakurajin::unit_system::base::length newPosition);
             
             void changeEndPosition(sakurajin::unit_system::base::length newEndPosition);
+            void changeBeginPosition(sakurajin::unit_system::base::length newBeginPosition);
             
             void setSpeedLevel(libtrainsim::core::input_axis newSpeedLevel);
             
