@@ -122,14 +122,13 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
             incrementFramebuffer(backBuffer);
             
             uint64_t diff = nextF - currF;
-            sakurajin::unit_system::base::time_si rendertime;
             
             try{
                 if(diff == 0){
                     //no new frame to render so just wait and check again
                     std::this_thread::sleep_for(1ms);
                     continue;
-                }else if(diff < framerate * 4){
+                }else if(diff < framerate * 6){
                     //the next frame is less than 4 seconds in the future
                     //for these small skips it is faster to simply decode frame by frame
                     while(currF < nextF){
@@ -160,7 +159,7 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
 
                 //append the new rendertime
                 EOF_Mutex.lock();
-                renderTimes.emplace_back(unit_cast(libtrainsim::core::Helper::now()-begin));
+                renderTimes.emplace_back(unit_cast(libtrainsim::core::Helper::now()-begin, prefix::milli));
                 EOF_Mutex.unlock(); 
                 
             }catch(const std::exception& e){
