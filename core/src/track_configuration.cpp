@@ -273,6 +273,25 @@ std::filesystem::path Track::getVideoFilePath() const{
     return videoFile;
 }
 
+std::tuple<
+    bool, 
+    sakurajin::unit_system::common::area, 
+    sakurajin::unit_system::base::length
+> libtrainsim::core::Track::getUndergroundInfo ( sakurajin::unit_system::base::length position ) const {
+    auto end = undergroundData.size();
+    if(end == 0){return {false, 0_m2, 0_m};}
+    
+    for(size_t i = 0; i < end;i++){
+        auto point = undergroundData[i];
+        if(point.begin() > position && point.end() < position){
+            return {true, point.area(), point.end() - position};
+        }
+    }
+    
+    return {false, 0_m2, 0_m};
+}
+
+
 void libtrainsim::core::Track::ensure() {
     try{
         parseTrack();
@@ -281,4 +300,5 @@ void libtrainsim::core::Track::ensure() {
         std::throw_with_nested(std::runtime_error("Error parsing the json data"));
     }
 }
+
 

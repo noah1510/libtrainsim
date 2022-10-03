@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <optional>
 #include <cmath>
+#include <tuple>
 #include <nlohmann/json.hpp>
 
 namespace libtrainsim{
@@ -206,6 +207,22 @@ namespace libtrainsim{
             
             //get the name of the track
             const std::string& getName() const;
+            
+            /**
+             * @brief get the underground data for a given position
+             * 
+             * By default it is assumed that the train is not underground.
+             * This function returns three values in a tuple:
+             * 
+             *  * bool -> if that position is underground this is true
+             *  * area -> the area of the tunnel
+             *  * length -> the remaining length of the tunnel
+             */
+            std::tuple<
+                bool, 
+                sakurajin::unit_system::common::area, 
+                sakurajin::unit_system::base::length
+            > getUndergroundInfo(sakurajin::unit_system::base::length position) const;
             
             /**
              * @brief this function ensures that the data is fully loaded.
