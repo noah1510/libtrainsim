@@ -120,6 +120,18 @@ void libtrainsim::core::Track::parseTrack() {
     if(startingPoint > endPoint){
         throw std::runtime_error("the last location was smaller than the first position");
     };
+    
+    try{
+        auto excludeTrackBounds = Helper::getOptionalJsonField<bool>(data_json.value(), "excludeTrackBounds");
+        if(excludeTrackBounds.has_value() && excludeTrackBounds.value() && stopsData.size() > 1){
+        }else{
+            stopsData.reserve(stopsData.size()+2);
+            stopsData.insert(stopsData.begin(), {"begin", startingPoint, station});
+            stopsData.insert(stopsData.end(), {"end", endPoint, station});
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error updating the stops with begin and end"));
+    }
 }
 
 
@@ -231,6 +243,7 @@ void Track::parseJsonData(){
                 stopsData.emplace_back(stopDataPoint{name, location, type});
             }
         }
+        
     }catch(...){
         std::throw_with_nested(std::runtime_error("Error reading the stops data"));
     }
@@ -289,6 +302,13 @@ std::tuple<
     }
     
     return {false, 0_m2, 0_m};
+}
+
+const std::vector<stopDataPoint> & libtrainsim::core::Track::getStops() const {
+    if(stopsData.size() < 2){
+        throw std::runtime_error("stops data not fully initialized. There are not enugh stops defined");
+    }
+    return stopsData;
 }
 
 

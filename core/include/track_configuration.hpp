@@ -225,6 +225,15 @@ namespace libtrainsim{
             > getUndergroundInfo(sakurajin::unit_system::base::length position) const;
             
             /**
+             * @brief returns all of the stops this track has defined 
+             * 
+             * This will always have at least two values to indicate the begin and end
+             * of the Track. If the underlying Track_data is not fully loaded this will
+             * throw an error. To prevent this call enusure before calling this function.
+             */
+            const std::vector<stopDataPoint>& getStops() const;
+            
+            /**
              * @brief this function ensures that the data is fully loaded.
              */
             void ensure();
