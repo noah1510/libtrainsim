@@ -233,8 +233,10 @@ void libtrainsim::Video::videoReader::readNextFrame() {
 }
 
 void libtrainsim::Video::videoReader::seekFrame ( uint64_t framenumber ) {
-
-    if(av_seek_frame(av_format_ctx, video_stream_index, framenumber, AVSEEK_FLAG_FRAME) < 0){
+    auto* stream = av_format_ctx->streams[video_stream_index];
+    auto ts = (int64_t(framenumber) * stream->r_frame_rate.den *  stream->time_base.den) / (int64_t(stream->r_frame_rate.num) * stream->time_base.num);
+    //if(av_seek_frame(av_format_ctx, video_stream_index, framenumber, AVSEEK_FLAG_FRAME) < 0){
+    if(av_seek_frame(av_format_ctx, video_stream_index, ts, AVSEEK_FLAG_ANY) < 0){
         throw std::runtime_error("Problem seeking a future frame");
     }
 

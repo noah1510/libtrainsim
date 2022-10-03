@@ -153,6 +153,8 @@ namespace libtrainsim{
             
             /**
              * @brief jump directly to a given frame number
+             * @todo fix seek for non const framerate (at the moment the fram number is
+             * converted to a timestamp based on the assumption that the framerate is constant).
              * @param framenumber the number of the frame the decode should seek.
              */
             void seekFrame(uint64_t framenumber);
