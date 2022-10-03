@@ -47,12 +47,14 @@ void libtrainsim::extras::statusDisplay::update() {
     }
     
     //actually start drawing th window
-    ImGui::Begin("Status Window", &my_tool_active, ImGuiWindowFlags_MenuBar);
+    ImGui::Begin("Status Window", NULL, ImGuiWindowFlags_MenuBar);
 
         // Plot the frametimes
         for(auto& graph:graphs){
             graph.display();
         }
+        
+        auto textColor = ImGui::GetStyle().Colors[ImGuiCol_Text];
         
         ImGui::BeginChild("Status Text");
             ImGui::TextColored(textColor, "current Position: %Lfm / %LFm", currentPosition.value, endPosition.value);

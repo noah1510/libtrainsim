@@ -18,8 +18,6 @@ namespace libtrainsim{
     namespace extras{
         class statusDisplay{
           private:
-            ImVec4 textColor{0.7,1,0.7,1};
-            bool my_tool_active = false;
             
             std::vector<statusDisplayGraph<100>> graphs; 
             
