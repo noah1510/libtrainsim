@@ -91,7 +91,7 @@ void libtrainsim::extras::statusDisplay::setAcceleration ( sakurajin::unit_syste
 }
 
 void libtrainsim::extras::statusDisplay::setVelocity ( sakurajin::unit_system::common::speed newVelocity ) {
-    auto vel = sakurajin::unit_system::unit_cast(newVelocity, 3.6);
+    auto vel = sakurajin::unit_system::unit_cast(newVelocity, 1);
     appendToGraph("velocity", vel.value);
 }
 

@@ -21,6 +21,7 @@
 #include <optional>
 #include <cmath>
 #include <tuple>
+#include <limits>
 #include <nlohmann/json.hpp>
 
 namespace libtrainsim{

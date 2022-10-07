@@ -120,18 +120,6 @@ void libtrainsim::core::Track::parseTrack() {
     if(startingPoint > endPoint){
         throw std::runtime_error("the last location was smaller than the first position");
     };
-    
-    try{
-        auto excludeTrackBounds = Helper::getOptionalJsonField<bool>(data_json.value(), "excludeTrackBounds");
-        if(excludeTrackBounds.has_value() && excludeTrackBounds.value() && stopsData.size() > 1){
-        }else{
-            stopsData.reserve(stopsData.size()+2);
-            stopsData.insert(stopsData.begin(), {"begin", startingPoint, station});
-            stopsData.insert(stopsData.end(), {"end", endPoint, station});
-        }
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("error updating the stops with begin and end"));
-    }
 }
 
 
@@ -218,7 +206,7 @@ void Track::parseJsonData(){
             }
         }
     }catch(...){
-        std::throw_with_nested(std::runtime_error("Error reading the underground data"));
+        std::throw_with_nested(std::runtime_error("Error reading the underground data for track " + name));
     }
     
     try{
@@ -245,7 +233,19 @@ void Track::parseJsonData(){
         }
         
     }catch(...){
-        std::throw_with_nested(std::runtime_error("Error reading the stops data"));
+        std::throw_with_nested(std::runtime_error("Error reading the stops data for track " + name));
+    }
+    
+    try{
+        auto excludeTrackBounds = Helper::getOptionalJsonField<bool>(data_json.value(), "excludeTrackBounds");
+        if(excludeTrackBounds.has_value() && excludeTrackBounds.value() && stopsData.size() > 1){
+        }else{
+            stopsData.reserve(stopsData.size()+2);
+            stopsData.insert(stopsData.begin(), {"begin", 0_m, station});
+            stopsData.insert(stopsData.end(), {"end", {std::numeric_limits<long double>::infinity(),1}, station});
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error updating the stops with begin and end"));
     }
     
     
@@ -259,9 +259,6 @@ const Track_data& Track::data() const{
 }
             
 const train_properties& Track::train() const{
-    if(!train_dat.has_value()){
-        throw std::runtime_error("Train not loaded yet");
-    }
     return train_dat.value();
 }
 
@@ -273,11 +270,7 @@ length Track::firstLocation() const{
     return startingPoint;
 }
 
-const std::string & libtrainsim::core::Track::getName() const {
-    if(!track_dat.has_value()){
-        throw std::runtime_error("Track not loaded yet");
-    }
-    
+const std::string & libtrainsim::core::Track::getName() const { 
     return name;
 }
 
