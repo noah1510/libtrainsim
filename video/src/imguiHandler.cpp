@@ -4,6 +4,42 @@
 
 using namespace std::literals;
 
+void libtrainsim::Video::styleSettings::displayContent() {
+    ImGui::ShowStyleEditor(&ImGui::GetStyle());
+}
+
+libtrainsim::Video::styleSettings::styleSettings() : tabPage("style"){}
+
+void libtrainsim::Video::basicSettings::displayContent() {
+    imguiHandler& handle = imguiHandler::getInstance();
+    float clearCol[3] = {handle.clear_color.x,handle.clear_color.y,handle.clear_color.z};
+    
+    ImGui::BeginTable("basic Settings table", 1, (ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp));
+        //display the style changer with its tooltip
+        ImGui::TableNextColumn();
+        ImGui::ShowStyleSelector("active imgui style");
+        if(ImGui::IsItemHovered()){
+            ImGui::SetTooltip("change the style of the windows");
+        }
+        
+        //add an 'empty' line between the options
+        ImGui::TableNextColumn();
+        ImGui::Text("");
+        
+        //display the color changer for the clear color
+        ImGui::TableNextColumn();
+        ImGui::ColorPicker3("clear color picker", clearCol);
+        if(ImGui::IsItemHovered()){
+            ImGui::SetTooltip("change the background color of the background window");
+        }
+
+        handle.clear_color = ImVec4{clearCol[0],clearCol[1],clearCol[2],1.0};
+        
+    ImGui::EndTable();
+}
+
+libtrainsim::Video::basicSettings::basicSettings() : tabPage("basic"){}
+
 libtrainsim::Video::imguiHandler::imguiHandler(){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
         throw std::runtime_error(SDL_GetError());
@@ -71,6 +107,9 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
     std::cout << "maxTextureUnits: " << maxTextureUnits << std::endl;
+    
+    settingsTabs.emplace_back(std::make_unique<basicSettings>());
+    settingsTabs.emplace_back(std::make_unique<styleSettings>());
 }
 
 libtrainsim::Video::imguiHandler::~imguiHandler() {
@@ -110,7 +149,6 @@ void libtrainsim::Video::imguiHandler::startRender_impl() {
         ImGui::MenuItem("Settings", NULL, &displayImGUiSettings);
     ImGui::EndMainMenuBar();
     
-    float clearCol[3] = {clear_color.x,clear_color.y,clear_color.z};
     if(displayImGUiSettings){
         ImGui::Begin(
             "Settings Window", 
@@ -119,45 +157,11 @@ void libtrainsim::Video::imguiHandler::startRender_impl() {
         );
             
             if(ImGui::BeginTabBar("settings tabs")){
-                if(ImGui::BeginTabItem("basic")){
-                    ImGui::BeginTable("basic Settings table", 1, (ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp));
-                        //display the style changer with its tooltip
-                        ImGui::TableNextColumn();
-                        ImGui::ShowStyleSelector("active imgui style");
-                        if(ImGui::IsItemHovered()){
-                            ImGui::SetTooltip("change the style of the windows");
-                        }
-                        
-                        //add an 'empty' line between the options
-                        ImGui::TableNextColumn();
-                        ImGui::Text("");
-                        
-                        //display the color changer for the clear color
-                        ImGui::TableNextColumn();
-                        ImGui::ColorPicker3("clear color picker", clearCol);
-                        if(ImGui::IsItemHovered()){
-                            ImGui::SetTooltip("change the background color of the background window");
-                        }
-        
-                        clear_color = ImVec4{clearCol[0],clearCol[1],clearCol[2],1.0};
-                        
-                    ImGui::EndTable();
-                    ImGui::EndTabItem();
-                }
-                if(ImGui::BeginTabItem("style")){
-                    //diplay the style editor to configure the active style
-                    ImGui::ShowStyleEditor(&ImGui::GetStyle());
-                        
-                    ImGui::EndTabItem();
-                }
-                
+                for(auto& tab:settingsTabs){(*tab)();}
                 ImGui::EndTabBar();
             }
-            
-            
         ImGui::End();
     }
-    
     
 }
 

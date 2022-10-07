@@ -34,6 +34,7 @@ extern "C" {
 #include <glm/gtc/type_ptr.hpp>
 
 #include "dimensions.hpp"
+#include "tabPage.hpp"
 
 namespace libtrainsim{
     namespace Video{
@@ -41,7 +42,24 @@ namespace libtrainsim{
         class texture;
         class Shader;
         const std::array<unsigned int, 5> darkenStrengths{0,20,40,60,80};
+        
+        //the settings page for the detailed style settings
+        class styleSettings : public tabPage{
+        public:
+            styleSettings();
+            void displayContent() override;
+        };
+        
+        //the settings page for the basic style settings
+        class basicSettings : public tabPage{
+        public:
+            basicSettings();
+            void displayContent() override;
+        };
+        
+        //a class to handle all of the general display code
         class imguiHandler{
+          friend class basicSettings;
           private:
             std::string glsl_version = "#version 410 core";
             SDL_GLContext gl_context;
@@ -98,6 +116,8 @@ namespace libtrainsim{
             bool teminateProgram = false;
             
             std::thread::id mainThreadID;
+            
+            std::vector<std::unique_ptr<tabPage>> settingsTabs;
             
           public:
             static void init(){
