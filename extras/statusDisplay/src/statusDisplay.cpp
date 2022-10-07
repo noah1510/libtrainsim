@@ -27,8 +27,9 @@ void libtrainsim::extras::statusDisplaySettings::displayContent() {
 }
 
 
-libtrainsim::extras::statusDisplay::statusDisplay(){
+libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings){
     libtrainsim::Video::imguiHandler::init();
+    manageSettings = _manageSettings;
     
     defaultGraphNames = {
         "frametimes",
@@ -48,12 +49,16 @@ libtrainsim::extras::statusDisplay::statusDisplay(){
     graphs.emplace_back(std::pair{statusDisplayGraph<100>{"velocity", "Velocity in km/h"},true});
     graphs.emplace_back(std::pair{statusDisplayGraph<100>{"speedLevel", "SpeedLevel"},true});
     
-    libtrainsim::Video::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
+    if(manageSettings){
+        libtrainsim::Video::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
+    }
 }
 
 
 libtrainsim::extras::statusDisplay::~statusDisplay() {
-    libtrainsim::Video::imguiHandler::removeSettingsTab("statusDisplay");
+    if(manageSettings){
+        libtrainsim::Video::imguiHandler::removeSettingsTab("statusDisplay");
+    }
 }
 
 
