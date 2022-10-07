@@ -34,9 +34,9 @@ namespace libtrainsim{
             bool displayLatestValue = true;
             
             /**
-             * @brief a vector with all of graphs that are displayed
+             * @brief a vector with all of graphs that are displayed and if they should be displayed
              */
-            std::vector<statusDisplayGraph<100>> graphs;
+            std::vector<std::pair<statusDisplayGraph<100>, bool>> graphs;
             
             /**
              * @brief the names of all of the graphs that have to exist and cannot be deleted

@@ -2,12 +2,28 @@
 
 using namespace sakurajin::unit_system::base::literals;
 using namespace sakurajin::unit_system::common::literals;
-
+using namespace std::literals;
 
 libtrainsim::extras::statusDisplaySettings::statusDisplaySettings(statusDisplay& disp):tabPage{"statusDisplay"}, display{disp}{}
 
 void libtrainsim::extras::statusDisplaySettings::displayContent() {
+    
+
     ImGui::Checkbox("Display Latest Values", &display.displayLatestValue);
+    
+    ImGui::BeginChild("visibility selection");
+    
+        ImGui::Text("Graph visibility:");
+        for(auto& graph:display.graphs){
+            std::stringstream ss;
+            ss << "Show Graph: " << graph.first.getName();
+            ImGui::Checkbox(ss.str().c_str(), &graph.second);
+            if(ImGui::IsItemHovered()){
+                ImGui::SetTooltip("Change if a graph should be visible on the statusDisplay");
+            }
+        }
+    
+    ImGui::EndChild();
 }
 
 
@@ -26,11 +42,11 @@ libtrainsim::extras::statusDisplay::statusDisplay(){
     currentPosition = 0_m;
     endPosition = 0_m;
     
-    graphs.emplace_back(statusDisplayGraph<100>{"frametimes", "frametimes in ms"});
-    graphs.emplace_back(statusDisplayGraph<100>{"rendertimes", "rendertimes in ms"});
-    graphs.emplace_back(statusDisplayGraph<100>{"acceleration", "Acceleration in m/s²"});
-    graphs.emplace_back(statusDisplayGraph<100>{"velocity", "Velocity in km/h"});
-    graphs.emplace_back(statusDisplayGraph<100>{"speedLevel", "SpeedLevel"});
+    graphs.emplace_back(std::pair{statusDisplayGraph<100>{"frametimes", "frametimes in ms"},true});
+    graphs.emplace_back(std::pair{statusDisplayGraph<100>{"rendertimes", "rendertimes in ms"},true});
+    graphs.emplace_back(std::pair{statusDisplayGraph<100>{"acceleration", "Acceleration in m/s²"},true});
+    graphs.emplace_back(std::pair{statusDisplayGraph<100>{"velocity", "Velocity in km/h"},true});
+    graphs.emplace_back(std::pair{statusDisplayGraph<100>{"speedLevel", "SpeedLevel"},true});
     
     libtrainsim::Video::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
 }
@@ -66,7 +82,9 @@ void libtrainsim::extras::statusDisplay::update() {
 
         // Plot the all of the graphs
         for(auto& graph:graphs){
-            graph.display(displayLatestValue);
+            if(graph.second){
+                graph.first.display(displayLatestValue);
+            }
         }
 
     ImGui::End();
@@ -112,12 +130,12 @@ void libtrainsim::extras::statusDisplay::setSpeedLevel ( core::input_axis newSpe
 
 void libtrainsim::extras::statusDisplay::createCustomGraph ( std::string graphName, std::string tooltipMessage ) {
     for(auto& graph: graphs){
-        if(graph.getName() == graphName){
+        if(graph.first.getName() == graphName){
             throw std::invalid_argument("A graph with the given name already exists!");
         }
     }
     
-    graphs.emplace_back(statusDisplayGraph<100>{graphName,tooltipMessage});
+    graphs.emplace_back(std::pair{statusDisplayGraph<100>{graphName,tooltipMessage}, true});
 }
 
 void libtrainsim::extras::statusDisplay::removeGraph ( std::string graphName ) {
@@ -126,7 +144,7 @@ void libtrainsim::extras::statusDisplay::removeGraph ( std::string graphName ) {
     }
     
     for(auto i = graphs.begin(); i < graphs.end(); i++){
-        if((*i).getName() == graphName){
+        if((*i).first.getName() == graphName){
             graphs.erase(i);
             return;
         }
@@ -137,8 +155,8 @@ void libtrainsim::extras::statusDisplay::removeGraph ( std::string graphName ) {
 
 void libtrainsim::extras::statusDisplay::appendToGraph ( std::string graphName, float value ) {
     for(auto& graph: graphs){
-        if(graph.getName() == graphName){
-            graph.appendValue(value);
+        if(graph.first.getName() == graphName){
+            graph.first.appendValue(value);
             return;
         }
     }
