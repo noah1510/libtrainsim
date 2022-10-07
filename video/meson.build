@@ -3,6 +3,7 @@ sources = [
     'src/frame.cpp',
     'src/glad.c',
     'src/imguiHandler.cpp',
+    'src/tabPage.cpp',
     'src/video_reader.cpp',
     'src/shader.cpp',
     'src/texture.cpp',
