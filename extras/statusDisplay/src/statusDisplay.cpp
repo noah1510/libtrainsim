@@ -3,6 +3,14 @@
 using namespace sakurajin::unit_system::base::literals;
 using namespace sakurajin::unit_system::common::literals;
 
+
+libtrainsim::extras::statusDisplaySettings::statusDisplaySettings(statusDisplay& disp):tabPage{"statusDisplay"}, display{disp}{}
+
+void libtrainsim::extras::statusDisplaySettings::displayContent() {
+    ImGui::Checkbox("Display Latest Values", &display.displayLatestValue);
+}
+
+
 libtrainsim::extras::statusDisplay::statusDisplay(){
     libtrainsim::Video::imguiHandler::init();
     
@@ -23,10 +31,13 @@ libtrainsim::extras::statusDisplay::statusDisplay(){
     graphs.emplace_back(statusDisplayGraph<100>{"acceleration", "Acceleration in m/s²"});
     graphs.emplace_back(statusDisplayGraph<100>{"velocity", "Velocity in km/h"});
     graphs.emplace_back(statusDisplayGraph<100>{"speedLevel", "SpeedLevel"});
+    
+    libtrainsim::Video::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
 }
 
 
 libtrainsim::extras::statusDisplay::~statusDisplay() {
+    libtrainsim::Video::imguiHandler::removeSettingsTab("statusDisplay");
 }
 
 
@@ -55,7 +66,7 @@ void libtrainsim::extras::statusDisplay::update() {
 
         // Plot the all of the graphs
         for(auto& graph:graphs){
-            graph.display();
+            graph.display(displayLatestValue);
         }
 
     ImGui::End();

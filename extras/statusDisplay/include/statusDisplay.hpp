@@ -16,8 +16,22 @@
 
 namespace libtrainsim{
     namespace extras{
-        class statusDisplay{
+        class statusDisplay;
+      
+        class statusDisplaySettings : public libtrainsim::Video::tabPage{
           private:
+            void displayContent() override;
+            statusDisplay& display;
+          public:
+            statusDisplaySettings(statusDisplay& disp);
+        };
+        
+        class statusDisplay{
+          friend class statusDisplaySettings;
+          private:
+            
+            //control if the latest value should be displayed
+            bool displayLatestValue = true;
             
             /**
              * @brief a vector with all of graphs that are displayed
