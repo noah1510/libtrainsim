@@ -119,7 +119,7 @@ namespace libtrainsim{
             
             std::thread::id mainThreadID;
             
-            std::vector<std::unique_ptr<tabPage>> settingsTabs;
+            std::vector<std::shared_ptr<tabPage>> settingsTabs;
             
           public:
             static void init(){
@@ -237,6 +237,29 @@ namespace libtrainsim{
             //get access to the texture to darken a texture
             static std::shared_ptr<texture> getDarkenTexture(unsigned int strength = 20){
                 return getInstance().getDarkenTexture_impl(strength);
+            }
+            
+            //add a new settings tab
+            static void addSettingsTab(std::shared_ptr<tabPage> newTab){
+                for(auto& tab:getInstance().settingsTabs){
+                    if(tab->getName() == newTab->getName()){
+                        throw std::invalid_argument{"a tab with this name already exists in the settings"};
+                    }
+                }
+                getInstance().settingsTabs.emplace_back(newTab);
+            }
+            
+            //remove a settings page from the settings window
+            static void removeSettingsTab(std::string_view tabName){
+                auto i = getInstance().settingsTabs.begin();
+                i+=2;
+                while(i != getInstance().settingsTabs.end()){
+                    if((*i)->getName() == tabName){
+                        getInstance().settingsTabs.erase(i);
+                        return;
+                    }
+                    i++;
+                }
             }
             
         };

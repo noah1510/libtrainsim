@@ -108,8 +108,8 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
     std::cout << "maxTextureUnits: " << maxTextureUnits << std::endl;
     
-    settingsTabs.emplace_back(std::make_unique<basicSettings>());
-    settingsTabs.emplace_back(std::make_unique<styleSettings>());
+    settingsTabs.emplace_back(std::make_shared<basicSettings>());
+    settingsTabs.emplace_back(std::make_shared<styleSettings>());
 }
 
 libtrainsim::Video::imguiHandler::~imguiHandler() {
