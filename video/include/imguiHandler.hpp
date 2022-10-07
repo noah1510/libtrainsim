@@ -45,16 +45,18 @@ namespace libtrainsim{
         
         //the settings page for the detailed style settings
         class styleSettings : public tabPage{
-        public:
-            styleSettings();
+          private:
             void displayContent() override;
+          public:
+            styleSettings();
         };
         
         //the settings page for the basic style settings
         class basicSettings : public tabPage{
-        public:
-            basicSettings();
+          private:
             void displayContent() override;
+          public:
+            basicSettings();
         };
         
         //a class to handle all of the general display code
