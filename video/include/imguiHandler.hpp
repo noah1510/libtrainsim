@@ -107,7 +107,7 @@ namespace libtrainsim{
             void startRender_impl();
             void endRender_impl();
             void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture, dimensions dims );
-            void loadFramebuffer_impl ( unsigned int buf, dimensions dims, std::array<float,4> clearColor );
+            void loadFramebuffer_impl ( unsigned int buf, dimensions dims, glm::vec4 clearColor );
             void updateRenderThread_impl();
             void copy_impl(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture, glm::mat4 transformation);
             void loadShaders_impl(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
@@ -151,8 +151,8 @@ namespace libtrainsim{
                 getInstance().initFramebuffer_impl(FBO,texture,dims);
             }
             
-            static void loadFramebuffer ( unsigned int buf, dimensions dims = dimensions{3840,2160} ){
-                getInstance().loadFramebuffer_impl(buf, dims);
+            static void loadFramebuffer ( unsigned int buf, dimensions dims = dimensions{3840,2160}, glm::vec4 clearColor = {0,0,0,0} ){
+                getInstance().loadFramebuffer_impl(buf, dims, clearColor);
             }
             
             static void updateRenderThread(){
