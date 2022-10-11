@@ -41,7 +41,6 @@ namespace libtrainsim{
         //forward declarations
         class texture;
         class Shader;
-        const std::array<unsigned int, 5> darkenStrengths{0,20,40,60,80};
         
         //the settings page for the detailed style settings
         class styleSettings : public tabPage{
@@ -85,7 +84,7 @@ namespace libtrainsim{
             bool shaderLoaded = false;
             
             //The textures with specific amounts of darken
-            std::vector<std::shared_ptr<libtrainsim::Video::texture>> darkSteps;
+            std::array<std::shared_ptr<libtrainsim::Video::texture>,255> darkSteps;
             
             //a texture that does a displacement of 0
             std::shared_ptr<libtrainsim::Video::texture> displacement0;
@@ -108,19 +107,22 @@ namespace libtrainsim{
             void startRender_impl();
             void endRender_impl();
             void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture, dimensions dims );
-            void loadFramebuffer_impl ( unsigned int buf, dimensions dims );
+            void loadFramebuffer_impl ( unsigned int buf, dimensions dims, std::array<float,4> clearColor );
             void updateRenderThread_impl();
             void copy_impl(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture, glm::mat4 transformation);
             void loadShaders_impl(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
             void bindVAO_impl();
             void drawRect_impl();
-            std::shared_ptr<texture> getDarkenTexture_impl(unsigned int strength);
+            std::shared_ptr<texture> getDarkenTexture_impl(uint8_t strength);
+            void initDarkenTexture(uint8_t strength);
             
             bool teminateProgram = false;
             
             std::thread::id mainThreadID;
             
             std::vector<std::shared_ptr<tabPage>> settingsTabs;
+            
+            void drawColor_impl(std::shared_ptr<texture> dest, glm::vec4 color);
             
           public:
             static void init(){
@@ -236,7 +238,8 @@ namespace libtrainsim{
             }
             
             //get access to the texture to darken a texture
-            static std::shared_ptr<texture> getDarkenTexture(unsigned int strength = 20){
+            //get a darken amount between 0 and 255
+            static std::shared_ptr<texture> getDarkenTexture(uint8_t strength = 20){
                 return getInstance().getDarkenTexture_impl(strength);
             }
             

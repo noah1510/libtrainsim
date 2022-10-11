@@ -108,6 +108,10 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
     std::cout << "maxTextureUnits: " << maxTextureUnits << std::endl;
     
+    for(auto& tex:darkSteps){
+        tex = nullptr;
+    }
+    
     settingsTabs.emplace_back(std::make_shared<basicSettings>());
     settingsTabs.emplace_back(std::make_shared<styleSettings>());
 }
@@ -385,18 +389,67 @@ void libtrainsim::Video::imguiHandler::drawRect_impl() {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-std::shared_ptr<libtrainsim::Video::texture> libtrainsim::Video::imguiHandler::getDarkenTexture_impl ( unsigned int strength ) {
+void libtrainsim::Video::imguiHandler::drawColor_impl ( std::shared_ptr<texture> dest, glm::vec4 color ) {
+    //thorw an error if shader are not loaded yet
+    if(!shaderLoaded){
+        throw std::runtime_error("load shader before using the shader parts");
+    }
+    
+    if(dest == nullptr){
+        throw std::invalid_argument("nullptr not allowed for copy operation");
+    }
+    
+    if(!dest->hasFramebuffer()){
+        throw std::invalid_argument("destination texture has no attached framebuffer");
+    }
+    dest->loadFramebuffer();
+    
+    drawShader->use();
+    auto orth = glm::ortho(
+        -1.0f, 
+        1.0f,
+        -1.0f,
+        1.0f,
+        -10.0f,
+        10.0f
+    );
+    drawShader->setUniform("transform", orth);
+    drawShader->setUniform("color", color);
+    
+    drawRect();
+    
+    //reset all of the buffers
+    glBindVertexArray(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+
+std::shared_ptr<libtrainsim::Video::texture> libtrainsim::Video::imguiHandler::getDarkenTexture_impl ( uint8_t strength ) {
     if(!shaderLoaded){
         return nullptr;
     }
-    
-    for(size_t i = 0; i < darkenStrengths.size(); i++){
-        if(darkenStrengths[i] >= strength){
-            return darkSteps[i];
-        }
+
+    if(darkSteps[strength] == nullptr){
+        initDarkenTexture(strength);
     }
     
-    return darkSteps.back();
+    return darkSteps[strength];
+}
+
+void libtrainsim::Video::imguiHandler::initDarkenTexture ( uint8_t strength ) {
+    if(darkSteps[strength] != nullptr){
+        return;
+    }
+    
+    std::stringstream ss;
+    ss << "darken-texture-default-" << strength;
+    
+    auto newTex = std::make_shared<libtrainsim::Video::texture>(ss.str());
+    newTex->createFramebuffer({1,1});
+    drawColor_impl(newTex,{0,0,0,static_cast<float>(strength)/255.0});
+
+    
+    darkSteps[strength] = newTex;
 }
 
 
