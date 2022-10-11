@@ -313,19 +313,14 @@ void libtrainsim::Video::imguiHandler::loadShaders_impl ( const std::filesystem:
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create copy shader"));
     }
-    
-    //---------------load textures---------------
+    //load the draw shader
     try{
-        for(auto strength : darkenStrengths){
-            std::stringstream URI{};
-            URI << "darken-" << strength << ".tif";
-            auto tex = std::make_shared<libtrainsim::Video::texture>(textureLocation/URI.str());
-            darkSteps.emplace_back(tex);
-        }
+        drawShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"draw.frag");
     }catch(...){
-        std::throw_with_nested(std::runtime_error("could not init darken texture"));
+        std::throw_with_nested(std::runtime_error("Could not create draw shader"));
     }
     
+    //---------------load textures---------------
     try{
         displacement0 = std::make_shared<libtrainsim::Video::texture>(textureLocation/"displacement-0.tif");
     }catch(...){

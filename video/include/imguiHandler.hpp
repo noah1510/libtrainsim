@@ -81,6 +81,7 @@ namespace libtrainsim{
             unsigned int VBO = 0, VAO = 0, EBO = 0;
             
             std::shared_ptr<Shader> copyShader;
+            std::shared_ptr<Shader> drawShader;
             bool shaderLoaded = false;
             
             //The textures with specific amounts of darken
