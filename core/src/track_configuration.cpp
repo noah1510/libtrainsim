@@ -244,6 +244,14 @@ void Track::parseJsonData(){
             stopsData.insert(stopsData.begin(), {"begin", 0_m, station});
             stopsData.insert(stopsData.end(), {"end", {std::numeric_limits<long double>::infinity(),1}, station});
         }
+            
+        stationsData.reserve(stopsData.size());
+        for(auto& dat:stopsData){
+            if(dat.type() == station){
+                stationsData.emplace_back(dat);
+            }
+        }
+        stationsData.shrink_to_fit();
     }catch(...){
         std::throw_with_nested(std::runtime_error("error updating the stops with begin and end"));
     }
@@ -251,7 +259,10 @@ void Track::parseJsonData(){
     
 }
 
-const Track_data& Track::data() const{
+const Track_data& Track::data() const{    
+    if(stopsData.size() < 2){
+        throw std::runtime_error("stops data not fully initialized. There are not enugh stops defined");
+    }
     if(!track_dat.has_value()){
         throw std::runtime_error("Track not loaded yet");
     }
@@ -297,11 +308,21 @@ std::tuple<
     return {false, 0_m2, 0_m};
 }
 
-const std::vector<stopDataPoint> & libtrainsim::core::Track::getStops() const {
+const std::vector<stopDataPoint> & libtrainsim::core::Track::getStations() const {
+    if(stationsData.size() > 0){
+        if(stationsData.size() < 2){
+            throw std::runtime_error("Not enough stations are defined");
+        }else{
+            return stationsData;
+        }
+    }
+    
     if(stopsData.size() < 2){
         throw std::runtime_error("stops data not fully initialized. There are not enugh stops defined");
     }
-    return stopsData;
+    
+    return stationsData;
+    
 }
 
 

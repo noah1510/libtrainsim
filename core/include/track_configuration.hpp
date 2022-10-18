@@ -118,6 +118,9 @@ namespace libtrainsim{
             
             //a vector containing all of the stops
             std::vector<stopDataPoint> stopsData;
+            
+            //a vector containing all of the stations. This will be initialized when needed.
+            std::vector<stopDataPoint> stationsData;
 
             /**
              * @brief The location where the train should start in the beginning.
@@ -232,7 +235,7 @@ namespace libtrainsim{
              * of the Track. If the underlying Track_data is not fully loaded this will
              * throw an error. To prevent this call enusure before calling this function.
              */
-            const std::vector<stopDataPoint>& getStops() const;
+            const std::vector<stopDataPoint>& getStations() const;
             
             /**
              * @brief this function ensures that the data is fully loaded.
