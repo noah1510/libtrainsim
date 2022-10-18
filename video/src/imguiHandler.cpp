@@ -102,6 +102,8 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     }
     
     std::cout << "OpenGL version loaded: " << GLVersion.major << "." << GLVersion.minor << std::endl;
+    std::cout << "OpenGL driver vendor: " << glGetString(GL_VENDOR) << std::endl;
+    std::cout << "OpenGL driver renderer: " << glGetString(GL_RENDERER) << std::endl;
     
     mainThreadID = std::this_thread::get_id();
     
