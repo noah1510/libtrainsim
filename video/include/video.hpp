@@ -41,8 +41,11 @@ namespace libtrainsim {
                  * @brief the name this window currently has
                  */
                 std::string currentWindowName = "";
+                
+                //true if the simulator window is fully started
                 bool windowFullyCreated = false;
                 
+                //a mutex to secure this class for multithreading
                 std::shared_mutex videoMutex;
                 
                 /**
@@ -50,8 +53,10 @@ namespace libtrainsim {
                  */
                 std::unique_ptr<videoReader> decode = nullptr;
                 
+                //update the output Texture
                 void updateOutput();
                 
+                //all of the textures that are displayed on the output texture 
                 std::vector< std::shared_ptr<texture> > displayTextures;
 
             public:
@@ -139,7 +144,7 @@ namespace libtrainsim {
                  */
                 void removeTexture(const std::string& textureName);
                 
-                
+                //the the rendertimes of the video
                 std::optional< std::vector<sakurajin::unit_system::base::time_si> > getNewRendertimes();
                 
         };
