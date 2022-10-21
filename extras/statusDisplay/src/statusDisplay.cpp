@@ -11,19 +11,15 @@ void libtrainsim::extras::statusDisplaySettings::displayContent() {
 
     ImGui::Checkbox("Display Latest Values", &display.displayLatestValue);
     
-    ImGui::BeginChild("visibility selection");
-    
-        ImGui::Text("Graph visibility:");
-        for(auto& graph:display.graphs){
-            std::stringstream ss;
-            ss << "Show Graph: " << graph.first.getName();
-            ImGui::Checkbox(ss.str().c_str(), &graph.second);
-            if(ImGui::IsItemHovered()){
-                ImGui::SetTooltip("Change if a graph should be visible on the statusDisplay");
-            }
+    ImGui::Text("Graph visibility:");
+    for(auto& graph:display.graphs){
+        std::stringstream ss;
+        ss << "Show Graph: " << graph.first.getName();
+        ImGui::Checkbox(ss.str().c_str(), &graph.second);
+        if(ImGui::IsItemHovered()){
+            ImGui::SetTooltip("Change if a graph should be visible on the statusDisplay");
         }
-    
-    ImGui::EndChild();
+    }
 }
 
 
