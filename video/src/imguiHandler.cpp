@@ -57,7 +57,7 @@ void libtrainsim::Video::basicSettings::displayContent() {
 
 libtrainsim::Video::basicSettings::basicSettings() : tabPage("basic"){}
 
-libtrainsim::Video::imguiHandler::imguiHandler(){
+libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
         throw std::runtime_error(SDL_GetError());
     }
@@ -86,7 +86,7 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
-    window = SDL_CreateWindow("libtrainsim window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
     gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     
