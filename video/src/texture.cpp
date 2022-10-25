@@ -32,7 +32,7 @@ libtrainsim::Video::texture::texture ( const std::string& _name ) : texture{} {
 libtrainsim::Video::texture::texture ( const std::filesystem::path& URI ) :texture{} {
    
     if( !std::filesystem::exists( URI) ){
-        throw std::runtime_error("image file does not exist! " + URI.string());
+        throw std::invalid_argument("image file does not exist! " + URI.string());
     }
     
     std::scoped_lock<std::shared_mutex>{acessMutex};
@@ -119,6 +119,9 @@ const std::string & libtrainsim::Video::texture::getName() noexcept {
 
 
 void libtrainsim::Video::texture::updateImage (const std::vector<uint8_t>& data, const libtrainsim::Video::dimensions& newSize ) {
+    if(data.size() < newSize.x()*newSize.y()*4){
+        throw std::invalid_argument("data size too small");
+    }
     updateImage(data.data(),newSize);
 }
 
@@ -173,10 +176,10 @@ void libtrainsim::Video::texture::resize ( const libtrainsim::Video::dimensions&
 void libtrainsim::Video::texture::bind(unsigned int unit) {
     std::scoped_lock lock{acessMutex};
     
-    if(unit > libtrainsim::Video::imguiHandler::getMaxTextureUnits()){
+    if(unit >= libtrainsim::Video::imguiHandler::getMaxTextureUnits()){
         std::stringstream ss;
         ss << "texture unit value too high. Only " << libtrainsim::Video::imguiHandler::getMaxTextureUnits() << " are allowed";
-        throw std::runtime_error(ss.str());
+        throw std::invalid_argument(ss.str());
     }
     
     glActiveTexture(GL_TEXTURE0 + unit);
@@ -184,11 +187,27 @@ void libtrainsim::Video::texture::bind(unsigned int unit) {
 }
 
 void libtrainsim::Video::texture::createFramebuffer ( const libtrainsim::Video::dimensions& framebufferSize ) {
-    std::scoped_lock lock{acessMutex};
+    acessMutex.lock();
     
-    imguiHandler::initFramebuffer(FBO, textureID, framebufferSize);
+    if(framebufferMode){
+        acessMutex.unlock();
+        try{
+            resize(framebufferSize);
+        }catch(...){
+             std::throw_with_nested(std::invalid_argument("Could not update the framebuffer size"));
+        }
+        return;
+    }
+    
+    try{
+        imguiHandler::initFramebuffer(FBO, textureID, framebufferSize);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("cannot create framebuffer"));
+    }
+    
     framebufferMode = true;
     imageSize = framebufferSize;
+    acessMutex.unlock();
 }
 
 void libtrainsim::Video::texture::loadFramebuffer() {

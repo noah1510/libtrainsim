@@ -250,7 +250,11 @@ namespace libtrainsim{
              * @brief initialize a framebuffer with a given texture attached to it
              */
             static void initFramebuffer(unsigned int& FBO, unsigned int& texture, dimensions dims = dimensions{3840,2160}){
-                getInstance().initFramebuffer_impl(FBO,texture,dims);
+                try{
+                    getInstance().initFramebuffer_impl(FBO,texture,dims);
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Cannot init framebuffer"));
+                }
             }
             
             /**
