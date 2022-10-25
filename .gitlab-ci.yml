@@ -33,6 +33,8 @@ wiki:
   - git config --global url."https://git@git.thm.de/".insteadOf "git@git.thm.de:"
   - git config --global user.email "noah.kirschmann@mnd.thm.de"
   - git config --global user.name "Gitlab-Ci"
+  - meson setup build
+  - meson compile -C build
   - wget https://github.com/matusnovak/doxybook2/releases/download/$DOXYBOOK_VERSION/doxybook2-linux-amd64-$DOXYBOOK_VERSION.zip
   - unzip doxybook2-linux-amd64-$DOXYBOOK_VERSION.zip -d doxybook
   - doxygen
@@ -46,19 +48,10 @@ wiki:
   - make
   - cd ../..
   - mv doc/latex/refman.pdf reference_manual_en.pdf
+  - mv doc/html/ public/
   only:
   - main
   artifacts:
     paths:
     - reference_manual_en.pdf
-pages:
-  image: "$CONTAINER_PREFIX/helper:pages"
-  stage: deploy
-  script:
-  - doxygen Doxyfile
-  - mv doc/html/ public/
-  artifacts:
-    paths:
     - public
-  only:
-  - main
