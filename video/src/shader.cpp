@@ -206,7 +206,7 @@ int libtrainsim::Video::Shader::createShader () {
     //compile and load the vertex shader
     unsigned int vertexShader = 0;
     try{
-        shaderCode = loadFile( shader_config.vertex_shader_location );
+        shaderCode = libtrainsim::core::Helper::loadFile( shader_config.vertex_shader_location );
         compileShader(shaderCode, vertexShader, GL_VERTEX_SHADER);
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not compile or load vertex shader"));
@@ -215,7 +215,7 @@ int libtrainsim::Video::Shader::createShader () {
     //compile and load the fragment shader
     unsigned int fragmentShader = 0;
     try{
-        shaderCode = loadFile( shader_config.fragment_shader_location );
+        shaderCode = libtrainsim::core::Helper::loadFile( shader_config.fragment_shader_location );
         compileShader(shaderCode, fragmentShader, GL_FRAGMENT_SHADER);
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not compile or load fragment shader"));
@@ -227,7 +227,7 @@ int libtrainsim::Video::Shader::createShader () {
     //compile and load the geomerty shader
     if(shader_config.hasGeometryShader()){
         try{
-            shaderCode = loadFile( shader_config.geometry_shader_location );
+            shaderCode = libtrainsim::core::Helper::loadFile( shader_config.geometry_shader_location );
             compileShader(shaderCode, geometryShader, GL_GEOMETRY_SHADER);
         }catch(...){
             std::throw_with_nested(std::runtime_error("Could not compile or load geomerty shader"));
@@ -237,7 +237,7 @@ int libtrainsim::Video::Shader::createShader () {
     //compile and load the compute shader
     if(shader_config.hasComputeShader()){
         try{
-            shaderCode = loadFile( shader_config.compute_shader_location );
+            shaderCode = libtrainsim::core::Helper::loadFile( shader_config.compute_shader_location );
             compileShader(shaderCode, computeShader, GL_COMPUTE_SHADER);
         }catch(...){
             std::throw_with_nested(std::runtime_error("Could not compile or load compute shader"));
@@ -247,7 +247,7 @@ int libtrainsim::Video::Shader::createShader () {
     //compile and load the tessalation control shader
     if(shader_config.hasTessControlShader()){
         try{
-            shaderCode = loadFile( shader_config.tessControl_shader_location );
+            shaderCode = libtrainsim::core::Helper::loadFile( shader_config.tessControl_shader_location );
             compileShader(shaderCode, tessControlShader, GL_TESS_CONTROL_SHADER);
         }catch(...){
             std::throw_with_nested(std::runtime_error("Could not compile or load tessalation control shader"));
@@ -257,13 +257,14 @@ int libtrainsim::Video::Shader::createShader () {
     //compile and load the tessalation evalutaion shader
     if(shader_config.hasTessEvaluationShader()){
         try{
-            shaderCode = loadFile( shader_config.tessEvaluation_shader_location );
+            shaderCode = libtrainsim::core::Helper::loadFile( shader_config.tessEvaluation_shader_location );
             compileShader(shaderCode, tessEvalShader, GL_TESS_EVALUATION_SHADER);
         }catch(...){
             std::throw_with_nested(std::runtime_error("Could not compile or load tessalation evalutaion shader"));
         }
     }
-        //prepare the shader program to link every part
+    
+    //prepare the shader program to link every part
     int success;
     
     if(shaderProgram){
@@ -305,28 +306,6 @@ int libtrainsim::Video::Shader::createShader () {
     glDeleteShader(tessEvalShader);
     
     return 0;
-}
-
-std::string libtrainsim::Video::Shader::loadFile ( std::filesystem::path location ) {
-    std::string shaderCode;
-    std::ifstream ShaderFile;
-    // ensure ifstream objects can throw exceptions:
-    ShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    try {
-        // open files
-        ShaderFile.open(location);
-        std::stringstream ShaderStream;
-        // read file's buffer contents into streams
-        ShaderStream << ShaderFile.rdbuf();
-        // close file handlers
-        ShaderFile.close();
-        // convert stream into string
-        shaderCode = ShaderStream.str();
-    } catch (...) {
-        std::throw_with_nested(std::runtime_error("Shader file not sucessfully read"));
-    }
-    
-    return shaderCode;
 }
 
 int libtrainsim::Video::Shader::compileShader( std::string code, unsigned int& shaderLoc, int shaderType ) {

@@ -42,8 +42,6 @@ namespace libtrainsim{
             int createShader();
             
             int compileShader(std::string code, unsigned int& shaderLoc, int shaderType);
-            
-            std::string loadFile(std::filesystem::path location);
         public:
             Shader(const Shader_configuration& config);
             Shader(Shader_configuration config);
