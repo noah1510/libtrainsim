@@ -36,8 +36,13 @@ namespace libtrainsim{
             //The size scaling of the wiper 
             const float wiperScaling = 0.85f;
             
+            //The loaded wiper texture
             std::shared_ptr<libtrainsim::Video::texture> wiperImage;
+            
+            //an output buffer for the wiper
             std::shared_ptr<libtrainsim::Video::texture> wiperFBO;
+            
+            //The mask that is applied for actually wiping off an texture
             std::shared_ptr<libtrainsim::Video::texture> wiperMask;
             
             //The shader to wipe snow off a surface

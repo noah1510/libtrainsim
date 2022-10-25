@@ -9,14 +9,14 @@ libtrainsim::extras::wiper::wiper(const std::filesystem::path& shaderLocation, c
     
     try{
         wiperFBO = std::make_shared<libtrainsim::Video::texture>();
-        wiperFBO->createFramebuffer({3840,2160});
+        wiperFBO->createFramebuffer(libtrainsim::Video::imguiHandler::getDefaultFBOSize());
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create wiper framebuffer"));
     }
     
     try{
         wiperMask = std::make_shared<libtrainsim::Video::texture>();
-        wiperMask->createFramebuffer({3840,2160});
+        wiperMask->createFramebuffer(libtrainsim::Video::imguiHandler::getDefaultFBOSize());
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create wiper mask framebuffer"));
     }

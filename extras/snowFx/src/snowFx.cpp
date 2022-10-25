@@ -20,14 +20,15 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     }
     
     //framebuffers
+    FBOSize = libtrainsim::Video::imguiHandler::getDefaultFBOSize();
     try{
         outputTexture = std::make_shared<libtrainsim::Video::texture>();
         imageTexture = std::make_shared<libtrainsim::Video::texture>();
         blurTexture = std::make_shared<libtrainsim::Video::texture>();
         
-        outputTexture->createFramebuffer({3840,2160});
-        imageTexture->createFramebuffer({3840,2160});
-        blurTexture->createFramebuffer({3840,2160});
+        outputTexture->createFramebuffer(FBOSize);
+        imageTexture->createFramebuffer(FBOSize);
+        blurTexture->createFramebuffer(FBOSize);
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create framebuffers"));
     }
@@ -87,7 +88,7 @@ libtrainsim::extras::snowFx::~snowFx() {
 
 void libtrainsim::extras::snowFx::loadFramebuffer ( std::shared_ptr<libtrainsim::Video::texture> buf ) {
     glBindFramebuffer(GL_FRAMEBUFFER, buf->getFBO());
-    glViewport(0, 0, 3840, 2160);
+    glViewport(0, 0, FBOSize.x(), FBOSize.y());
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
