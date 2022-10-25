@@ -5,14 +5,28 @@
 using namespace std::literals;
 
 void libtrainsim::Video::styleSettings::displayContent() {
+    imguiHandler& handle = imguiHandler::getInstance();
+    float clearCol[3] = {handle.clear_color.x,handle.clear_color.y,handle.clear_color.z};
+    
     ImGui::ShowStyleEditor(&ImGui::GetStyle());
+        
+    //add an 'empty' line between the options
+    ImGui::Text(" ");
+    
+    //display the color changer for the clear color
+    ImGui::TableNextColumn();
+    ImGui::ColorPicker3("clear color picker", clearCol);
+    if(ImGui::IsItemHovered()){
+        ImGui::SetTooltip("change the background color of the background window");
+    }
+
+    handle.clear_color = ImVec4{clearCol[0],clearCol[1],clearCol[2],1.0};
 }
 
 libtrainsim::Video::styleSettings::styleSettings() : tabPage("style"){}
 
 void libtrainsim::Video::basicSettings::displayContent() {
     imguiHandler& handle = imguiHandler::getInstance();
-    float clearCol[3] = {handle.clear_color.x,handle.clear_color.y,handle.clear_color.z};
     
     ImGui::BeginTable("basic Settings table", 1, (ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp));
         //display the style changer with its tooltip
@@ -24,16 +38,19 @@ void libtrainsim::Video::basicSettings::displayContent() {
         
         //add an 'empty' line between the options
         ImGui::TableNextColumn();
-        ImGui::Text("");
+        ImGui::Text(" ");
         
-        //display the color changer for the clear color
+        //display the default FBO size selection
         ImGui::TableNextColumn();
-        ImGui::ColorPicker3("clear color picker", clearCol);
-        if(ImGui::IsItemHovered()){
-            ImGui::SetTooltip("change the background color of the background window");
-        }
-
-        handle.clear_color = ImVec4{clearCol[0],clearCol[1],clearCol[2],1.0};
+        int sizeY = handle.defaultFBOSize.y();
+        ImGui::Text("Select default FBO size: ");
+        ImGui::RadioButton("2160p", &sizeY, 2160);
+        ImGui::RadioButton("1440p", &sizeY, 1440);
+        ImGui::RadioButton("1080p", &sizeY, 1080);
+        ImGui::RadioButton("720p", &sizeY, 720);
+        
+        handle.defaultFBOSize.x() = sizeY*16/9;
+        handle.defaultFBOSize.y() = sizeY;
         
     ImGui::EndTable();
 }

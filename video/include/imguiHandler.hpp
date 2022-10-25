@@ -61,6 +61,7 @@ namespace libtrainsim{
         //a class to handle all of the general display code
         class imguiHandler{
           friend class basicSettings;
+          friend class styleSettings;
           private:
             std::string glsl_version = "#version 410 core";
             SDL_GLContext gl_context;
@@ -114,6 +115,9 @@ namespace libtrainsim{
             void bindVAO_impl();
             void drawRect_impl();
             std::shared_ptr<texture> getDarkenTexture_impl(uint8_t strength);
+            void drawColor_impl(std::shared_ptr<texture> dest, glm::vec4 color);
+            
+            
             void initDarkenTexture(uint8_t strength);
             
             bool teminateProgram = false;
@@ -122,7 +126,8 @@ namespace libtrainsim{
             
             std::vector<std::shared_ptr<tabPage>> settingsTabs;
             
-            void drawColor_impl(std::shared_ptr<texture> dest, glm::vec4 color);
+            //the default size that FBOs should have when being created
+            dimensions defaultFBOSize = {3840,2160};
             
           public:
             static void init(){
@@ -264,6 +269,11 @@ namespace libtrainsim{
                     }
                     i++;
                 }
+            }
+            
+            //get the size a new FBo should have by default
+            static dimensions getDefaultFBOSize(){
+                return getInstance().defaultFBOSize;
             }
             
         };
