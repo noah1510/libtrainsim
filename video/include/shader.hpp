@@ -164,21 +164,86 @@ namespace libtrainsim{
          */
         class Shader{
         private:
+            /**
+             * @brief The openGL shader Program ID
+             */
             unsigned int shaderProgram = 0;
             
+            /**
+             * @brief the shader configuration used for this shader
+             * @note after calling createShader() this should be invalid since
+             * keeping the shader source in ram is a waste of resources
+             */
             Shader_configuration shader_config;
             
-            int createShader();
+            /**
+             * @brief create the shader program
+             * 
+             * This function uses the shader_config to compile each of the shader parts and
+             * link them together to a single shader program. If anything goes wrong an
+             * exception is thrown and the function cleans up the parts.
+             * 
+             * @throws std::invalid_argument if the shader fonfig is not valid
+             * @throws std::nested_exception if any of the shader parts failed to compile
+             * @throws std::runtime_error if the shader fails to link
+             */
+            void createShader();
             
-            int compileShader(std::string code, unsigned int& shaderLoc, int shaderType);
+            /**
+             * @brief compiles a shader part
+             * 
+             * @details Compiles a shader parts into a given location
+             *          This function needs the shader source code, where the compiled part
+             *          is stored and which type this shader part is.
+             * 
+             * @param code The shader code that should be compiled
+             * @param shaderLoc The location where the shader part is supposed to be stored
+             * @param shaderType The type of this shader. The valid types are defined in the
+             * [opengl doc](https://registry.khronos.org/OpenGL-Refpages/gl4/html/glCreateShader.xhtml).
+             * 
+             * @throws std::runtime_error if there was an error while compiling the code
+             */
+            void compileShader(std::string code, unsigned int& shaderLoc, int shaderType);
         public:
+            /**
+             * @brief creates a shader from a valid shader config
+             * 
+             * @throws std::invalid_argument if the config is invalid
+             * @throws std::nested_exception when there was an error compiling the shader
+             */
             Shader(const Shader_configuration& config);
+            
+            /**
+             * @brief creates a shader from a valid shader config
+             * 
+             * @throws std::invalid_argument if the config is invalid
+             * @throws std::nested_exception when there was an error compiling the shader
+             */
             Shader(Shader_configuration config);
             
+            /**
+             * @brief create a shader from the filesystem
+             * 
+             * @throws std::nested_exception when there was an error reading the files
+             * @throws std::nested_exception when there was an error compiling the shader
+             */
             Shader(const std::filesystem::path& vertLoc, const std::filesystem::path& fragLoc);
             
+            /**
+             * @brief destroys the shader and deletes the program on the gpu
+             */
             ~Shader();
             
+            /**
+             * @brief use the shader
+             * 
+             * @details This functions activates the shader.
+             *          This allows the uniform variables to be modified
+             *          and this shader to be used for the next draw call.
+             *          This is basically a simple abstraction over glUseProgram.
+             * 
+             * @throws std::nested_exception if there was an openGL error
+             */
             void use();
             
             /**
@@ -195,20 +260,131 @@ namespace libtrainsim{
              */
             int getLocationIndex(const std::string& location);
             
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, int value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, size_t value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, float value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, glm::vec1 value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, glm::vec2 value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, glm::vec3 value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, glm::vec4 value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, const glm::mat4& value);
             
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, const std::vector<int>& value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, const std::vector<float>& value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, const std::vector<glm::vec1>& value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, const std::vector<glm::vec2>& value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, const std::vector<glm::vec3>& value);
+            
+            /**
+             * @brief set a uniform variable
+             * 
+             * @throws std::nested_exception if the location cannot be found or used
+             * @throws std::nested_exception if the value cannot be set to that location
+             * 
+             */
             void setUniform(const std::string& location, const std::vector<glm::vec4>& value);
             
         };

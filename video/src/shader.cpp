@@ -183,10 +183,22 @@ libtrainsim::Video::Shader::~Shader() {
 
 void libtrainsim::Video::Shader::use() {
     glUseProgram(shaderProgram);
+    try{
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Cannot use shader program"));
+    }
 }
 
 int libtrainsim::Video::Shader::getLocationIndex ( const std::string& location ) {
     auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    
+    try{
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error while getting location in shader"));
+    }
+    
     if(loc < 0){
         char infoLog[512];
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
@@ -202,79 +214,141 @@ int libtrainsim::Video::Shader::getLocationIndex ( const std::string& location )
 
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, int value ) {
-    auto dat = std::vector<int>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<int>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform int"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, size_t value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1ui(loc, value);
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform1ui(loc, value);
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform size_t"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, float value ) {
-    auto dat = std::vector<float>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<float>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform float"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec1 value ) {
-    auto dat = std::vector<glm::vec1>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<glm::vec1>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec1"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec2 value ) {
-    auto dat = std::vector<glm::vec2>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<glm::vec2>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec2"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec3 value ) {
-    auto dat = std::vector<glm::vec3>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<glm::vec3>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec3"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec4 value ) {
-    auto dat = std::vector<glm::vec4>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<glm::vec4>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec4"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const glm::mat4& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+    try{
+        auto loc = getLocationIndex(location);
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform mat4"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<int>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1iv(loc, value.size(), value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform1iv(loc, value.size(), value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform int array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<float>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1fv(loc, value.size(), value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform1fv(loc, value.size(), value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform float array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec1>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1fv(loc, value.size(), (float*) value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform1fv(loc, value.size(), (float*) value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec1 array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec2>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform2fv(loc, value.size(), (float*) value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform2fv(loc, value.size(), (float*) value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec2 array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec3>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform3fv(loc, value.size(), (float*) value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform3fv(loc, value.size(), (float*) value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec3 array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec4>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform4fv(loc, value.size(), (float*) value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform4fv(loc, value.size(), (float*) value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec4 array"));
+    }
 }
 
 
-
-
-int libtrainsim::Video::Shader::createShader () {
+void libtrainsim::Video::Shader::createShader () {
     if(!shader_config.isValid()){
         throw std::invalid_argument{"shader config is not valid"};
     }
@@ -284,6 +358,7 @@ int libtrainsim::Video::Shader::createShader () {
     try{
         compileShader(shader_config.getVertexSource(), vertexShader, GL_VERTEX_SHADER);
     }catch(...){
+        glDeleteShader(vertexShader);
         std::throw_with_nested(std::runtime_error("Could not compile or load vertex shader"));
     }
     
@@ -292,6 +367,8 @@ int libtrainsim::Video::Shader::createShader () {
     try{
         compileShader(shader_config.getFragmentSource(), fragmentShader, GL_FRAGMENT_SHADER);
     }catch(...){
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
         std::throw_with_nested(std::runtime_error("Could not compile or load fragment shader"));
     }
     
@@ -303,6 +380,9 @@ int libtrainsim::Video::Shader::createShader () {
         try{
             compileShader(shader_config.getGeometrySource().value(), geometryShader, GL_GEOMETRY_SHADER);
         }catch(...){
+            glDeleteShader(vertexShader);
+            glDeleteShader(fragmentShader);
+            glDeleteShader(geometryShader);
             std::throw_with_nested(std::runtime_error("Could not compile or load geomerty shader"));
         }
     }
@@ -312,6 +392,10 @@ int libtrainsim::Video::Shader::createShader () {
         try{
             compileShader(shader_config.getComputeSource().value(), computeShader, GL_COMPUTE_SHADER);
         }catch(...){
+            glDeleteShader(vertexShader);
+            glDeleteShader(fragmentShader);
+            glDeleteShader(geometryShader);
+            glDeleteShader(computeShader);
             std::throw_with_nested(std::runtime_error("Could not compile or load compute shader"));
         }
     }
@@ -321,6 +405,11 @@ int libtrainsim::Video::Shader::createShader () {
         try{
             compileShader(shader_config.getTessControlSource().value(), tessControlShader, GL_TESS_CONTROL_SHADER);
         }catch(...){
+            glDeleteShader(vertexShader);
+            glDeleteShader(fragmentShader);
+            glDeleteShader(geometryShader);
+            glDeleteShader(computeShader);
+            glDeleteShader(tessControlShader);
             std::throw_with_nested(std::runtime_error("Could not compile or load tessalation control shader"));
         }
     }
@@ -330,6 +419,12 @@ int libtrainsim::Video::Shader::createShader () {
         try{
             compileShader(shader_config.getTessEvaluationSource().value(), tessEvalShader, GL_TESS_EVALUATION_SHADER);
         }catch(...){
+            glDeleteShader(vertexShader);
+            glDeleteShader(fragmentShader);
+            glDeleteShader(geometryShader);
+            glDeleteShader(computeShader);
+            glDeleteShader(tessControlShader);
+            glDeleteShader(tessEvalShader);
             std::throw_with_nested(std::runtime_error("Could not compile or load tessalation evalutaion shader"));
         }
     }
@@ -377,11 +472,9 @@ int libtrainsim::Video::Shader::createShader () {
     glDeleteShader(computeShader);
     glDeleteShader(tessControlShader);
     glDeleteShader(tessEvalShader);
-    
-    return 0;
 }
 
-int libtrainsim::Video::Shader::compileShader( std::string code, unsigned int& shaderLoc, int shaderType ) {
+void libtrainsim::Video::Shader::compileShader( std::string code, unsigned int& shaderLoc, int shaderType ) {
     // compile the shader and return the location of the result
     int success;
 
@@ -393,13 +486,17 @@ int libtrainsim::Video::Shader::compileShader( std::string code, unsigned int& s
 
     // print compile errors if anything went wrong
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (success != GL_TRUE) {
+    if (success != GL_TRUE || glGetError() != GL_NO_ERROR) {
+        //get the error description
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        throw std::runtime_error(std::string{"could not compile shader: "}.append(shaderCode).append(";reason: ").append(infoLog));
+        
+        //create the full error message
+        std::stringstream ss;
+        ss << "could not compile shader: " << shaderCode << ";reason: " << infoLog;
+        throw std::runtime_error(ss.str());
     };
 
     shaderLoc = shader;
-    return 0;
 }
 
