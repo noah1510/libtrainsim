@@ -20,6 +20,8 @@ namespace libtrainsim{
          * 
          * This class allows loading shaders from the filesystem or directly from strings.
          * 
+         * It is required that there are a vertex shader and fragment shader. All other parts
+         * are opional.
          */
         class Shader_configuration{
           private:
@@ -62,8 +64,21 @@ namespace libtrainsim{
             Shader_configuration() = delete;
             
           public:
-            
+            /**
+             * @brief create a shader config by loading a vertex and fragment shader from a file
+             * 
+             * @throws std::nested_exception when a given argument cannot be loaded from the file system
+             */
             Shader_configuration(const std::filesystem::path& vertLoc, const std::filesystem::path& fragLoc);
+            
+            /**
+             * @brief create a shader by loading as many parts as wanted from the file system
+             * 
+             * You can pass {} for all of the shader parts you do not want to use.
+             * If you pass a value it has to be able to be loaded or an error will be thorwn
+             * 
+             * @throws std::nested_exception when a given argument cannot be loaded from the file system
+             */
             Shader_configuration(
                 const std::filesystem::path& vertLoc,
                 const std::filesystem::path& fragLoc,
@@ -73,7 +88,16 @@ namespace libtrainsim{
                 std::optional<std::filesystem::path> ComputeLoc
             );
             
+            /**
+             * @brief create a shader config by giving the source code directly
+             * @note this does not load a file it expects the shader source as the parameters
+             */
             Shader_configuration(const std::string& vertSrc, const std::string& fragSrc);
+            
+            /**
+             * @brief create a shader config by giving the source code directly
+             * @note this does not load a file it expects the shader source as the parameters
+             */
             Shader_configuration(
                 const std::string& vertSrc,
                 const std::string& fragSrc,
@@ -83,6 +107,11 @@ namespace libtrainsim{
                 std::optional<std::string> ComputeSrc
             );
             
+            /**
+             * @brief create a shader chonfig from another valid config
+             * 
+             * @throws std::invalid_argument if the given config is not valid
+             */
             Shader_configuration(const Shader_configuration& other);
             
             /**
@@ -97,15 +126,42 @@ namespace libtrainsim{
              */
             bool isValid() const;
             
+            /**
+             * @brief get the source code for the vertex shader
+             */
             std::string getVertexSource();
+            
+            /**
+             * @brief get the source code for the fragment shader
+             */
             std::string getFragmentSource();
+            
+            /**
+             * @brief get the source code for the tessalation control shader
+             */
             std::optional<std::string> getTessControlSource();
+            
+            /**
+             * @brief get the source code for the tessalation evaluation shader
+             */
             std::optional<std::string> getTessEvaluationSource();
+            
+            /**
+             * @brief get the source code for the geometry shader
+             */
             std::optional<std::string> getGeometrySource();
+            
+            /**
+             * @brief get the source code for the compute shader
+             */
             std::optional<std::string> getComputeSource();
             
         };
         
+        /**
+         * @brief a class to abstract opengl shaders
+         * 
+         */
         class Shader{
         private:
             unsigned int shaderProgram = 0;
@@ -124,6 +180,20 @@ namespace libtrainsim{
             ~Shader();
             
             void use();
+            
+            /**
+             * @brief get the location index of a uniform value in this shader
+             * 
+             * This function retrieves the position of a uniform variable in this shader.
+             * It checks for errors with the function call and throws an exception
+             * acordingly.
+             * 
+             * @throws std::invalid_argument if the location cannot be loaded
+             * 
+             * @param location the variable name of the wanted uniform variable
+             * @return the location for use with glUniform
+             */
+            int getLocationIndex(const std::string& location);
             
             void setUniform(const std::string& location, int value);
             void setUniform(const std::string& location, size_t value);

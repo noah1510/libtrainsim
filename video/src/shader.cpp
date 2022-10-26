@@ -185,6 +185,22 @@ void libtrainsim::Video::Shader::use() {
     glUseProgram(shaderProgram);
 }
 
+int libtrainsim::Video::Shader::getLocationIndex ( const std::string& location ) {
+    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    if(loc < 0){
+        char infoLog[512];
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        
+        std::stringstream ss;
+        ss << "cannot get the requested location: " << infoLog;
+        throw std::invalid_argument{ss.str()};
+    }
+    
+    return loc;
+}
+
+
+
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, int value ) {
     auto dat = std::vector<int>{value};
     setUniform(location, dat);
