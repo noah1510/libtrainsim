@@ -11,25 +11,98 @@
 
 namespace libtrainsim{
     namespace Video{
+        
+        /**
+         * @brief a small class to handle the configuration of the shader parts
+         * 
+         * @details For more information on what a shader and its parts do
+         * look into the [opengl documentation](https://www.khronos.org/opengl/wiki/Shader).
+         * 
+         * This class allows loading shaders from the filesystem or directly from strings.
+         * 
+         */
         class Shader_configuration{
-        public:
-            std::filesystem::path vertex_shader_location = "";
-            std::filesystem::path tessControl_shader_location = "";
-            std::filesystem::path tessEvaluation_shader_location = "";
-            std::filesystem::path geometry_shader_location = "";
-            std::filesystem::path fragment_shader_location = "";
-            std::filesystem::path compute_shader_location = "";
+          private:
+            /**
+             * @brief the source of the vertex shader
+             */
+            std::string vertex_shader_source = "";
+            
+            /**
+             * @brief the source of the fragment shader
+             */
+            std::string fragment_shader_source = "";
+            
+            /**
+             * @brief the source of the tessalation control shader
+             */
+            std::optional<std::string> tessControl_shader_source = "";
+            
+            /**
+             * @brief the source of the tessalation Evaluation shader
+             */
+            std::optional<std::string> tessEvaluation_shader_source = "";
+            
+            /**
+             * @brief the source of the geometry shader
+             */
+            std::optional<std::string> geometry_shader_source = "";
+            
+            /**
+             * @brief the source of the compute shader
+             */
+            std::optional<std::string> compute_shader_source = "";
+            
+            /**
+             * @brief true if all of the sources are cleared
+             */
+            bool isCleared = true;
+            
+            //get rid of the default constructor;
+            Shader_configuration() = delete;
+            
+          public:
             
             Shader_configuration(const std::filesystem::path& vertLoc, const std::filesystem::path& fragLoc);
-            Shader_configuration(const Shader_configuration& other);
-            Shader_configuration();
+            Shader_configuration(
+                const std::filesystem::path& vertLoc,
+                const std::filesystem::path& fragLoc,
+                std::optional<std::filesystem::path> tessControlLoc,
+                std::optional<std::filesystem::path> tessEvaluationLoc,
+                std::optional<std::filesystem::path> GeometryLoc,
+                std::optional<std::filesystem::path> ComputeLoc
+            );
             
+            Shader_configuration(const std::string& vertSrc, const std::string& fragSrc);
+            Shader_configuration(
+                const std::string& vertSrc,
+                const std::string& fragSrc,
+                std::optional<std::string> tessControlSrc,
+                std::optional<std::string> tessEvaluationSrc,
+                std::optional<std::string> GeometrySrc,
+                std::optional<std::string> ComputeSrc
+            );
+            
+            Shader_configuration(const Shader_configuration& other);
+            
+            /**
+             * @brief clear the source strings to free memory
+             * @note this will cause the get functions to throw an exception
+             * if they are called after this function
+             */
+            void clear();
+            
+            /**
+             * @brief true if the config is constructed and not cleared yet
+             */
             bool isValid() const;
             
-            bool hasTessControlShader() const;
-            bool hasTessEvaluationShader() const;
-            bool hasGeometryShader() const;
-            bool hasComputeShader() const;
+            std::string getVertexSource();
+            std::string getFragmentSource();
+            std::optional<std::string> getTessControlSource();
+            std::optional<std::string> getTessEvaluationSource();
+            std::optional<std::string> getGeometrySource();
+            std::optional<std::string> getComputeSource();
             
         };
         
