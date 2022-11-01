@@ -208,6 +208,7 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
     
     //create the framebuffer for the output image
     glGenFramebuffers(1, &FBO);
+    
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     
     if(texture == 0){
@@ -238,11 +239,15 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
     unsigned int DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
     glDrawBuffers(1, DrawBuffers);
     
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
-        throw std::runtime_error("Could not create output framebuffer");
+    auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if(status != GL_FRAMEBUFFER_COMPLETE){
+        std::stringstream ss;
+        ss << "Could not create output framebuffer. Error: " << decodeGLFramebufferStatus(status);
+        throw std::runtime_error(ss.str());
     }
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, dimensions dims, glm::vec4 clearColor ) {

@@ -412,19 +412,46 @@ namespace libtrainsim{
             static void glErrorCheck(){
                 auto errorCode = glGetError();
                 if(errorCode != GL_NO_ERROR){
-                    std::string error;
-                    switch (errorCode){
-                        case GL_INVALID_ENUM:                   error = "INVALID_ENUM"; break;
-                        case GL_INVALID_VALUE:                  error = "INVALID_VALUE"; break;
-                        case GL_INVALID_OPERATION:              error = "INVALID_OPERATION"; break;
-                        case GL_STACK_OVERFLOW:                 error = "STACK_OVERFLOW"; break;
-                        case GL_STACK_UNDERFLOW:                error = "STACK_UNDERFLOW"; break;
-                        case GL_OUT_OF_MEMORY:                  error = "OUT_OF_MEMORY"; break;
-                        case GL_INVALID_FRAMEBUFFER_OPERATION:  error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-                        default:                                error = "UNKNOWN_ERROR_TYPE"; break;
-                    }
+                    auto error = decodeGLError(errorCode);
                     throw std::runtime_error{"Got an openGL error: " + error};
                 }
+            }
+            
+            //get a string describing a GL error in more detail from an error code.
+            //@note this does not handle GL_NO_ERROR check for that before calling this function
+            static std::string decodeGLError(int errorCode) noexcept{
+                std::string error;
+                switch (errorCode){
+                    case GL_INVALID_ENUM:                   error = "INVALID_ENUM"; break;
+                    case GL_INVALID_VALUE:                  error = "INVALID_VALUE"; break;
+                    case GL_INVALID_OPERATION:              error = "INVALID_OPERATION"; break;
+                    case GL_STACK_OVERFLOW:                 error = "STACK_OVERFLOW"; break;
+                    case GL_STACK_UNDERFLOW:                error = "STACK_UNDERFLOW"; break;
+                    case GL_OUT_OF_MEMORY:                  error = "OUT_OF_MEMORY"; break;
+                    case GL_INVALID_FRAMEBUFFER_OPERATION:  error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+                    default:                                error = "UNKNOWN_ERROR_TYPE"; break;
+                }
+                
+                return error;
+            }
+            
+            //get a string describing a framebuffer status in more detail from an error code.
+            //@note this does not handle GL_FRAMEBUFFER_COMPLETE check for that before calling this function
+            static std::string decodeGLFramebufferStatus(int errorCode) noexcept{
+                std::string error;
+                switch (errorCode){
+                    case GL_FRAMEBUFFER_UNDEFINED:                      error = "FRAMEBUFFER_UNDEFINED"; break;
+                    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:          error = "FRAMEBUFFER_INCOMPLETE_ATTACHMENT"; break;
+                    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:  error = "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"; break;
+                    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:         error = "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"; break;
+                    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:         error = "FRAMEBUFFER_INCOMPLETE_READ_BUFFER"; break;
+                    case GL_FRAMEBUFFER_UNSUPPORTED:                    error = "FRAMEBUFFER_UNSUPPORTED"; break;
+                    case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:         error = "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"; break;
+                    case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:       error = "FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"; break;
+                    default:                                            error = "UNKNOWN_ERROR_TYPE"; break;
+                }
+                
+                return error;
             }
             
         };
