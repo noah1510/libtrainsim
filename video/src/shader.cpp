@@ -479,14 +479,31 @@ void libtrainsim::Video::Shader::compileShader( std::string code, unsigned int& 
     int success;
 
     auto shaderCode = code.c_str();
-
-    auto shader = glCreateShader(shaderType);
-    glShaderSource(shader, 1, &shaderCode, NULL);
-    glCompileShader(shader);
+    int shader = 0;
+    try{
+        shader = glCreateShader(shaderType);
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("cannot create shader"));
+    }
+    
+    try{
+        glShaderSource(shader, 1, &shaderCode, NULL);
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("cannot upload shader source shader"));
+    }
+    
+    try{
+        glCompileShader(shader);
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("cannot compile shader"));
+    }
 
     // print compile errors if anything went wrong
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (success != GL_TRUE || glGetError() != GL_NO_ERROR) {
+    if (success != GL_TRUE) {
         //get the error description
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, NULL, infoLog);

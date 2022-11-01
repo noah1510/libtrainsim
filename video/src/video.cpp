@@ -52,6 +52,7 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     
     try{
         imguiHandler::loadShaders(shaderLocation, textureLocation);
+        imguiHandler::glErrorCheck();
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not load imgui shader parts"));
     }
@@ -61,6 +62,7 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
         
         //init the output framebuffer and its texture
         outputBuffer->createFramebuffer(decode->getDimensions());
+        imguiHandler::glErrorCheck();
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create the output framebuffer"));
     }
@@ -72,7 +74,7 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
         std::vector<int> units {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
         displayShader->setUniform("tex", units);
     }catch(...){
-        std::throw_with_nested(std::runtime_error("could not create shader"));
+        std::throw_with_nested(std::runtime_error("could not create output shader"));
     }
     
     try{
