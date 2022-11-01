@@ -19,6 +19,7 @@ The json file is an object with the following fields:
 * formatVersion (string) (since 0.7.0)
 * defaultTrack (int) (since 0.7.0)
 * settingFileReadOnly (bool) (since 0.8.0)
+* extrasLocation (string) (since 0.9.0)
 
 ### Detailed descriptions
 
@@ -67,3 +68,10 @@ If the field does not exist track 0 is selected by default.
 
 This field specifies if the library is not allowed to change the settings file.
 If this field does not exist it is set to false (modifications are allow) by default.
+
+#### extrasLocation
+
+The folder were all of the assets for the extras modules are stored.
+By default this is "extras".
+This folder is supposed to have a folder in it for every module.
+How the files inside of each of those are structured is dependend on each module.

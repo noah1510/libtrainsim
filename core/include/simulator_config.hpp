@@ -67,6 +67,11 @@ namespace libtrainsim{
             std::filesystem::path textureFolderLocation;
             
             /**
+             * @brief the folder that contains all of the extras assets
+             */
+            std::filesystem::path extrasLocation;
+            
+            /**
              * @brief indicates if the settings are allowed to write changes back into the file
              */
             bool readOnly = false;
@@ -165,6 +170,13 @@ namespace libtrainsim{
              * @return const std::filesystem::path& the texture folder location
              */
             const std::filesystem::path& getTextureLocation() const noexcept;
+            
+            /**
+             * @brief get the location where the extras assets are stored
+             * 
+             * @return const std::filesystem::path& the folder that contains all of the extras
+             */
+            const std::filesystem::path& getExtrasLocation() const noexcept;
         };
     }
 }

@@ -131,6 +131,19 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
         std::throw_with_nested(std::runtime_error("error reading the readOnly option"));
     }
     
+    try{
+        extrasLocation = p / "extras";
+        auto val = Helper::getOptionalJsonField<std::string>(data_json, "extrasLocation");
+        if(val.has_value()){
+            if(!std::filesystem::exists(p/val.value())){
+                throw std::runtime_error("extras location does not exist");
+            }
+            extrasLocation = p / val.value();
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error reading the extras location"));
+    }
+    
     fileLocation = URI;
     
 }
@@ -196,5 +209,9 @@ const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getText
 
 const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getShaderLocation() const noexcept {
     return shaderFolderLocation;
+}
+
+const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getExtrasLocation() const noexcept {
+    return extrasLocation;
 }
 
