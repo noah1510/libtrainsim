@@ -1,6 +1,11 @@
 #include "wiper.hpp"
 
-libtrainsim::extras::wiper::wiper(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation):currentRotation(minRotation,maxRotation,0.0){
+libtrainsim::extras::wiper::wiper(std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf):currentRotation(minRotation,maxRotation,0.0){
+    
+    auto wiperLocation = conf->getExtrasLocation() / "wiper";
+    auto shaderLocation = wiperLocation / "shaders";
+    auto textureLocation = wiperLocation / "textures";
+    
     try{
         wiperImage = std::make_shared<libtrainsim::Video::texture>(textureLocation/"wiper.tif");
     }catch(...){

@@ -5,6 +5,7 @@
 #include "helper.hpp"
 #include "texture.hpp"
 #include "shader.hpp"
+#include "simulator_config.hpp"
 
 namespace libtrainsim{
     namespace extras{
@@ -65,7 +66,7 @@ namespace libtrainsim{
              * @brief create a new wiper
              * 
              */
-            wiper(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
+            wiper(std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf);
             
             /**
              * @brief destroy the wiper object

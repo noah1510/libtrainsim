@@ -3,11 +3,15 @@
 using namespace std::literals;
 using namespace sakurajin::unit_system::common::literals;
 
-libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation, const std::filesystem::path& dataLocation){
+libtrainsim::extras::snowFx::snowFx(std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf){
+    
+    auto snowLocation = conf->getExtrasLocation() / "snowFx";
+    auto shaderLocation = snowLocation / "shaders";
+    auto textureLocation = snowLocation / "textures";
     
     //ensure the imgui has the shaders and texture loaded
     try{
-        libtrainsim::Video::imguiHandler::bindVAO();
+        libtrainsim::Video::imguiHandler::loadShaders(conf->getShaderLocation(), conf->getTextureLocation());
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not init imguiHandler opengl parts"));
     }
@@ -39,7 +43,7 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
         for(int i = 0; i < 16; i++){
             std::stringstream URI{};
             URI << "snowflake-" << i << ".tif";
-            auto flake = loadSnowflake(dataLocation/URI.str());
+            auto flake = loadSnowflake(textureLocation/URI.str());
             snowflake_textures.emplace_back(flake);
         }
     }catch(...){
@@ -51,7 +55,7 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
         for(int i = 0; i < 3; i++){
             std::stringstream URI{};
             URI << "displacement-" << i << ".tif";
-            auto disTex = std::make_shared<libtrainsim::Video::texture>(dataLocation/URI.str());
+            auto disTex = std::make_shared<libtrainsim::Video::texture>(textureLocation/URI.str());
             displacementTextures.emplace_back(disTex);
         }
     }catch(...){
@@ -60,7 +64,7 @@ libtrainsim::extras::snowFx::snowFx(const std::filesystem::path& shaderLocation,
     
     //init the wiper
     try{
-        wiperHandler = std::make_shared<libtrainsim::extras::wiper>(shaderLocation, dataLocation);
+        wiperHandler = std::make_shared<libtrainsim::extras::wiper>(conf);
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create wiper"));
     }

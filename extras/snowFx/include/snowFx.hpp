@@ -84,7 +84,7 @@ namespace libtrainsim{
             libtrainsim::Video::dimensions FBOSize = {0,0};
             
           public:
-            snowFx(const std::filesystem::path& shaderLocation, const std::filesystem::path& dataLocation);
+            snowFx(std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf);
             
             ~snowFx();
             
