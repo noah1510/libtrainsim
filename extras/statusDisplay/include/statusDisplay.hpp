@@ -12,49 +12,138 @@
 
 #include "input_axis.hpp"
 #include "helper.hpp"
+#include "statusDisplayGraph.hpp"
 
 namespace libtrainsim{
     namespace extras{
-        class statusDisplay{
+        class statusDisplay;
+      
+        //a class to change the settings of the status display
+        class statusDisplaySettings : public libtrainsim::Video::tabPage{
           private:
-            ImVec4 textColor{0.7,1,0.7,1};
-            bool my_tool_active = false;
+            void displayContent() override;
+            statusDisplay& display;
+          public:
+            statusDisplaySettings(statusDisplay& disp);
+        };
+        
+        /**
+         * @brief a window to display real time stats for the simulator
+         * 
+         */
+        class statusDisplay{
+          friend class statusDisplaySettings;
+          private:
             
-            const static size_t frametimeValues = 100;
-            const static size_t rendertimeValues = 100;
+            //control if the latest value should be displayed
+            bool displayLatestValue = true;
             
-            std::array<float, frametimeValues> frametimes;
-            std::array<float, rendertimeValues> rendertimes;
-            ImGuiIO& io();
+            //checks if a settings tab should be created and desetroyed by this class
+            bool manageSettings;
             
+            /**
+             * @brief a vector with all of graphs that are displayed and if they should be displayed
+             */
+            std::vector<std::pair<statusDisplayGraph<100>, bool>> graphs;
+            
+            /**
+             * @brief the names of all of the graphs that have to exist and cannot be deleted
+             */
+            std::vector<std::string> defaultGraphNames;
+            
+            //The position where the track begins
+            sakurajin::unit_system::base::length beginPosition;
+            
+            //the current position along the track
             sakurajin::unit_system::base::length currentPosition;
+            
+            //the position where the track ends
             sakurajin::unit_system::base::length endPosition;
             
-            sakurajin::unit_system::common::acceleration currentAcceleration;
-            sakurajin::unit_system::common::speed currentVelocity;
-            
-            libtrainsim::core::input_axis currentSpeedLevel;
-            
           public:
-            statusDisplay();
+            /**
+             * @brief create a new status display
+             * 
+             * @param _manageSettings if false is passed this class will not create a settings tab
+             */
+            statusDisplay(bool _manageSettings = true);
             
+            /**
+             * @brief destroy the status display
+             * 
+             * @note if a settings tab was added it will be removed in here
+             */
             ~statusDisplay();
             
+            /**
+             * @brief Display the status window
+             * 
+             * This creates and displays the status window with all of the current stats that it has.
+             * @note you have to use the update functions to update the values displayed on the graphs
+             */
             void update();
             
+            /**
+             * @brief add a new frametime which will be displayed as the latest value.
+             */
             void appendFrametime(sakurajin::unit_system::base::time_si frametime);
             
+            /**
+             * @brief add a new rendertime which will be displayed as the latest value.
+             */
             void appendRendertime(sakurajin::unit_system::base::time_si rendertime);
             
+            /**
+             * @brief update the current position of the train, to move the progress bar
+             */
             void changePosition(sakurajin::unit_system::base::length newPosition);
             
+            /**
+             * @brief set the begin position of the track for the progress bar
+             */
             void changeEndPosition(sakurajin::unit_system::base::length newEndPosition);
             
+            /**
+             * @brief set the end position of the track for the progress bar
+             */
+            void changeBeginPosition(sakurajin::unit_system::base::length newBeginPosition);
+            
+            /**
+             * @brief add a new speedLevel which will be displayed as the latest value.
+             */
             void setSpeedLevel(libtrainsim::core::input_axis newSpeedLevel);
             
+            /**
+             * @brief add a new acceleration which will be displayed as the latest value.
+             */
             void setAcceleration(sakurajin::unit_system::common::acceleration newAcceleration);
             
+            /**
+             * @brief add a new velocity which will be displayed as the latest value.
+             */
             void setVelocity(sakurajin::unit_system::common::speed newVelocity);
+            
+            /**
+             * @brief create a new graph to keep track of any value on a graph
+             * 
+             * @warning this throws an exception if that graph already exists
+             */
+            void createCustomGraph(std::string graphName, std::string tooltipMessage);
+            
+            /**
+             * @brief remove a custom graph
+             * 
+             * @warning this throws an exception if there is no graph with that name or
+             * you try to remove one of the default graphs
+             */
+            void removeGraph(std::string graphName);
+            
+            /**
+             * add a new value which will be displayed on graphName as the latest value.
+             * 
+             * @warning this throws an exception if the graph does not exist
+             */
+            void appendToGraph(std::string graphName, float value);
         };
     }
 }

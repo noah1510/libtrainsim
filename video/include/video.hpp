@@ -32,9 +32,6 @@ namespace libtrainsim {
                 //the buffer and texture for the creation of the rgb video image
                 std::shared_ptr<texture> outputBuffer;
                 
-                //all of the other buffers needed for the shaders
-                unsigned int VBO = 0, VAO = 0, EBO = 0;
-                
                 /**
                  * @brief the shader used to render the video into a texture
                  */
@@ -44,38 +41,23 @@ namespace libtrainsim {
                  * @brief the name this window currently has
                  */
                 std::string currentWindowName = "";
+                
+                //true if the simulator window is fully started
                 bool windowFullyCreated = false;
                 
+                //a mutex to secure this class for multithreading
                 std::shared_mutex videoMutex;
-                //std::future<std::shared_ptr<libtrainsim::Video::Frame>> nextFrame;
-                std::future<bool> nextFrame;
-                bool fetchingFrame = false;
-                uint64_t nextFrameToGet = 0;
                 
                 /**
                  * @brief the decoder used to decode the video file into frames
                  */
                 std::unique_ptr<videoReader> decode = nullptr;
                 
-                /**
-                * @brief the name of the window for the simulator
-                * 
-                */
-                std::string windowName = "trainsim";
-                
-                /**
-                 * The raw pixel data of the decoded frame
-                 */
-                std::vector<uint8_t> frame_data;
-                
-                bool isActive = true;
-                
+                //update the output Texture
                 void updateOutput();
                 
+                //all of the textures that are displayed on the output texture 
                 std::vector< std::shared_ptr<texture> > displayTextures;
-                
-                std::shared_mutex renderTimeMutex;
-                std::vector<sakurajin::unit_system::base::time_si> newRenderTimes;
 
             public:
                 /**
@@ -133,7 +115,7 @@ namespace libtrainsim {
                 * @param windowName the name the window is going to have
                 * @param shaderLocation The folder where all of the shader files are stored
                 */
-                void createWindow(const std::string& windowName, const std::filesystem::path& shaderLocation);
+                void createWindow(const std::string& windowName, const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
 
                 /**
                 * @brief just refresh the window contents without changing the displayed content.
@@ -162,7 +144,7 @@ namespace libtrainsim {
                  */
                 void removeTexture(const std::string& textureName);
                 
-                
+                //the the rendertimes of the video
                 std::optional< std::vector<sakurajin::unit_system::base::time_si> > getNewRendertimes();
                 
         };

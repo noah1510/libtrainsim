@@ -83,7 +83,8 @@ namespace libtrainsim {
             std::optional<double> frictionMultiplier() const;
             
             /**
-             * @brief Create the minimum required Data point without any optional value set.
+             * @brief Create a data point with all values.
+             * the optional values are optional (huge surprise i know) and may be {}.
              */
             Track_data_point(
                 uint64_t _frame, 

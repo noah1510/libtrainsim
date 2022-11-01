@@ -1,8 +1,63 @@
 #include "imguiHandler.hpp"
+#include "texture.hpp"
+#include "shader.hpp"
 
 using namespace std::literals;
 
-libtrainsim::Video::imguiHandler::imguiHandler(){
+void libtrainsim::Video::styleSettings::displayContent() {
+    imguiHandler& handle = imguiHandler::getInstance();
+    float clearCol[3] = {handle.clear_color.x,handle.clear_color.y,handle.clear_color.z};
+    
+    ImGui::ShowStyleEditor(&ImGui::GetStyle());
+        
+    //add an 'empty' line between the options
+    ImGui::Text(" ");
+    
+    //display the color changer for the clear color
+    ImGui::TableNextColumn();
+    ImGui::ColorPicker3("clear color picker", clearCol);
+    if(ImGui::IsItemHovered()){
+        ImGui::SetTooltip("change the background color of the background window");
+    }
+
+    handle.clear_color = ImVec4{clearCol[0],clearCol[1],clearCol[2],1.0};
+}
+
+libtrainsim::Video::styleSettings::styleSettings() : tabPage("style"){}
+
+void libtrainsim::Video::basicSettings::displayContent() {
+    imguiHandler& handle = imguiHandler::getInstance();
+    
+    ImGui::BeginTable("basic Settings table", 1, (ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp));
+        //display the style changer with its tooltip
+        ImGui::TableNextColumn();
+        ImGui::ShowStyleSelector("active imgui style");
+        if(ImGui::IsItemHovered()){
+            ImGui::SetTooltip("change the style of the windows");
+        }
+        
+        //add an 'empty' line between the options
+        ImGui::TableNextColumn();
+        ImGui::Text(" ");
+        
+        //display the default FBO size selection
+        ImGui::TableNextColumn();
+        int sizeY = handle.defaultFBOSize.y();
+        ImGui::Text("Select default FBO size: ");
+        ImGui::RadioButton("2160p", &sizeY, 2160);
+        ImGui::RadioButton("1440p", &sizeY, 1440);
+        ImGui::RadioButton("1080p", &sizeY, 1080);
+        ImGui::RadioButton("720p", &sizeY, 720);
+        
+        handle.defaultFBOSize.x() = sizeY*16/9;
+        handle.defaultFBOSize.y() = sizeY;
+        
+    ImGui::EndTable();
+}
+
+libtrainsim::Video::basicSettings::basicSettings() : tabPage("basic"){}
+
+libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
         throw std::runtime_error(SDL_GetError());
     }
@@ -31,7 +86,7 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
-    window = SDL_CreateWindow("libtrainsim window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
     gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     
@@ -47,12 +102,12 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = NULL;
     
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
+    ImGui::GetStyle().WindowTitleAlign.y = 0.5;
 
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
@@ -64,11 +119,33 @@ libtrainsim::Video::imguiHandler::imguiHandler(){
     }
     
     std::cout << "OpenGL version loaded: " << GLVersion.major << "." << GLVersion.minor << std::endl;
+    std::cout << "OpenGL driver vendor: " << glGetString(GL_VENDOR) << std::endl;
+    std::cout << "OpenGL driver renderer: " << glGetString(GL_RENDERER) << std::endl;
     
     mainThreadID = std::this_thread::get_id();
+    
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+    std::cout << "maxTextureUnits: " << maxTextureUnits << std::endl;
+    
+    for(auto& tex:darkSteps){
+        tex = nullptr;
+    }
+    
+    settingsTabs.emplace_back(std::make_shared<basicSettings>());
+    settingsTabs.emplace_back(std::make_shared<styleSettings>());
 }
 
-libtrainsim::Video::imguiHandler::~imguiHandler() {    
+libtrainsim::Video::imguiHandler::~imguiHandler() {
+    if(shaderLoaded){
+        copyShader.reset();
+        displacement0.reset();
+        for(auto& tex: darkSteps){
+            tex.reset();
+        }
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+    }
     SDL_DestroyWindow(window);
     IMG_Quit();
     ImGui_ImplOpenGL3_Shutdown();
@@ -80,9 +157,35 @@ void libtrainsim::Video::imguiHandler::init_impl() {}
 
 void libtrainsim::Video::imguiHandler::startRender_impl() {
     IOLock.lock();
+    SDL_Event event;
+    while(SDL_PollEvent(&event)){
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        if(event.type == SDL_QUIT){
+            teminateProgram = true;
+        }
+    }
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+    
+    ImGui::BeginMainMenuBar();
+        ImGui::MenuItem("Settings", NULL, &displayImGUiSettings);
+    ImGui::EndMainMenuBar();
+    
+    if(displayImGUiSettings){
+        ImGui::Begin(
+            "Settings Window", 
+            &displayImGUiSettings,
+            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize
+        );
+            
+            if(ImGui::BeginTabBar("settings tabs")){
+                for(auto& tab:settingsTabs){(*tab)();}
+                ImGui::EndTabBar();
+            }
+        ImGui::End();
+    }
+    
 }
 
 void libtrainsim::Video::imguiHandler::endRender_impl() {
@@ -142,7 +245,7 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, dimensions dims ) {
+void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, dimensions dims, glm::vec4 clearColor ) {
     warnOffThread();
     
     glBindFramebuffer(GL_FRAMEBUFFER, buf);
@@ -151,11 +254,11 @@ void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
         
-    glEnable(GL_BLEND);
+    //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glBlendEquation(GL_MAX);
     
-    glClearColor(0.7f, 0.7f, 0.0f, 0.0f);
+    glClearColor(clearColor.r,clearColor.g,clearColor.b,clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -178,4 +281,194 @@ void libtrainsim::Video::imguiHandler::updateRenderThread_impl() {
     SDL_GL_MakeCurrent(window, gl_context);
     mainThreadID = std::this_thread::get_id();
 }
+
+void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::Video::texture> src, std::shared_ptr<libtrainsim::Video::texture> dest, bool loadTexture, glm::mat4 transformation ) {
+    
+    //thorw an error if shader are not loaded yet
+    if(!shaderLoaded){
+        throw std::runtime_error("load shader before using the shader parts");
+    }
+    
+    if(src == nullptr || dest == nullptr){
+        throw std::invalid_argument("nullptr not allowed for copy operation");
+    }
+    
+    if(!dest->hasFramebuffer()){
+        throw std::invalid_argument("destination texture has no attached framebuffer");
+    }
+    dest->loadFramebuffer();
+    
+    copyShader->use();
+    auto orth = glm::ortho(
+        -1.0f, 
+        1.0f,
+        -1.0f,
+        1.0f,
+        -10.0f,
+        10.0f
+    );
+    copyShader->setUniform("transform", orth * transformation);
+    
+    if(loadTexture){
+        src->bind(15);
+        
+        copyShader->setUniform("sourceImage", 15);
+    }
+    
+    drawRect();
+    
+    //reset all of the buffers
+    glBindVertexArray(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void libtrainsim::Video::imguiHandler::loadShaders_impl ( const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation ) {
+    
+    //do not reload if shader are already loaded
+    if(shaderLoaded){
+        return;
+    }
+    
+    //---------------init Shader---------------
+    //load the copy shader
+    try{
+        copyShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"copy.frag");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not create copy shader"));
+    }
+    //load the draw shader
+    try{
+        drawShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"draw.frag");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not create draw shader"));
+    }
+    
+    //---------------load textures---------------
+    try{
+        displacement0 = std::make_shared<libtrainsim::Video::texture>(textureLocation/"displacement-0.tif");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not init displacement-0 texture"));
+    }
+    
+    //---------------init vertex buffers---------------
+    float vertices[] = {
+        // position           // texture coords
+         1.0f,  1.0f,   1.0f, 1.0f, // top right
+         1.0f, -1.0f,   1.0f, 0.0f, // bottom right
+        -1.0f, -1.0f,   0.0f, 0.0f, // bottom left
+        -1.0f,  1.0f,   0.0f, 1.0f  // top left 
+    };
+    unsigned int indices[] = {  
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+    
+    //create all of the blit buffers
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    
+    // position attribute
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // texture coord attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    
+    glBindVertexArray(0);
+    
+    shaderLoaded = true;
+}
+
+void libtrainsim::Video::imguiHandler::bindVAO_impl() {
+    
+    //thorw an error if shader are not loaded yet
+    if(!shaderLoaded){
+        throw std::runtime_error("load shader before using the shader parts");
+    }
+    
+    glBindVertexArray(VAO);
+}
+
+void libtrainsim::Video::imguiHandler::drawRect_impl() {
+    //thorw an error if shader are not loaded yet
+    if(!shaderLoaded){
+        throw std::runtime_error("load shader before using the shader parts");
+    }
+    
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+void libtrainsim::Video::imguiHandler::drawColor_impl ( std::shared_ptr<texture> dest, glm::vec4 color ) {
+    //thorw an error if shader are not loaded yet
+    if(!shaderLoaded){
+        throw std::runtime_error("load shader before using the shader parts");
+    }
+    
+    if(dest == nullptr){
+        throw std::invalid_argument("nullptr not allowed for copy operation");
+    }
+    
+    if(!dest->hasFramebuffer()){
+        throw std::invalid_argument("destination texture has no attached framebuffer");
+    }
+    dest->loadFramebuffer();
+    
+    drawShader->use();
+    auto orth = glm::ortho(
+        -1.0f, 
+        1.0f,
+        -1.0f,
+        1.0f,
+        -10.0f,
+        10.0f
+    );
+    drawShader->setUniform("transform", orth);
+    drawShader->setUniform("color", color);
+    
+    drawRect();
+    
+    //reset all of the buffers
+    glBindVertexArray(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+
+std::shared_ptr<libtrainsim::Video::texture> libtrainsim::Video::imguiHandler::getDarkenTexture_impl ( uint8_t strength ) {
+    if(!shaderLoaded){
+        return nullptr;
+    }
+
+    if(darkSteps[strength] == nullptr){
+        initDarkenTexture(strength);
+    }
+    
+    return darkSteps[strength];
+}
+
+void libtrainsim::Video::imguiHandler::initDarkenTexture ( uint8_t strength ) {
+    if(darkSteps[strength] != nullptr){
+        return;
+    }
+    
+    std::stringstream ss;
+    ss << "darken-texture-default-" << strength;
+    
+    auto newTex = std::make_shared<libtrainsim::Video::texture>(ss.str());
+    newTex->createFramebuffer({1,1});
+    drawColor_impl(newTex,{0,0,0,static_cast<float>(strength)/255.0});
+
+    
+    darkSteps[strength] = newTex;
+}
+
 

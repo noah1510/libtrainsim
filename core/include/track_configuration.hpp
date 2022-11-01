@@ -20,6 +20,8 @@
 #include <filesystem>
 #include <optional>
 #include <cmath>
+#include <tuple>
+#include <limits>
 #include <nlohmann/json.hpp>
 
 namespace libtrainsim{
@@ -116,6 +118,9 @@ namespace libtrainsim{
             
             //a vector containing all of the stops
             std::vector<stopDataPoint> stopsData;
+            
+            //a vector containing all of the stations. This will be initialized when needed.
+            std::vector<stopDataPoint> stationsData;
 
             /**
              * @brief The location where the train should start in the beginning.
@@ -146,9 +151,13 @@ namespace libtrainsim{
              */
             std::filesystem::path videoFile;
 
+            //this gets rid of a defauolt constructor
             Track() = delete;
             
+            //the parent Path to the json data
             std::filesystem::path parentPath;
+            
+            //if it has a value it is the (partly) unparsed json data
             std::optional<nlohmann::json> data_json;
             
             //load the track data in case it was not loaded yet
@@ -204,9 +213,50 @@ namespace libtrainsim{
             const std::string& getName() const;
             
             /**
+             * @brief get the underground data for a given position
+             * 
+             * By default it is assumed that the train is not underground.
+             * This function returns three values in a tuple:
+             * 
+             *  * bool -> if that position is underground this is true
+             *  * area -> the area of the tunnel
+             *  * length -> the remaining length of the tunnel
+             */
+            std::tuple<
+                bool, 
+                sakurajin::unit_system::common::area, 
+                sakurajin::unit_system::base::length
+            > getUndergroundInfo(sakurajin::unit_system::base::length position) const;
+            
+            /**
+             * @brief returns all of the stops this track has defined 
+             * 
+             * This will always have at least two values to indicate the begin and end
+             * of the Track. If the underlying Track_data is not fully loaded this will
+             * throw an error. To prevent this call enusure before calling this function.
+             */
+            const std::vector<stopDataPoint>& getStations() const;
+            
+            /**
              * @brief this function ensures that the data is fully loaded.
              */
             void ensure();
+            
+            /**
+             * @brief set where this track should end
+             * 
+             * @note this function is not needed for operation but can be used to
+             * specify at which stop the simulator should close
+             */
+            void setLastLocation(sakurajin::unit_system::base::length);
+            
+            /**
+             * @brief set where this track should begin
+             * 
+             * @note this function is not needed for operation but can be used to
+             * specify at which stop the simulator should open
+             */
+            void setFirstLocation(sakurajin::unit_system::base::length);
 
         };
     }

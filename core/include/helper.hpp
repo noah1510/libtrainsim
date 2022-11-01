@@ -6,6 +6,8 @@
 #include <vector>
 #include <type_traits>
 #include <chrono>
+#include <fstream>
+#include <sstream>
 #include <nlohmann/json.hpp>
 
 namespace libtrainsim{
@@ -265,6 +267,37 @@ namespace libtrainsim{
                 }
                 
                 return -1;
+            }
+            
+            /**
+             * @brief load a file into a string
+             * This function provides a simple interface to load a file into a string.
+             * 
+             * @param location The file location to read from
+             * @return The data as string
+             * 
+             * @throws std::nested_exception if anything went wrong when reading the file
+             */
+            static std::string loadFile(std::filesystem::path location){
+                std::string stringData;
+                std::ifstream File;
+                // ensure ifstream objects can throw exceptions:
+                File.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+                try {
+                    // open files
+                    File.open(location);
+                    std::stringstream DataStream;
+                    // read file's buffer contents into streams
+                    DataStream << File.rdbuf();
+                    // close file handlers
+                    File.close();
+                    // convert stream into string
+                    stringData = DataStream.str();
+                } catch (...) {
+                    std::throw_with_nested(std::runtime_error("Shader file not sucessfully read"));
+                }
+                
+                return stringData;
             }
             
         };

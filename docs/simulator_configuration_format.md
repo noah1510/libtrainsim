@@ -10,6 +10,7 @@ The json file is an object with the following fields:
 
 * serialConfig (string) (since 0.7.0)
 * shaderLocation (string) (since 0.8.0)
+* textureLocation (string) (since 0.9.0)
 * tracks (array of string or [object](@ref track_format)) (since 0.7.0)
 * trains (array of string or [object](@ref train_properties_format)) (since 0.7.0)
 
@@ -30,8 +31,14 @@ This is the relative file path to the [serial configuration file](@ref serial_co
 #### shaderLocation
 
 The folder where all of the shader files are stored in.
-Depending on the used modules different shaders are required to be in here.
-For the basic video module at least the blit shader is required.
+For the basic video module at least the displacement shader is required.
+Modules in the extra namespace should have their shader in a separate Folder.
+
+#### textureLocation
+
+The folder where all of the texutres are stored in.
+The video module requires there to be the darken and displacement-0 texture to work.
+Modules in the extras namespace should not have their textures here but instead in their separate folder.
 
 #### tracks
 

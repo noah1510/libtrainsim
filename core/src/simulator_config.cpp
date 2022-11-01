@@ -45,6 +45,12 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     }
     
     try{
+        textureFolderLocation = p / Helper::getJsonField<std::string>(data_json,"textureLocation");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not load texture location"));
+    }
+    
+    try{
         auto dat = Helper::getJsonField(data_json,"tracks");
         if(!dat.is_array()){
             throw std::runtime_error("tracks json filed is not an array");
@@ -137,6 +143,10 @@ const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getC
     return tracks[currentTrack];
 }
 
+uint64_t libtrainsim::core::simulatorConfiguration::getCurrentTrackID() const noexcept {
+    return currentTrack;
+}
+
 uint64_t libtrainsim::core::simulatorConfiguration::getTrackCount() const noexcept {
     return tracks.size();
 }
@@ -159,6 +169,14 @@ const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getT
     return tracks[index];
 }
 
+libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getTrack ( uint64_t index ) noexcept(false) {
+    if(index > getTrackCount()){
+        throw std::invalid_argument("track index too high");
+    }
+    
+    return tracks[index];
+}
+
 void libtrainsim::core::simulatorConfiguration::ensureTrack ( uint64_t index ) noexcept(false) {
     if(getTrackCount() <= index){
         throw std::invalid_argument("track index too high");
@@ -171,8 +189,12 @@ void libtrainsim::core::simulatorConfiguration::ensureTrack ( uint64_t index ) n
     }
 }
 
+const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getTextureLocation() const noexcept {
+    return textureFolderLocation;
+}
+
+
 const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getShaderLocation() const noexcept {
     return shaderFolderLocation;
 }
-
 

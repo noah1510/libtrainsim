@@ -22,8 +22,13 @@
 
 namespace libtrainsim {
     namespace core {
+        /**
+         * @brief all of the types a train is allowed to have in the config
+         */
         enum class trainType{
+            //the train is a passenger train
             passenger,
+            //the train is a cargo train
             cargo
         };
         
@@ -112,15 +117,29 @@ namespace libtrainsim {
              */
             sakurajin::unit_system::common::power getMaxPower() const;
 
-            
+            /**
+             * @brief get the effective surface area of the train
+             */
             sakurajin::unit_system::common::area getSurfaceArea() const;
             
+            /**
+             * @brief get the number of wagon the train has 8excluding the driver part
+             */
             unsigned int getNumberWagons() const;
 
+            /**
+             *  @brief get the length of each wagon
+             */
             sakurajin::unit_system::base::length getWagonLength() const;
 
+            /**
+             * @brief get the length of the driver part of the train
+             */
             sakurajin::unit_system::base::length getDriverLength() const;
             
+            /**
+             * @brief get the type this train has
+             */
             trainType getTrainType() const;
 
             /**

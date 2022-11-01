@@ -62,6 +62,11 @@ namespace libtrainsim{
             std::filesystem::path shaderFolderLocation;
             
             /**
+             * @brief the folder that contains all of the texture files
+             */
+            std::filesystem::path textureFolderLocation;
+            
+            /**
              * @brief indicates if the settings are allowed to write changes back into the file
              */
             bool readOnly = false;
@@ -113,6 +118,20 @@ namespace libtrainsim{
             const libtrainsim::core::Track& getTrack(uint64_t index) const noexcept(false);
 
             /**
+             * @brief Get a track with a given index
+             * 
+             * This function throws std::out_out_bounds if the index is larger than the amount of tracks.
+             * To get the amount of tracks use getTrackCount()
+             * 
+             * @note this function is for cases when changes to a track need to be made
+             * usually it should be preferred to access the track as read only
+             * 
+             * @param index the index of the requested track
+             * @return libtrainsim::core::Track& the track at the given index
+             */
+            libtrainsim::core::Track& getTrack(uint64_t index) noexcept(false);
+
+            /**
              * @brief Get the currently selected track
              * 
              * use selectTrack() to change which track will be returned by this function
@@ -120,6 +139,12 @@ namespace libtrainsim{
              * @return const libtrainsim::core::Track& the currently selected track 
              */
             const libtrainsim::core::Track& getCurrentTrack() const noexcept;
+            
+            /**
+             * @brief return the id of the currently selected Track
+             * 
+             */
+            uint64_t getCurrentTrackID() const noexcept;
             
             /**
              * @brief ensures that the track with the given index is fully loaded
@@ -133,6 +158,13 @@ namespace libtrainsim{
              * @return const std::filesystem::path& the shader folder location
              */
             const std::filesystem::path& getShaderLocation() const noexcept;
+            
+            /**
+             * @brief returns the location of the texture folder
+             * 
+             * @return const std::filesystem::path& the texture folder location
+             */
+            const std::filesystem::path& getTextureLocation() const noexcept;
         };
     }
 }

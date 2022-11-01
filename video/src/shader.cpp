@@ -1,82 +1,140 @@
 #include "shader.hpp"
 
-libtrainsim::Video::Shader_configuration::Shader_configuration() {}
-
-libtrainsim::Video::Shader_configuration::Shader_configuration(const std::filesystem::path& vertLoc, const std::filesystem::path& fragLoc):
-    vertex_shader_location{vertLoc},
-    fragment_shader_location{fragLoc}
-    {}
+libtrainsim::Video::Shader_configuration::Shader_configuration(const std::filesystem::path& vertLoc, const std::filesystem::path& fragLoc):Shader_configuration{vertLoc,fragLoc,{},{},{},{}}{}
     
 libtrainsim::Video::Shader_configuration::Shader_configuration ( const libtrainsim::Video::Shader_configuration& other ) {
-    vertex_shader_location = other.vertex_shader_location;
-    fragment_shader_location = other.fragment_shader_location;
-    tessControl_shader_location = other.tessControl_shader_location;
-    tessEvaluation_shader_location = other.tessEvaluation_shader_location;
-    geometry_shader_location = other.geometry_shader_location;
-    compute_shader_location = other.compute_shader_location;
+    if(!other.isValid()){
+        throw std::invalid_argument("Cannot create shader config from invalid config");
+    }
+    
+    vertex_shader_source = other.vertex_shader_source;
+    fragment_shader_source = other.fragment_shader_source;
+    tessControl_shader_source = other.tessControl_shader_source;
+    tessEvaluation_shader_source = other.tessEvaluation_shader_source;
+    geometry_shader_source = other.geometry_shader_source;
+    compute_shader_source = other.compute_shader_source;
+    isCleared = false;
 }
 
-bool libtrainsim::Video::Shader_configuration::hasTessControlShader() const {
-    return !tessControl_shader_location.empty() && std::filesystem::exists(tessControl_shader_location);
+
+libtrainsim::Video::Shader_configuration::Shader_configuration(
+    const std::filesystem::path& vertLoc,
+    const std::filesystem::path& fragLoc,
+    std::optional<std::filesystem::path> tessControlLoc,
+    std::optional<std::filesystem::path> tessEvaluationLoc,
+    std::optional<std::filesystem::path> GeometryLoc,
+    std::optional<std::filesystem::path> ComputeLoc
+){
+    try{
+        vertex_shader_source = libtrainsim::core::Helper::loadFile(vertLoc);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Cannot load vertex shader"));
+    }
+    
+    try{
+        fragment_shader_source = libtrainsim::core::Helper::loadFile(fragLoc);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Cannot load fragment shader"));
+    }
+    
+    if(tessControlLoc.has_value()){
+        try{
+            tessControl_shader_source = libtrainsim::core::Helper::loadFile(tessControlLoc.value());
+        }catch(...){
+            std::throw_with_nested(std::invalid_argument("Cannot load tessalation control shader"));
+        }
+    }else{
+        tessControl_shader_source = {};
+    }
+    
+    if(tessEvaluationLoc.has_value()){
+        try{
+            tessEvaluationLoc = libtrainsim::core::Helper::loadFile(tessEvaluationLoc.value());
+        }catch(...){
+            std::throw_with_nested(std::invalid_argument("Cannot load tessalation evaluation shader"));
+        }
+    }else{
+        tessEvaluation_shader_source = {};
+    }
+    
+    if(GeometryLoc.has_value()){
+        try{
+            geometry_shader_source = libtrainsim::core::Helper::loadFile(GeometryLoc.value());
+        }catch(...){
+            std::throw_with_nested(std::invalid_argument("Cannot load geomerty shader"));
+        }
+    }else{
+        geometry_shader_source = {};
+    }
+    
+    if(ComputeLoc.has_value()){
+        try{
+            compute_shader_source = libtrainsim::core::Helper::loadFile(ComputeLoc.value());
+        }catch(...){
+            std::throw_with_nested(std::invalid_argument("Cannot load compute shader"));
+        }
+    }else{
+        compute_shader_source = {};
+    }
+    
+    isCleared = false;
 }
 
-bool libtrainsim::Video::Shader_configuration::hasTessEvaluationShader() const {
-    return !tessEvaluation_shader_location.empty() && std::filesystem::exists(tessEvaluation_shader_location);
+libtrainsim::Video::Shader_configuration::Shader_configuration(const std::string& vertSrc, const std::string& fragSrc ):Shader_configuration{vertSrc,fragSrc,{},{},{},{}} {}
+
+libtrainsim::Video::Shader_configuration::Shader_configuration (
+    const std::string& vertSrc,
+    const std::string& fragSrc,
+    std::optional<std::string> tessControlSrc,
+    std::optional<std::string> tessEvaluationSrc,
+    std::optional<std::string> GeometrySrc,
+    std::optional<std::string> ComputeSrc
+) :
+vertex_shader_source{vertSrc},
+fragment_shader_source{fragSrc},
+tessControl_shader_source{tessControlSrc},
+tessEvaluation_shader_source{tessEvaluationSrc},
+geometry_shader_source{GeometrySrc},
+compute_shader_source{ComputeSrc}{}
+
+
+std::string libtrainsim::Video::Shader_configuration::getFragmentSource() {
+    return fragment_shader_source;
 }
 
-bool libtrainsim::Video::Shader_configuration::hasGeometryShader() const {
-    return !geometry_shader_location.empty() && std::filesystem::exists(geometry_shader_location);
+std::string libtrainsim::Video::Shader_configuration::getVertexSource() {
+    return vertex_shader_source;
 }
 
-bool libtrainsim::Video::Shader_configuration::hasComputeShader() const {
-    return !compute_shader_location.empty() && std::filesystem::exists(compute_shader_location);
+std::optional<std::string> libtrainsim::Video::Shader_configuration::getTessEvaluationSource() {
+    return tessEvaluation_shader_source;
+}
+
+std::optional<std::string> libtrainsim::Video::Shader_configuration::getTessControlSource() {
+    return tessControl_shader_source;
+}
+
+std::optional<std::string> libtrainsim::Video::Shader_configuration::getGeometrySource() {
+    return geometry_shader_source;
+}
+
+std::optional<std::string> libtrainsim::Video::Shader_configuration::getComputeSource() {
+    return compute_shader_source;
+}
+
+
+void libtrainsim::Video::Shader_configuration::clear(){
+    vertex_shader_source.clear();
+    fragment_shader_source.clear();
+    tessControl_shader_source = {};
+    tessEvaluation_shader_source = {};
+    geometry_shader_source = {};
+    compute_shader_source = {};
+    isCleared = true;
 }
     
 bool libtrainsim::Video::Shader_configuration::isValid() const {
-    namespace fs = std::filesystem;
-    
-    //check if required shader parts exist
-    if(
-        ! fs::exists(vertex_shader_location) ||
-        ! fs::exists(fragment_shader_location)
-    ){
-        return false;
-    }
-    
-    //check if geometry shader exists if it is set
-    if(
-        ! geometry_shader_location.empty() &&
-        ! fs::exists(geometry_shader_location)
-    ){
-        return false;
-    }
-    
-    //check if geometry shader exists if it is set
-    if(
-        ! tessControl_shader_location.empty() &&
-        ! fs::exists(tessControl_shader_location)
-    ){
-        return false;
-    }
-    
-    //check if geometry shader exists if it is set
-    if(
-        ! tessEvaluation_shader_location.empty() &&
-        ! fs::exists(tessEvaluation_shader_location)
-    ){
-        return false;
-    }
-    
-    //check if geometry shader exists if it is set
-    if(
-        ! compute_shader_location.empty() &&
-        ! fs::exists(compute_shader_location)
-    ){
-        return false;
-    }
-    
-    return true;
-    
+    return !isCleared;
 }
 
     
@@ -125,99 +183,192 @@ libtrainsim::Video::Shader::~Shader() {
 
 void libtrainsim::Video::Shader::use() {
     glUseProgram(shaderProgram);
+    try{
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Cannot use shader program"));
+    }
 }
 
+int libtrainsim::Video::Shader::getLocationIndex ( const std::string& location ) {
+    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
+    
+    try{
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error while getting location in shader"));
+    }
+    
+    if(loc < 0){
+        char infoLog[512];
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        
+        std::stringstream ss;
+        ss << "cannot get the requested location: " << infoLog;
+        throw std::invalid_argument{ss.str()};
+    }
+    
+    return loc;
+}
+
+
+
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, int value ) {
-    auto dat = std::vector<int>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<int>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform int"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, size_t value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1ui(loc, value);
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform1ui(loc, value);
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform size_t"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, float value ) {
-    auto dat = std::vector<float>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<float>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform float"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec1 value ) {
-    auto dat = std::vector<glm::vec1>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<glm::vec1>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec1"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec2 value ) {
-    auto dat = std::vector<glm::vec2>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<glm::vec2>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec2"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec3 value ) {
-    auto dat = std::vector<glm::vec3>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<glm::vec3>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec3"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, glm::vec4 value ) {
-    auto dat = std::vector<glm::vec4>{value};
-    setUniform(location, dat);
+    try{
+        auto dat = std::vector<glm::vec4>{value};
+        setUniform(location, dat);
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec4"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const glm::mat4& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+    try{
+        auto loc = getLocationIndex(location);
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform mat4"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<int>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1iv(loc, value.size(), value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform1iv(loc, value.size(), value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform int array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<float>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1fv(loc, value.size(), value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform1fv(loc, value.size(), value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform float array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec1>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform1fv(loc, value.size(), (float*) value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform1fv(loc, value.size(), (float*) value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec1 array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec2>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform2fv(loc, value.size(), (float*) value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform2fv(loc, value.size(), (float*) value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec2 array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec3>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform3fv(loc, value.size(), (float*) value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform3fv(loc, value.size(), (float*) value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec3 array"));
+    }
 }
 
 void libtrainsim::Video::Shader::setUniform ( const std::string& location, const std::vector<glm::vec4>& value ) {
-    auto loc = glGetUniformLocation(shaderProgram, location.c_str() );
-    glUniform4fv(loc, value.size(), (float*) value.data());
+    try{
+        auto loc = getLocationIndex(location);
+        glUniform4fv(loc, value.size(), (float*) value.data());
+        imguiHandler::glErrorCheck();
+    }catch(...){
+        std::throw_with_nested(std::invalid_argument("Error setting uniform vec4 array"));
+    }
 }
 
 
-
-
-int libtrainsim::Video::Shader::createShader () {
-    std::string shaderCode;
+void libtrainsim::Video::Shader::createShader () {
+    if(!shader_config.isValid()){
+        throw std::invalid_argument{"shader config is not valid"};
+    }
     
     //compile and load the vertex shader
     unsigned int vertexShader = 0;
     try{
-        shaderCode = loadFile( shader_config.vertex_shader_location );
-        compileShader(shaderCode, vertexShader, GL_VERTEX_SHADER);
+        compileShader(shader_config.getVertexSource(), vertexShader, GL_VERTEX_SHADER);
     }catch(...){
+        glDeleteShader(vertexShader);
         std::throw_with_nested(std::runtime_error("Could not compile or load vertex shader"));
     }
     
     //compile and load the fragment shader
     unsigned int fragmentShader = 0;
     try{
-        shaderCode = loadFile( shader_config.fragment_shader_location );
-        compileShader(shaderCode, fragmentShader, GL_FRAGMENT_SHADER);
+        compileShader(shader_config.getFragmentSource(), fragmentShader, GL_FRAGMENT_SHADER);
     }catch(...){
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
         std::throw_with_nested(std::runtime_error("Could not compile or load fragment shader"));
     }
     
@@ -225,45 +376,63 @@ int libtrainsim::Video::Shader::createShader () {
     unsigned int geometryShader = 0, computeShader = 0, tessControlShader = 0, tessEvalShader = 0;
     
     //compile and load the geomerty shader
-    if(shader_config.hasGeometryShader()){
+    if(shader_config.getGeometrySource().has_value()){
         try{
-            shaderCode = loadFile( shader_config.geometry_shader_location );
-            compileShader(shaderCode, geometryShader, GL_GEOMETRY_SHADER);
+            compileShader(shader_config.getGeometrySource().value(), geometryShader, GL_GEOMETRY_SHADER);
         }catch(...){
+            glDeleteShader(vertexShader);
+            glDeleteShader(fragmentShader);
+            glDeleteShader(geometryShader);
             std::throw_with_nested(std::runtime_error("Could not compile or load geomerty shader"));
         }
     }
     
     //compile and load the compute shader
-    if(shader_config.hasComputeShader()){
+    if(shader_config.getComputeSource().has_value()){
         try{
-            shaderCode = loadFile( shader_config.compute_shader_location );
-            compileShader(shaderCode, computeShader, GL_COMPUTE_SHADER);
+            compileShader(shader_config.getComputeSource().value(), computeShader, GL_COMPUTE_SHADER);
         }catch(...){
+            glDeleteShader(vertexShader);
+            glDeleteShader(fragmentShader);
+            glDeleteShader(geometryShader);
+            glDeleteShader(computeShader);
             std::throw_with_nested(std::runtime_error("Could not compile or load compute shader"));
         }
     }
     
     //compile and load the tessalation control shader
-    if(shader_config.hasTessControlShader()){
+    if(shader_config.getTessControlSource().has_value()){
         try{
-            shaderCode = loadFile( shader_config.tessControl_shader_location );
-            compileShader(shaderCode, tessControlShader, GL_TESS_CONTROL_SHADER);
+            compileShader(shader_config.getTessControlSource().value(), tessControlShader, GL_TESS_CONTROL_SHADER);
         }catch(...){
+            glDeleteShader(vertexShader);
+            glDeleteShader(fragmentShader);
+            glDeleteShader(geometryShader);
+            glDeleteShader(computeShader);
+            glDeleteShader(tessControlShader);
             std::throw_with_nested(std::runtime_error("Could not compile or load tessalation control shader"));
         }
     }
     
     //compile and load the tessalation evalutaion shader
-    if(shader_config.hasTessEvaluationShader()){
+    if(shader_config.getTessEvaluationSource().has_value()){
         try{
-            shaderCode = loadFile( shader_config.tessEvaluation_shader_location );
-            compileShader(shaderCode, tessEvalShader, GL_TESS_EVALUATION_SHADER);
+            compileShader(shader_config.getTessEvaluationSource().value(), tessEvalShader, GL_TESS_EVALUATION_SHADER);
         }catch(...){
+            glDeleteShader(vertexShader);
+            glDeleteShader(fragmentShader);
+            glDeleteShader(geometryShader);
+            glDeleteShader(computeShader);
+            glDeleteShader(tessControlShader);
+            glDeleteShader(tessEvalShader);
             std::throw_with_nested(std::runtime_error("Could not compile or load tessalation evalutaion shader"));
         }
     }
-        //prepare the shader program to link every part
+    
+    //clear the config to empty the strings in ram
+    shader_config.clear();
+    
+    //prepare the shader program to link every part
     int success;
     
     if(shaderProgram){
@@ -303,33 +472,9 @@ int libtrainsim::Video::Shader::createShader () {
     glDeleteShader(computeShader);
     glDeleteShader(tessControlShader);
     glDeleteShader(tessEvalShader);
-    
-    return 0;
 }
 
-std::string libtrainsim::Video::Shader::loadFile ( std::filesystem::path location ) {
-    std::string shaderCode;
-    std::ifstream ShaderFile;
-    // ensure ifstream objects can throw exceptions:
-    ShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    try {
-        // open files
-        ShaderFile.open(location);
-        std::stringstream ShaderStream;
-        // read file's buffer contents into streams
-        ShaderStream << ShaderFile.rdbuf();
-        // close file handlers
-        ShaderFile.close();
-        // convert stream into string
-        shaderCode = ShaderStream.str();
-    } catch (...) {
-        std::throw_with_nested(std::runtime_error("Shader file not sucessfully read"));
-    }
-    
-    return shaderCode;
-}
-
-int libtrainsim::Video::Shader::compileShader( std::string code, unsigned int& shaderLoc, int shaderType ) {
+void libtrainsim::Video::Shader::compileShader( std::string code, unsigned int& shaderLoc, int shaderType ) {
     // compile the shader and return the location of the result
     int success;
 
@@ -341,13 +486,17 @@ int libtrainsim::Video::Shader::compileShader( std::string code, unsigned int& s
 
     // print compile errors if anything went wrong
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (success != GL_TRUE) {
+    if (success != GL_TRUE || glGetError() != GL_NO_ERROR) {
+        //get the error description
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        throw std::runtime_error(std::string{"could not compile shader: "}.append(shaderCode).append(";reason: ").append(infoLog));
+        
+        //create the full error message
+        std::stringstream ss;
+        ss << "could not compile shader: " << shaderCode << ";reason: " << infoLog;
+        throw std::runtime_error(ss.str());
     };
 
     shaderLoc = shader;
-    return 0;
 }
 

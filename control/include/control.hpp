@@ -32,7 +32,8 @@ namespace libtrainsim {
         * The following Key functions are defined:
         *
         *   * NONE -> Does nothing
-        *   * CLOSE -> indicates that the windows chould close and the program should end
+        *   * CLOSE -> indicates that the windows should close
+        *   * TERMINATE -> indicates that all windows shoudl be closed and the program ends
         *   * OTHER -> some other random event
         *   * BREAK -> indicates the train should break
         *   * ACCELERATE -> indicates the train should accelerate
@@ -42,8 +43,8 @@ namespace libtrainsim {
         * that can be handled by an implementation of the simulator.
         * 
         * @warning this interface is only really useful is you use libtrainsim::video to handle window management otherwise
-        * it is not possible to retrieve the currently pressed keys. You can use this a a base to implement you own input_handler
-        * if you some other window management.
+        * it is not possible to retrieve the currently pressed keys. If libtrainsim::video is not available the serialcontrol
+        * part still works, its just that this can no longer detect window events and the closing flag is always false.
         */
         class input_handler{
             private:
@@ -62,6 +63,11 @@ namespace libtrainsim {
                  * @brief a bool to indicate if the window should be closed
                  */
                 bool shouldClose = false;
+                
+                /**
+                 * @brief a bool to indicate if all windows need to be closed
+                 */
+                bool shouldTeminate = false;
                 
                 /**
                  * @brief a bool to indicate if the emergency break should activate
@@ -108,12 +114,12 @@ namespace libtrainsim {
                 /**
                  * @brief return true if getSpeedAxis came across a close command
                  */
-                bool closingFlag() const noexcept;
+                bool closingFlag() noexcept;
                 
                 /**
                  * @brief return true if getSpeedAxis came across a emergency break command
                  */
-                bool emergencyFlag() const noexcept;
+                bool emergencyFlag() noexcept;
                 
                 /**
                  * @brief Get the Speed Axis of the current input.

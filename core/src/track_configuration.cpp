@@ -206,7 +206,7 @@ void Track::parseJsonData(){
             }
         }
     }catch(...){
-        std::throw_with_nested(std::runtime_error("Error reading the underground data"));
+        std::throw_with_nested(std::runtime_error("Error reading the underground data for track " + name));
     }
     
     try{
@@ -231,14 +231,38 @@ void Track::parseJsonData(){
                 stopsData.emplace_back(stopDataPoint{name, location, type});
             }
         }
+        
     }catch(...){
-        std::throw_with_nested(std::runtime_error("Error reading the stops data"));
+        std::throw_with_nested(std::runtime_error("Error reading the stops data for track " + name));
+    }
+    
+    try{
+        auto excludeTrackBounds = Helper::getOptionalJsonField<bool>(data_json.value(), "excludeTrackBounds");
+        if(excludeTrackBounds.has_value() && excludeTrackBounds.value() && stopsData.size() > 1){
+        }else{
+            stopsData.reserve(stopsData.size()+2);
+            stopsData.insert(stopsData.begin(), {"begin", 0_m, station});
+            stopsData.insert(stopsData.end(), {"end", {std::numeric_limits<long double>::infinity(),1}, station});
+        }
+            
+        stationsData.reserve(stopsData.size());
+        for(auto& dat:stopsData){
+            if(dat.type() == station){
+                stationsData.emplace_back(dat);
+            }
+        }
+        stationsData.shrink_to_fit();
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("error updating the stops with begin and end"));
     }
     
     
 }
 
-const Track_data& Track::data() const{
+const Track_data& Track::data() const{    
+    if(stopsData.size() < 2){
+        throw std::runtime_error("stops data not fully initialized. There are not enugh stops defined");
+    }
     if(!track_dat.has_value()){
         throw std::runtime_error("Track not loaded yet");
     }
@@ -246,9 +270,6 @@ const Track_data& Track::data() const{
 }
             
 const train_properties& Track::train() const{
-    if(!train_dat.has_value()){
-        throw std::runtime_error("Train not loaded yet");
-    }
     return train_dat.value();
 }
 
@@ -260,11 +281,7 @@ length Track::firstLocation() const{
     return startingPoint;
 }
 
-const std::string & libtrainsim::core::Track::getName() const {
-    if(!track_dat.has_value()){
-        throw std::runtime_error("Track not loaded yet");
-    }
-    
+const std::string & libtrainsim::core::Track::getName() const { 
     return name;
 }
 
@@ -272,6 +289,42 @@ const std::string & libtrainsim::core::Track::getName() const {
 std::filesystem::path Track::getVideoFilePath() const{
     return videoFile;
 }
+
+std::tuple<
+    bool, 
+    sakurajin::unit_system::common::area, 
+    sakurajin::unit_system::base::length
+> libtrainsim::core::Track::getUndergroundInfo ( sakurajin::unit_system::base::length position ) const {
+    auto end = undergroundData.size();
+    if(end == 0){return {false, 0_m2, 0_m};}
+    
+    for(size_t i = 0; i < end;i++){
+        auto point = undergroundData[i];
+        if(point.begin() > position && point.end() < position){
+            return {true, point.area(), point.end() - position};
+        }
+    }
+    
+    return {false, 0_m2, 0_m};
+}
+
+const std::vector<stopDataPoint> & libtrainsim::core::Track::getStations() const {
+    if(stationsData.size() > 0){
+        if(stationsData.size() < 2){
+            throw std::runtime_error("Not enough stations are defined");
+        }else{
+            return stationsData;
+        }
+    }
+    
+    if(stopsData.size() < 2){
+        throw std::runtime_error("stops data not fully initialized. There are not enugh stops defined");
+    }
+    
+    return stationsData;
+    
+}
+
 
 void libtrainsim::core::Track::ensure() {
     try{
@@ -281,4 +334,23 @@ void libtrainsim::core::Track::ensure() {
         std::throw_with_nested(std::runtime_error("Error parsing the json data"));
     }
 }
+
+void libtrainsim::core::Track::setFirstLocation ( sakurajin::unit_system::base::length pos) {
+    try{
+        ensure();
+        startingPoint = sakurajin::unit_system::clamp(pos, track_dat->firstLocation(), track_dat->lastLocation());
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not update start position"));
+    }
+}
+
+void libtrainsim::core::Track::setLastLocation ( sakurajin::unit_system::base::length pos) {
+    try{
+        ensure();
+        endPoint = sakurajin::unit_system::clamp(pos, track_dat->firstLocation(), track_dat->lastLocation());
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not update start position"));
+    }
+}
+
 

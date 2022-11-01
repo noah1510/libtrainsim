@@ -11,13 +11,9 @@ libtrainsim::Video::videoManager::videoManager(){
 }
 
 libtrainsim::Video::videoManager::~videoManager(){
-    
+    std::cout << "locking video manager to prevent draw calls while destroying" << std::endl;
     std::scoped_lock<std::shared_mutex> lock{videoMutex};
     windowFullyCreated = false;
-    
-    try{
-        nextFrame.wait();
-    }catch(...){}
     
     std::cout << "destroying video decoder" << std::endl;
     decode.reset();
@@ -37,7 +33,7 @@ const std::filesystem::path& libtrainsim::Video::videoManager::getFilePath() con
     return decode->getLoadedFile();
 }
 
-void libtrainsim::Video::videoManager::createWindow ( const std::string& windowName, const std::filesystem::path& shaderLocation ) {
+void libtrainsim::Video::videoManager::createWindow ( const std::string& windowName, const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation ) {
     if(currentWindowName != "" || windowFullyCreated){
         throw std::runtime_error("window alread exists");
     }
@@ -54,6 +50,12 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
         throw std::invalid_argument("The window name may not be an empty string");
     }
     
+    try{
+        imguiHandler::loadShaders(shaderLocation, textureLocation);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not load imgui shader parts"));
+    }
+
     try{
         outputBuffer = std::make_shared<texture>("outBuffer"s);
         
@@ -82,43 +84,6 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
 
     currentWindowName = windowName;
     
-    float vertices[] = {
-        // positions    // texture coords
-         1.0f,  1.0f,  1.0f, 1.0f, // top right
-         1.0f, -1.0f,  1.0f, 0.0f, // bottom right
-        -1.0f, -1.0f,  0.0f, 0.0f, // bottom left
-        -1.0f,  1.0f,  0.0f, 1.0f  // top left 
-    };
-    unsigned int indices[] = {  
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-    
-    //create all of the vertex buffers
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    
-    // position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    
-    glBindVertexArray(0);
-    
-    //reset the last frame and receive the first frame from the decoder
-    decode->copyToBuffer(frame_data);
-    
     //refresh the window to display stuff
     updateOutput();
     
@@ -134,63 +99,7 @@ double libtrainsim::Video::videoManager::getWidth() {
 }
 
 void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {
-    
-    std::scoped_lock<std::shared_mutex> lock{videoMutex};
-
-    nextFrameToGet = frame_num > nextFrameToGet ? frame_num : nextFrameToGet;
-    
-    if(fetchingFrame){
-        return;
-    }
-    
-    if(decode->getFrameNumber() >= nextFrameToGet){
-        return;
-    }
-    
-    nextFrame = std::async(
-        std::launch::async, 
-        [this](){
-            uint64_t nextF = nextFrameToGet;
-            uint64_t currF = decode->getFrameNumber();
-            uint64_t diff = nextF - currF;
-            
-            try{
-                
-                if(diff > 120){
-                    auto time = decode->seekFrame(nextF);
-                    
-                    renderTimeMutex.lock();
-                    newRenderTimes.emplace_back(time);
-                    renderTimeMutex.unlock();
-                
-                }else{
-                    bool working = true;
-                    std::vector<sakurajin::unit_system::base::time_si> times;
-                    while(currF < nextF && working){
-                        auto time = decode->readNextFrame();
-                    
-                        times.emplace_back(time);
-                        currF++;
-                    }
-                    
-                    sakurajin::unit_system::base::time_si rendertime;
-                    for(auto time: times){
-                        rendertime += time;
-                    }
-                    renderTimeMutex.lock();
-                    newRenderTimes.emplace_back(rendertime);
-                    renderTimeMutex.unlock();
-                    
-                }
-            }catch(const std::exception& e){
-                libtrainsim::core::Helper::print_exception(e);
-                return false;
-            }
-            
-            return true;
-        }
-    );
-    fetchingFrame = true;
+    decode->requestFrame(frame_num);
 }
 
 bool libtrainsim::Video::videoManager::reachedEndOfFile() {
@@ -203,20 +112,13 @@ void libtrainsim::Video::videoManager::updateOutput() {
     outputBuffer->loadFramebuffer();
     
     displayShader->use();
-    displayShader->setUniform("transform", outputBuffer->getProjection() );
+    displayShader->setUniform("transform", outputBuffer->getProjection());
     
-    glActiveTexture(GL_TEXTURE0);
-    displayTextures[0]->updateImage(frame_data, decode->getDimensions());
-    
-    for(unsigned int i = 1; i < displayTextures.size(); i++){
+    for(unsigned int i = 0; i < displayTextures.size(); i++){
         displayTextures[i]->bind(i);
     }
     
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    
-    glBindVertexArray(0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    imguiHandler::drawRect();
 }
 
 
@@ -225,46 +127,23 @@ void libtrainsim::Video::videoManager::refreshWindow() {
         return;
     }
     
-    videoMutex.lock();
-    
-    if(fetchingFrame){
-        auto status = nextFrame.wait_for(1ns);
-        if(status == std::future_status::ready){
-            if(!nextFrame.get()){
-                std::cerr << "Error getting next frame" << std::endl;
-            }
-            try{
-                decode->copyToBuffer(frame_data);
-            }catch(...){
-                std::throw_with_nested(std::runtime_error("Could not read current frame into buffer"));
-            }
-            fetchingFrame = false;
-        }
-    }
-    
-    videoMutex.unlock();
-    
-    //start fetching the next queued fram asap
-    //if no higher frame number is queued then this call does nothing
-    gotoFrame(0);
+    displayTextures[0]->updateImage(decode->getUsableFramebufferBuffer(), decode->getDimensions());
 
     //draw the render window
     
     //set size and pos on program start to initial values
     static bool firstStart = true;
     if(firstStart){
-        auto [w,h] = decode->getDimensions();
-        ImVec2 initialSize {static_cast<float>(w),static_cast<float> (h)};
-        ImGui::SetNextWindowContentSize( initialSize );
+        ImGui::SetNextWindowContentSize( decode->getDimensions() );
         
-        ImVec2 initialPos {0,0};
+        ImVec2 initialPos {0, ImGui::GetStyle().DisplayWindowPadding.y};
         ImGui::SetNextWindowPos(initialPos);
         
         firstStart = false;
     }
     
     //actually start drawing the window
-    ImGui::Begin(currentWindowName.c_str(), &isActive);
+    ImGui::Begin(currentWindowName.c_str(), NULL, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav);
         
         //render into output texture
         updateOutput();
@@ -295,7 +174,7 @@ void libtrainsim::Video::videoManager::refreshWindow() {
 }
 
 void libtrainsim::Video::videoManager::addTexture ( std::shared_ptr<texture> newTexture ) {
-    if(displayTextures.size() == 16){
+    if(displayTextures.size() == libtrainsim::Video::imguiHandler::getMaxTextureUnits()){
         throw std::runtime_error("For now only 16 display textures are supported, remove one to add this one!");
     }
     
@@ -331,16 +210,7 @@ void libtrainsim::Video::videoManager::removeTexture ( const std::string& textur
 }
 
 std::optional<std::vector<sakurajin::unit_system::base::time_si>> libtrainsim::Video::videoManager::getNewRendertimes() {
-    renderTimeMutex.lock();
-    auto times = newRenderTimes;
-    newRenderTimes.clear();
-    renderTimeMutex.unlock();
-    
-    if(times.size() > 0){
-        return std::make_optional(times);
-    }else{
-        return {};
-    }
+    return decode->getNewRendertimes();
 }
 
 
