@@ -356,6 +356,15 @@ namespace libtrainsim{
                 }
             }
             
+            //fill a texture with a given color
+            static void drawColor(std::shared_ptr<texture> dest, glm::vec4 color){
+                try{
+                    getInstance().drawColor_impl(dest, color);
+                }catch(...){
+                    std::throw_with_nested(std::runtime_error("Error filling with colored"));
+                }
+            }
+            
             //get access to the copy shader to do more complex operations manually
             static std::shared_ptr<Shader> getCopyShader(){
                 return getInstance().copyShader;
