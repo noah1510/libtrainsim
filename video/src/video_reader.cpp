@@ -63,7 +63,7 @@ void libtrainsim::Video::videoDecodeSettings::displayContent() {
     decoder.frameNumberMutex.unlock_shared();
     
     //selection for the scaling algorithm
-    static size_t comboAlgorithmIndex = 10;
+    static size_t comboAlgorithmIndex = 9;
     if(ImGui::BeginCombo("Select the scaling algorithm", AlgorithmOptions.at(comboAlgorithmIndex).first.c_str() )){
         for(size_t i = 0; i < AlgorithmOptions.size();i++){
             if(ImGui::Selectable(AlgorithmOptions.at(i).first.c_str(), comboAlgorithmIndex == i)){
@@ -86,6 +86,11 @@ void libtrainsim::Video::videoDecodeSettings::displayContent() {
     //a slider for the seek cutoff
     int cutoff = static_cast<int>(currentCutoff);
     ImGui::SliderInt("Change the Cutoff for when to seek frames", &cutoff, 2*decoder.framerate, 20*decoder.framerate);
+    
+    //display detailed video stats
+    ImGui::Text("Detailed Video Information: ");
+    ImGui::Text("    average framerate: %f", decoder.framerate);
+    ImGui::Text("    frame number: %d", decoder.av_codec_ctx->frame_number);
     
     //apply the selected flags
     int newFlags = 0;
@@ -192,7 +197,7 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
             
             frameNumberMutex.lock_shared();
             uint64_t nextF = nextFrameToGet;
-            uint64_t currF = currentFrameNumber;
+            uint64_t currF = av_codec_ctx->frame_number;
             uint64_t _seekCutoff = seekCutoff;
             frameNumberMutex.unlock_shared();
             
@@ -232,11 +237,6 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
                     bufferExported = false;
                 }
                 frameBuffer_mutex.unlock();
-                
-                //update the number of the current frame
-                frameNumberMutex.lock();
-                currentFrameNumber = nextF;
-                frameNumberMutex.unlock();
 
                 //append the new rendertime
                 EOF_Mutex.lock();
@@ -340,7 +340,7 @@ void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame
     auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
     sws_scaler_ctx = sws_getCachedContext(
         sws_scaler_ctx,
-        renderSize.x(), 
+        renderSize.x(), av_codec_ctx->frame_number
         renderSize.y(), 
         source_pix_fmt,
         av_frame->width, 
@@ -381,7 +381,7 @@ libtrainsim::Video::dimensions libtrainsim::Video::videoReader::getDimensions() 
 
 uint64_t libtrainsim::Video::videoReader::getFrameNumber() {
     std::shared_lock lock{frameNumberMutex};
-    return currentFrameNumber;
+    return av_codec_ctx->frame_number;
 }
 
 void libtrainsim::Video::videoReader::requestFrame(uint64_t frame_num) {

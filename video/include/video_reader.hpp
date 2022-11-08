@@ -101,11 +101,6 @@ namespace libtrainsim{
             std::vector<sakurajin::unit_system::base::time_si> renderTimes;
             
             /**
-             * @brief the number of the currently displayed frame
-             */
-            uint64_t currentFrameNumber = 0;
-            
-            /**
              * @brief the number of the next frame that should be read.
              */
             uint64_t nextFrameToGet = 0;
