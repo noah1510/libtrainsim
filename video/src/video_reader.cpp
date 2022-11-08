@@ -117,6 +117,17 @@ void libtrainsim::Video::videoDecodeSettings::displayContent() {
 
 
 libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filename){
+    //find all of the hardware devices
+    std::vector<AVHWDeviceType> deviceTypes;
+    AVHWDeviceType lastType = AV_HWDEVICE_TYPE_NONE;
+    while ((lastType = av_hwdevice_iterate_types(lastType)) != AV_HWDEVICE_TYPE_NONE){
+        deviceTypes.emplace_back(lastType);
+    }
+    
+    for(size_t i = 0; i < deviceTypes.size(); i++){
+        std::cout << "Supported HWDevice: " << av_hwdevice_get_type_name(deviceTypes[i]) << std::endl;
+    }
+    
     // Open the file using libavformat
     av_format_ctx = avformat_alloc_context();
     if (!av_format_ctx) {
@@ -340,7 +351,7 @@ void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame
     auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
     sws_scaler_ctx = sws_getCachedContext(
         sws_scaler_ctx,
-        renderSize.x(), av_codec_ctx->frame_number
+        renderSize.x(),
         renderSize.y(), 
         source_pix_fmt,
         av_frame->width, 
