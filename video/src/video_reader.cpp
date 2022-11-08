@@ -250,25 +250,24 @@ void libtrainsim::Video::videoReader::seekFrame ( uint64_t framenumber ) {
 void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame_buffer ) {
 
     auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
-    sws_scaler_ctx = sws_getContext(
+    sws_scaler_ctx = sws_getCachedContext(
+        sws_scaler_ctx,
         renderSize.x(), 
         renderSize.y(), 
         source_pix_fmt,
-        renderSize.x(), 
-        renderSize.y(), 
+        av_frame->width, 
+        av_frame->height, 
         AV_PIX_FMT_RGB0,
         SWS_SINC, 
         NULL, 
         NULL, 
         NULL
     );
-    
-    if (!sws_scaler_ctx) {throw std::runtime_error("Couldn't initialize sw scaler");}
 
     uint8_t* dest[4] = { frame_buffer.data(), NULL, NULL, NULL };
     int dest_linesize[4] = { static_cast<int>(renderSize.x()) * 4, 0, 0, 0 };
-    sws_scale(sws_scaler_ctx, av_frame->data, av_frame->linesize, 0, av_frame->height, dest, dest_linesize);
-
+    auto hnew = sws_scale(sws_scaler_ctx, av_frame->data, av_frame->linesize, 0, av_frame->height, dest, dest_linesize);
+    if(hnew != av_frame->height) {throw std::runtime_error("Got a wrong size after scaling.");};
 }
 
 const std::vector<uint8_t> & libtrainsim::Video::videoReader::getUsableFramebufferBuffer() {
