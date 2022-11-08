@@ -30,7 +30,8 @@ namespace libtrainsim{
           private:
             void displayContent() override;
             videoReader& decoder;
-            const std::array< std::pair<std::string, int>, 4> AlgorithmOptions;
+            const std::array< std::pair<std::string, int>, 11> AlgorithmOptions;
+            const std::array< std::tuple<std::string, int>, 7> AlgorithmDetailsOptions;
           public:
             videoDecodeSettings(videoReader& VR);
         };
@@ -192,6 +193,11 @@ namespace libtrainsim{
              */
             void copyToBuffer(std::vector<uint8_t>& frame_buffer);
             
+            /**
+             * @brief how many frames difference there has to be to seek instead of rendering frame by frame.
+             * 
+             */
+            uint64_t seekCutoff = 200;
         public:
             /**
              * @brief create a new video decoder for a given video file
