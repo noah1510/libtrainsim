@@ -8,6 +8,7 @@
 #include "texture.hpp"
 #include "helper.hpp"
 #include "dimensions.hpp"
+#include "tabPage.hpp"
 
 #include "base.hpp"
 
@@ -19,6 +20,21 @@ extern "C" {
 
 namespace libtrainsim{
     namespace Video{
+        class videoReader;
+        
+        /**
+         * @brief the settings page for the video decoder settings
+         * 
+         */
+        class videoDecodeSettings : public tabPage{
+          private:
+            void displayContent() override;
+            videoReader& decoder;
+            const std::array< std::pair<std::string, int>, 4> AlgorithmOptions;
+          public:
+            videoDecodeSettings(videoReader& VR);
+        };
+        
         /**
          * @brief a class the handle asynchronous video decode from a single file
          * 
@@ -31,24 +47,31 @@ namespace libtrainsim{
          * 
          */
         class videoReader{
+          friend class videoDecodeSettings;
           private:
-
+              
             // all of the ffmpeg state variables
             
             //The framerate of the video as double
             double framerate;
             //the avcontext
-            AVFormatContext* av_format_ctx;
+            AVFormatContext* av_format_ctx = NULL;
             //the av codec context
-            AVCodecContext* av_codec_ctx;
+            AVCodecContext* av_codec_ctx = NULL;
             //the id of the video stream
             int video_stream_index;
             //The most recently decoded frame
-            AVFrame* av_frame;
+            AVFrame* av_frame = NULL;
             //the most recent packet
-            AVPacket* av_packet;
+            AVPacket* av_packet = NULL;
             //the SwsContext for scaling and color space conversion
-            SwsContext* sws_scaler_ctx;
+            SwsContext* sws_scaler_ctx = NULL;
+            
+            //The params for the scaling context
+            int scalingContextParams = SWS_SINC;
+            
+            //a mutex for locking the scaling context parameter
+            std::shared_mutex contextMutex;
             
             /**
              * @brief the size of the video

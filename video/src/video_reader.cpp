@@ -30,6 +30,38 @@ inline void libtrainsim::Video::videoReader::incrementFramebuffer(uint8_t& curre
     currentBuffer%=FRAME_BUFFER_COUNT;
 }
 
+libtrainsim::Video::videoDecodeSettings::videoDecodeSettings ( libtrainsim::Video::videoReader& VR ) : tabPage{"decodeSettings"}, decoder{VR}, AlgorithmOptions{{
+    {"sinc", SWS_SINC},
+    {"bilinear", SWS_BILINEAR},
+    {"bicubic", SWS_BICUBIC},
+    {"lanczos", SWS_LANCZOS}
+}}{};
+
+void libtrainsim::Video::videoDecodeSettings::displayContent() {
+    decoder.contextMutex.lock_shared();
+    int currentFlags = decoder.scalingContextParams;
+    decoder.contextMutex.unlock_shared();
+    
+    static size_t comboAlgorithmIndex = 0;
+    if(ImGui::BeginCombo("Select default FBO size", AlgorithmOptions.at(comboAlgorithmIndex).first.c_str() )){
+        for(size_t i = 0; i < AlgorithmOptions.size();i++){
+            if(ImGui::Selectable(AlgorithmOptions.at(i).first.c_str(), comboAlgorithmIndex == i)){
+                comboAlgorithmIndex = i;
+            }
+        }
+        
+        ImGui::EndCombo();
+    }
+
+    int newFlags = AlgorithmOptions[comboAlgorithmIndex].second;
+    
+    if(newFlags != currentFlags){
+        std::scoped_lock<std::shared_mutex> lock{decoder.contextMutex};
+        decoder.scalingContextParams = newFlags;
+    }
+}
+
+
 libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filename){
     // Open the file using libavformat
     av_format_ctx = avformat_alloc_context();
@@ -173,9 +205,14 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
         
         return true;
     });
+    
+    auto settingsTab = std::make_shared<videoDecodeSettings>(*this);
+    libtrainsim::Video::imguiHandler::addSettingsTab(settingsTab);
 }
 
 libtrainsim::Video::videoReader::~videoReader() {
+    libtrainsim::Video::imguiHandler::removeSettingsTab("decodeSettings");
+    
     if(!reachedEndOfFile()){
         EOF_Mutex.lock();
         reachedEOF = true;
@@ -249,6 +286,8 @@ void libtrainsim::Video::videoReader::seekFrame ( uint64_t framenumber ) {
 
 void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame_buffer ) {
 
+    std::shared_lock<std::shared_mutex> lock{contextMutex};
+    
     auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
     sws_scaler_ctx = sws_getCachedContext(
         sws_scaler_ctx,
@@ -258,7 +297,7 @@ void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame
         av_frame->width, 
         av_frame->height, 
         AV_PIX_FMT_RGB0,
-        SWS_SINC, 
+        scalingContextParams, 
         NULL, 
         NULL, 
         NULL
