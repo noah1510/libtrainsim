@@ -55,6 +55,7 @@ namespace libtrainsim{
         class basicSettings : public tabPage{
           private:
             void displayContent() override;
+            const std::array< std::pair<std::string, int> ,4> FBOsizeOptions;
           public:
             basicSettings();
         };

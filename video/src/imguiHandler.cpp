@@ -43,19 +43,31 @@ void libtrainsim::Video::basicSettings::displayContent() {
         //display the default FBO size selection
         ImGui::TableNextColumn();
         int sizeY = handle.defaultFBOSize.y();
-        ImGui::Text("Select default FBO size: ");
-        ImGui::RadioButton("2160p", &sizeY, 2160);
-        ImGui::RadioButton("1440p", &sizeY, 1440);
-        ImGui::RadioButton("1080p", &sizeY, 1080);
-        ImGui::RadioButton("720p", &sizeY, 720);
         
+        static size_t fboSizeIndex = 1;
+        if(ImGui::BeginCombo("Select default FBO size", FBOsizeOptions.at(fboSizeIndex).first.c_str() )){
+            for(size_t i = 0; i < FBOsizeOptions.size();i++){
+                if(ImGui::Selectable(FBOsizeOptions.at(i).first.c_str(), fboSizeIndex == i)){
+                    fboSizeIndex = i;
+                }
+            }
+            
+            ImGui::EndCombo();
+        }
+        
+        sizeY = FBOsizeOptions.at(fboSizeIndex).second;
         handle.defaultFBOSize.x() = sizeY*16/9;
         handle.defaultFBOSize.y() = sizeY;
         
     ImGui::EndTable();
 }
 
-libtrainsim::Video::basicSettings::basicSettings() : tabPage("basic"){}
+libtrainsim::Video::basicSettings::basicSettings() : tabPage("basic"), FBOsizeOptions{{
+    {"720p", 720},
+    {"1080p", 1080},
+    {"1440p", 1440},
+    {"2160p", 2160}
+}}{}
 
 libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
