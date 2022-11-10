@@ -25,6 +25,18 @@ static inline AVPixelFormat correctForDeprecatedPixelFormat(AVPixelFormat pix_fm
     }
 }
 
+static AVPixelFormat hw_pix_fmt = AV_PIX_FMT_NONE;
+static enum AVPixelFormat get_hw_pixel_format(AVCodecContext *ctx, const enum AVPixelFormat *pix_fmts){
+    ((void)ctx);
+    const enum AVPixelFormat *p;
+
+    for (p = pix_fmts; *p != -1; p++)
+        if (*p == hw_pix_fmt)
+            return (*p);
+
+    return (AV_PIX_FMT_NONE);
+}
+
 inline void libtrainsim::Video::videoReader::incrementFramebuffer(uint8_t& currentBuffer) const{
     currentBuffer++;
     currentBuffer%=FRAME_BUFFER_COUNT;
@@ -117,17 +129,6 @@ void libtrainsim::Video::videoDecodeSettings::displayContent() {
 
 
 libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filename){
-    //find all of the hardware devices
-    std::vector<AVHWDeviceType> deviceTypes;
-    AVHWDeviceType lastType = AV_HWDEVICE_TYPE_NONE;
-    while ((lastType = av_hwdevice_iterate_types(lastType)) != AV_HWDEVICE_TYPE_NONE){
-        deviceTypes.emplace_back(lastType);
-    }
-    
-    for(size_t i = 0; i < deviceTypes.size(); i++){
-        std::cout << "Supported HWDevice: " << av_hwdevice_get_type_name(deviceTypes[i]) << std::endl;
-    }
-    
     // Open the file using libavformat
     av_format_ctx = avformat_alloc_context();
     if (!av_format_ctx) {
@@ -175,6 +176,17 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     if (avcodec_parameters_to_context(av_codec_ctx, av_codec_params) < 0) {
         throw std::runtime_error("Couldn't initialize AVCodecContext");
     }
+    
+    //init the hardware decoding
+    //initHWDecoding(av_codec);
+    
+    //check if hardware acceleration is actually used
+    if (av_codec_ctx->hwaccel != NULL){
+        std::cout << "HW accel IN USE: " << av_codec_ctx->hwaccel->name << std::endl;
+    }else{
+        std::cout << "No HW accel IN USE" << std::endl;
+    }
+    
     if (avcodec_open2(av_codec_ctx, av_codec, NULL) < 0) {
         throw std::runtime_error("Couldn't open codec");
     }
@@ -182,6 +194,10 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     av_frame = av_frame_alloc();
     if (!av_frame) {
         throw std::runtime_error("Couldn't allocate AVFrame");
+    }
+    hw_av_frame = av_frame_alloc();
+    if (!hw_av_frame) {
+        throw std::runtime_error("Couldn't allocate hardware AVFrame");
     }
     av_packet = av_packet_alloc();
     if (!av_packet) {
@@ -289,18 +305,102 @@ libtrainsim::Video::videoReader::~videoReader() {
         renderThread.wait();
         renderThread.get();
     }
+    if(hw_device_ctx != NULL){
+        av_buffer_unref(&hw_device_ctx);
+    }
     
     sws_freeContext(sws_scaler_ctx);
     avformat_close_input(&av_format_ctx);
     avformat_free_context(av_format_ctx);
     av_frame_free(&av_frame);
+    av_frame_free(&hw_av_frame);
     av_packet_free(&av_packet);
     avcodec_free_context(&av_codec_ctx);
 }
 
+void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
+    //load the hardware acceleration context
+    std::vector<const AVCodecHWConfig*> hw_configs;
+    for (int i = 0; i < 20; i++){
+        auto hw_config = avcodec_get_hw_config(av_codec, i);
+        if(hw_config != NULL){
+            hw_configs.emplace_back(hw_config);
+        }
+    }
+    
+    //check if this codec has support for hardware acceleration
+    if(hw_configs.empty()){
+        std::cout << "No hardware decode support for this codec" << std::endl;
+        enableHWDecode = false;
+        return;
+    }
+    
+    for(auto& hw_config: hw_configs){
+        std::cout << "Supported HWDevice: " << av_hwdevice_get_type_name(hw_config->device_type) << std::endl;
+    }
+    
+    //select a config according the priority list
+    const AVCodecHWConfig* selectedConfig = NULL;
+    for(auto deviceType: hardwareBackendPrioList){
+        for(auto& hw_config: hw_configs){
+            if(hw_config->device_type == deviceType){
+                selectedConfig = hw_config;
+                break;
+            }
+        }
+        
+        if(selectedConfig != NULL){break;};
+    }
+    
+    //load the hw context
+    hw_pix_fmt = selectedConfig->pix_fmt;
+    /* Callback pixel format. */
+    av_codec_ctx->get_format = get_hw_pixel_format;
+
+    /* Open the hw device and create an AVHWDeviceContext for it. */
+    if (av_hwdevice_ctx_create(&hw_device_ctx, selectedConfig->device_type, NULL, NULL, 0) < 0){
+        std::cerr << "Unable to open device and create a device context, abort creating hardware decode" << std::endl;
+        enableHWDecode = false;
+        return;
+    }
+    
+    av_codec_ctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+    auto* hw_frames_const = av_hwdevice_get_hwframe_constraints(hw_device_ctx, NULL);
+
+    if (hw_frames_const == NULL){
+        std::cerr << "Unable to obtain hw frame constraints, abort creating hardware decode" << std::endl;
+        av_hwframe_constraints_free(&hw_frames_const);
+        av_buffer_unref(&hw_device_ctx);
+        enableHWDecode = false;
+        return;
+    }
+
+    //find if the gpu can convert to RGB
+	enum AVPixelFormat *tmp_pix_fmt;
+    for (tmp_pix_fmt = hw_frames_const->valid_sw_formats; *tmp_pix_fmt != AV_PIX_FMT_NONE; tmp_pix_fmt++){
+        if (*tmp_pix_fmt == AV_PIX_FMT_YUV420P){
+            break;
+        }
+    }
+
+    av_hwframe_constraints_free(&hw_frames_const);
+    
+    /* GPU is incapable to convert to YUV420p to us, lets give up. */
+    if (*tmp_pix_fmt == AV_PIX_FMT_NONE){
+        std::cerr << "Your HW device do not support conversion to YUV420p!" << std::endl;
+        av_buffer_unref(&hw_device_ctx);
+        enableHWDecode = false;
+        return;
+    }
+
+    std::cout << "enable hardware decode since everything seems to initialze just fine." << std::endl;
+    enableHWDecode = true;
+        
+}
+
+
 
 void libtrainsim::Video::videoReader::readNextFrame() {
-    
     
     // Decode one frame
     int response;
