@@ -15,101 +15,60 @@ video_deps = [
     dependency('libtrainsim-core', required: true),
 ]
 
-#check if emscripten is used
-if target_machine.system() == 'emscripten'
+#handle normal builds 
 
-    CC = meson.get_compiler('c')
-    CXX = meson.get_compiler('cpp')
+CC = meson.get_compiler('c')
 
-    enable_sdl = true
-        
-    message('compiling with sdl2 enabled')
-    
-    #try to find ffmpeg dependencies
-    enable_ffmpeg = true
-    
-    ffmpeg_dep = []
-    ffmpeg = subproject('ffmpeg', default_options: ['default_library=static','c_std=c99'])
-    
-    av_libs = [
-        ['avcodec', '55.28.1'],
-        ['avformat',  '54.0.0'],
-        ['avutil', '51.0.0'],
-        ['avdevice', '54.0.0'],
-        ['avfilter', '3.0.0'],
-        ['swscale', '2.0.0'],
-        ['swresample', '0.0.0'],
-        ['postproc', '52.0.0'],
+#try to find ffmpeg dependencies
+ffmpeg_dep = []
+av_libs = [
+    ['avcodec', '55.28.1'],
+    ['avformat',  '54.0.0'],
+    ['avutil', '51.0.0'],
+    ['avdevice', '54.0.0'],
+    ['avfilter', '3.0.0'],
+    ['swscale', '2.0.0'],
+    ['swresample', '0.0.0'],
+    ['postproc', '52.0.0'],
+]
+
+foreach lib : av_libs
+    video_deps += [
+        dependency(
+            'lib@0@'.format(lib[0]),
+            required: true,
+            #fallback : ['ffmpeg', 'lib@0@_dep'.format(lib[0])],
+            version : '>=@0@'.format(lib[1]))
     ]
-    
-    #foreach lib : av_libs
-    #    ffmpeg_dep += ffmpeg.get_variable('lib@0@'.format(lib[0]))
-    #endforeach
-    
-    #video_deps += ffmpeg_dep
-    video_deps += ffmpeg.get_variable('declared_dep')
-    sources += 'src/backends/videoDecoder.cpp'
-    sources += 'src/backends/ffmpegFrame.cpp'
-    message('compiling with ffmpeg enabled')
-    
-else
-    #handle normal builds 
+endforeach
 
-    CC = meson.get_compiler('c')
+video_deps += dependency('sdl2', required : true, fallback: ['sdl2','sdl2_dep'])
+video_deps += dependency('SDL2_image', required: true)
+video_deps += dependency('SDL2_gfx', required: true)
+video_deps += dependency('glm', required : true, fallback : ['glm','glm_dep'])
+imgui_subp = subproject('imgui', default_options : [
+    'dx9=disabled', 
+    'dx10=disabled', 
+    'dx11=disabled', 
+    'dx12=disabled',
+    'vulkan=disabled',
+    'metal=disabled',
+    'sdl_renderer=disabled',
+    'webgpu=disabled',
+    'allegro5=disabled',
     
-    #try to find ffmpeg dependencies
-    ffmpeg_dep = []
-    av_libs = [
-        ['avcodec', '55.28.1'],
-        ['avformat',  '54.0.0'],
-        ['avutil', '51.0.0'],
-        ['avdevice', '54.0.0'],
-        ['avfilter', '3.0.0'],
-        ['swscale', '2.0.0'],
-        ['swresample', '0.0.0'],
-        ['postproc', '52.0.0'],
-    ]
-
-    foreach lib : av_libs
-        video_deps += [
-            dependency(
-                'lib@0@'.format(lib[0]),
-                required: true,
-                #fallback : ['ffmpeg', 'lib@0@_dep'.format(lib[0])],
-                version : '>=@0@'.format(lib[1]))
-        ]
-    endforeach
+    'win=disabled',
+    'osx=disabled',
+    'glfw=disabled',
     
-    video_deps += dependency('sdl2', required : true, fallback: ['sdl2','sdl2_dep'])
-    video_deps += dependency('SDL2_image', required: true)
-    video_deps += dependency('SDL2_gfx', required: true)
-    video_deps += dependency('glm', required : true, fallback : ['glm','glm_dep'])
-    imgui_subp = subproject('imgui', default_options : [
-        'dx9=disabled', 
-        'dx10=disabled', 
-        'dx11=disabled', 
-        'dx12=disabled',
-        'vulkan=disabled',
-        'metal=disabled',
-        'sdl_renderer=disabled',
-        'webgpu=disabled',
-        'allegro5=disabled',
-        
-        'win=disabled',
-        'osx=disabled',
-        'glfw=disabled',
-        
-        'opengl=enabled',
-        'sdl2=enabled',
-        'default_library=static'
-    ])
-    video_deps += imgui_subp.get_variable('imgui_dep')
-    #video_deps += dependency('imgui', required : true, fallback : ['imgui','imgui_dep'])
-    video_deps += dependency('gl', required : true)
-    video_deps += CC.find_library('dl', required : false)
-    
-    
-endif
+    'opengl=enabled',
+    'sdl2=enabled',
+    'default_library=static'
+])
+video_deps += imgui_subp.get_variable('imgui_dep')
+#video_deps += dependency('imgui', required : true, fallback : ['imgui','imgui_dep'])
+video_deps += dependency('gl', required : true)
+video_deps += CC.find_library('dl', required : false)
 
 #create the video configuration file
 video_conf_data = configuration_data()
