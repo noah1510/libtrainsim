@@ -69,6 +69,27 @@ namespace libtrainsim{
             //the SwsContext for scaling and color space conversion
             SwsContext* sws_scaler_ctx = NULL;
             
+            //signal if hardware decoding should be used
+            bool enableHWDecode = false;
+            //The Hardware decoding context
+            AVBufferRef* hw_device_ctx = NULL;
+            //The most recently accelerator decoded frame
+            AVFrame* hw_av_frame = NULL;
+            //A list with which hardware decode backend to prefer
+            const std::array<AVHWDeviceType, 11> hardwareBackendPrioList = {
+                AV_HWDEVICE_TYPE_VDPAU,
+                AV_HWDEVICE_TYPE_CUDA,
+                AV_HWDEVICE_TYPE_VAAPI,
+                AV_HWDEVICE_TYPE_DXVA2,
+                AV_HWDEVICE_TYPE_VULKAN,
+                AV_HWDEVICE_TYPE_QSV,
+                AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
+                AV_HWDEVICE_TYPE_D3D11VA,
+                AV_HWDEVICE_TYPE_DRM,
+                AV_HWDEVICE_TYPE_OPENCL,
+                AV_HWDEVICE_TYPE_MEDIACODEC
+            };
+            
             //The params for the scaling context
             int scalingContextParams = SWS_SINC;
             
@@ -199,6 +220,8 @@ namespace libtrainsim{
              * 
              */
             uint64_t seekCutoff = 200;
+            
+            void initHWDecoding(AVCodec* av_codec);
         public:
             /**
              * @brief create a new video decoder for a given video file
