@@ -335,6 +335,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
     for (int i = 0; i < 20; i++){
         auto hw_config = avcodec_get_hw_config(av_codec, i);
         if(hw_config != NULL){
+            if(hw_config->device_type == AV_HWDEVICE_TYPE_NONE){break;};
             hw_configs.emplace_back(hw_config);
         }
     }
@@ -347,7 +348,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
     }
     
     for(auto& hw_config: hw_configs){
-        std::cout << "Supported HWDevice: " << av_hwdevice_get_type_name(hw_config->device_type) << std::endl;
+        std::cout << "Supported HWDevice ID: " << hw_config->device_type << " Name: " << av_hwdevice_get_type_name(hw_config->device_type) << std::endl;
     }
     
     //select a config according the priority list
@@ -372,11 +373,13 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
     //load the hw context
     hw_pix_fmt = selectedConfig->pix_fmt;
     /* Callback pixel format. */
+    auto oldCallback = av_codec_ctx->get_format;
     av_codec_ctx->get_format = get_hw_pixel_format;
 
     /* Open the hw device and create an AVHWDeviceContext for it. */
     if (av_hwdevice_ctx_create(&hw_device_ctx, selectedConfig->device_type, NULL, NULL, 0) < 0){
         std::cerr << "Unable to open device and create a device context, abort creating hardware decode" << std::endl;
+        av_codec_ctx->get_format = oldCallback;
         enableHWDecode = false;
         return;
     }
@@ -385,6 +388,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
 
     if (hw_frames_const == NULL){
         std::cerr << "Unable to obtain hw frame constraints, abort creating hardware decode" << std::endl;
+        av_codec_ctx->get_format = oldCallback;
         av_hwframe_constraints_free(&hw_frames_const);
         av_buffer_unref(&hw_device_ctx);
         enableHWDecode = false;
@@ -404,6 +408,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
     /* GPU is incapable to convert to YUV420p to us, lets give up. */
     if (*tmp_pix_fmt == AV_PIX_FMT_NONE){
         std::cerr << "Your HW device do not support conversion to YUV420p!" << std::endl;
+        av_codec_ctx->get_format = oldCallback;
         av_buffer_unref(&hw_device_ctx);
         enableHWDecode = false;
         return;
@@ -412,6 +417,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
     av_frame = av_frame_alloc();
     if (!av_frame) {
         std::cerr << "Could not allocate buffer on ram" << std::endl;
+        av_codec_ctx->get_format = oldCallback;
         av_buffer_unref(&hw_device_ctx);
         enableHWDecode = false;
         return;
@@ -419,6 +425,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
     hw_av_frame = av_frame_alloc();
     if (!hw_av_frame) {
         std::cerr << "Could not allocate buffer on ram" << std::endl;
+        av_codec_ctx->get_format = oldCallback;
         av_buffer_unref(&hw_device_ctx);
         enableHWDecode = false;
         return;
