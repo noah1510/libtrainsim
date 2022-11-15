@@ -71,7 +71,7 @@ namespace libtrainsim{
             
             //signal if hardware decoding should be used
             bool enableHWDecode = false;
-            //The Hardware decoding context
+            //The Hardware device decoding context
             AVBufferRef* hw_device_ctx = NULL;
             //The most recently accelerator decoded frame
             AVFrame* hw_av_frame = NULL;
