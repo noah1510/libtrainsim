@@ -178,26 +178,17 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     }
     
     //init the hardware decoding
-    //initHWDecoding(av_codec);
-    
-    //check if hardware acceleration is actually used
-    if (av_codec_ctx->hwaccel != NULL){
-        std::cout << "HW accel IN USE: " << av_codec_ctx->hwaccel->name << std::endl;
-    }else{
-        std::cout << "No HW accel IN USE" << std::endl;
-    }
+    initHWDecoding(av_codec);
     
     if (avcodec_open2(av_codec_ctx, av_codec, NULL) < 0) {
         throw std::runtime_error("Couldn't open codec");
     }
 
-    av_frame = av_frame_alloc();
-    if (!av_frame) {
-        throw std::runtime_error("Couldn't allocate AVFrame");
-    }
-    hw_av_frame = av_frame_alloc();
-    if (!hw_av_frame) {
-        throw std::runtime_error("Couldn't allocate hardware AVFrame");
+    if(!enableHWDecode){
+        hw_av_frame = av_frame_alloc();
+        if (!hw_av_frame) {
+            throw std::runtime_error("Couldn't allocate hardware AVFrame");
+        }
     }
     av_packet = av_packet_alloc();
     if (!av_packet) {
@@ -305,17 +296,20 @@ libtrainsim::Video::videoReader::~videoReader() {
         renderThread.wait();
         renderThread.get();
     }
-    if(hw_device_ctx != NULL){
-        av_buffer_unref(&hw_device_ctx);
-    }
-    
+  
     sws_freeContext(sws_scaler_ctx);
     avformat_close_input(&av_format_ctx);
     avformat_free_context(av_format_ctx);
     av_frame_free(&av_frame);
-    av_frame_free(&hw_av_frame);
     av_packet_free(&av_packet);
     avcodec_free_context(&av_codec_ctx);
+    
+    if(enableHWDecode){
+        av_frame_free(&hw_av_frame);  
+        if(hw_device_ctx != NULL){
+            av_buffer_unref(&hw_device_ctx);
+        }
+    }
 }
 
 void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
@@ -363,7 +357,6 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
         enableHWDecode = false;
         return;
     }
-    
     av_codec_ctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
     auto* hw_frames_const = av_hwdevice_get_hwframe_constraints(hw_device_ctx, NULL);
 
@@ -375,7 +368,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
         return;
     }
 
-    //find if the gpu can convert to RGB
+    //find if the gpu can convert to YUV
 	enum AVPixelFormat *tmp_pix_fmt;
     for (tmp_pix_fmt = hw_frames_const->valid_sw_formats; *tmp_pix_fmt != AV_PIX_FMT_NONE; tmp_pix_fmt++){
         if (*tmp_pix_fmt == AV_PIX_FMT_YUV420P){
@@ -388,6 +381,21 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
     /* GPU is incapable to convert to YUV420p to us, lets give up. */
     if (*tmp_pix_fmt == AV_PIX_FMT_NONE){
         std::cerr << "Your HW device do not support conversion to YUV420p!" << std::endl;
+        av_buffer_unref(&hw_device_ctx);
+        enableHWDecode = false;
+        return;
+    }
+    
+    av_frame = av_frame_alloc();
+    if (!av_frame) {
+        std::cerr << "Could not allocate buffer on ram" << std::endl;
+        av_buffer_unref(&hw_device_ctx);
+        enableHWDecode = false;
+        return;
+    }
+    hw_av_frame = av_frame_alloc();
+    if (!hw_av_frame) {
+        std::cerr << "Could not allocate buffer on ram" << std::endl;
         av_buffer_unref(&hw_device_ctx);
         enableHWDecode = false;
         return;
@@ -415,7 +423,7 @@ void libtrainsim::Video::videoReader::readNextFrame() {
             throw std::runtime_error("Failed to decode packet: " + makeAVError(response));
         }
 
-        response = avcodec_receive_frame(av_codec_ctx, av_frame);
+        response = avcodec_receive_frame(av_codec_ctx, hw_av_frame);
         if (response == AVERROR(EAGAIN)) {
             av_packet_unref(av_packet);
             continue;
@@ -425,6 +433,31 @@ void libtrainsim::Video::videoReader::readNextFrame() {
             throw std::runtime_error("reached EOF");
         }else if (response < 0) {
             throw std::runtime_error("Failed to decode packet" + makeAVError(response));
+        }
+        
+        if (enableHWDecode){
+            /* GPU, receive data from GPU to CPU and convert. */
+            av_frame->format = AV_PIX_FMT_YUV420P;
+            response = av_hwframe_transfer_data(av_frame, hw_av_frame, 0);
+
+            if (response < 0){
+                av_frame_unref(hw_av_frame);
+                throw std::runtime_error("Error while transfering GPU frame to CPU. " + makeAVError(response));
+            }
+
+            /*
+             * Looks like av_hwframe_transfer_data() does not copy other
+             * data from the frame besides the buffer, so we need to
+             * copy the PTS manually.
+             */
+            av_frame->pts = hw_av_frame->pts;
+            av_frame->best_effort_timestamp = hw_av_frame->best_effort_timestamp;
+
+            /* unref src (GPU frame, since we already use it). */
+            av_frame_unref(hw_av_frame);
+        }else{
+            //Frame is already on the CPU
+            av_frame = hw_av_frame;
         }
 
         av_packet_unref(av_packet);
@@ -453,7 +486,7 @@ void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame
 
     std::shared_lock<std::shared_mutex> lock{contextMutex};
     
-    auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
+    auto source_pix_fmt = enableHWDecode ? AV_PIX_FMT_YUV420P : correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
     sws_scaler_ctx = sws_getCachedContext(
         sws_scaler_ctx,
         renderSize.x(), 
