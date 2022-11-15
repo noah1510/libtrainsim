@@ -363,6 +363,12 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
         if(selectedConfig != NULL){break;};
     }
     
+    if(selectedConfig == NULL){
+        std::cerr << "No supported hardware decoder found." << std::endl;
+        enableHWDecode = false;
+        return;
+    }
+    
     //load the hw context
     hw_pix_fmt = selectedConfig->pix_fmt;
     /* Callback pixel format. */
