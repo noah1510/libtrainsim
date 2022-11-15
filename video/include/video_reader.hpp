@@ -76,7 +76,7 @@ namespace libtrainsim{
             //The most recently accelerator decoded frame
             AVFrame* hw_av_frame = NULL;
             //A list with which hardware decode backend to prefer
-            const std::array<AVHWDeviceType, 11> hardwareBackendPrioList = {
+            const std::vector<AVHWDeviceType> hardwareBackendPrioList = {
                 AV_HWDEVICE_TYPE_VDPAU,
                 AV_HWDEVICE_TYPE_CUDA,
                 AV_HWDEVICE_TYPE_VAAPI,
