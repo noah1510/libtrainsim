@@ -8,6 +8,7 @@
 #include <chrono>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 #include <nlohmann/json.hpp>
 
 namespace libtrainsim{
