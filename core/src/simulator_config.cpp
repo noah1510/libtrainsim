@@ -59,12 +59,12 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
         tracks.reserve(dat.size());
         
         //unsigned int n_threads = std::thread::hardware_concurrency();
-        std::vector< std::future<libtrainsim::core::Track> > loadingQueue;
+        //std::vector< std::future<libtrainsim::core::Track> > loadingQueue;
         
         for(size_t i = 0;i < dat.size();i++){
             if(dat[i].is_string()){
                 std::filesystem::path loc{dat[i].get<std::string>()};
-                loadingQueue.emplace_back( std::async(std::launch::async, [p,loc,lazyLoad](){return libtrainsim::core::Track(p/loc, lazyLoad);} ) );
+                tracks.emplace_back(libtrainsim::core::Track(p/loc, lazyLoad));
             }else if(dat[i].is_object()){
                 //construct track from json object
             }else{
@@ -72,6 +72,7 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
             }
         }
         
+        /*
         for(auto& v:loadingQueue){
             if(!v.valid()){
                 throw std::runtime_error("got a non valid future 1");
@@ -82,7 +83,7 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
             }
             auto val = v.get();
             tracks.emplace_back(val);
-        }
+        }*/
         
     }catch(...){
         std::throw_with_nested(std::runtime_error("error reading tracks"));
