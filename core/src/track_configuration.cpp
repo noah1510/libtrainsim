@@ -216,19 +216,19 @@ void Track::parseJsonData(){
             
             for(auto _dat : stops.value() ){
                 
-                auto name = Helper::getJsonField<std::string>(_dat, "name");
-                auto loc = Helper::getJsonField<double>(_dat, "location");
-                auto ty = Helper::getJsonField<std::string>(_dat, "type");
+                auto _name = Helper::getJsonField<std::string>(_dat, "name");
+                auto _loc = Helper::getJsonField<double>(_dat, "location");
+                auto _ty = Helper::getJsonField<std::string>(_dat, "type");
                 
-                auto location = sakurajin::unit_system::base::length{loc};
-                stopTypes type;
-                if(ty == "station"){
-                    type = station;
+                auto _location = sakurajin::unit_system::base::length{_loc};
+                stopTypes _type;
+                if(_ty == "station"){
+                    _type = station;
                 }else{
-                    throw std::runtime_error("Invalid stop type:" + ty);
+                    throw std::runtime_error("Invalid stop type:" + _ty);
                 }
                 
-                stopsData.emplace_back(stopDataPoint{name, location, type});
+                stopsData.emplace_back(stopDataPoint{_name, _location, _type});
             }
         }
         
