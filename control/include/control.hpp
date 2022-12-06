@@ -1,15 +1,15 @@
 #pragma once
 
-#include <string>
 #include <chrono>
-#include <thread>
 #include <memory>
+#include <string>
+#include <thread>
 
-#include "types.hpp"
-#include "libtrainsim_config.hpp"
 #include "input_axis.hpp"
 #include "keymap.hpp"
+#include "libtrainsim_config.hpp"
 #include "serialcontrol.hpp"
+#include "types.hpp"
 
 #ifdef HAS_VIDEO_SUPPORT
     #if __has_include("video.hpp")

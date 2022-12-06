@@ -4,10 +4,8 @@
 #include <shared_mutex>
 
 using namespace libtrainsim::core;
-using namespace sakurajin::unit_system::common;
-using namespace sakurajin::unit_system::common::literals;
 using namespace sakurajin::unit_system;
-using namespace sakurajin::unit_system::base::literals;
+using namespace sakurajin::unit_system::literals;
 
 train_properties::train_properties(const std::filesystem::path& URI){
     if(!std::filesystem::exists(URI)){
@@ -69,7 +67,7 @@ void train_properties::loadJsonData(const nlohmann::json& data_json){
     }
 
     try{
-        mass = sakurajin::unit_system::base::mass{ Helper::getJsonField<double>(data_json,"mass") };
+        mass = sakurajin::unit_system::mass{ Helper::getJsonField<double>(data_json,"mass") };
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not read mass"));
     }
@@ -96,13 +94,13 @@ void train_properties::loadJsonData(const nlohmann::json& data_json){
     }
 
     try{
-        maxPower = sakurajin::unit_system::common::power{ Helper::getJsonField<double>(data_json, "maxPower"), powerUnit };
+        maxPower = sakurajin::unit_system::power{ Helper::getJsonField<double>(data_json, "maxPower"), powerUnit };
     }catch(...){
         std::throw_with_nested(std::runtime_error("error reading max power"));
     }
     
     try{
-        surfaceArea = sakurajin::unit_system::common::area{Helper::getJsonField<double>(data_json, "surfaceArea"), 1.0};
+        surfaceArea = sakurajin::unit_system::area{Helper::getJsonField<double>(data_json, "surfaceArea"), 1.0};
     }catch(...){
         std::throw_with_nested(std::runtime_error("error reading train surface area"));
     }
@@ -114,13 +112,13 @@ void train_properties::loadJsonData(const nlohmann::json& data_json){
     }
     
     try{
-        wagonLength = sakurajin::unit_system::base::length{Helper::getJsonField<double>(data_json, "wagonLength"),1.0};
+        wagonLength = sakurajin::unit_system::length{Helper::getJsonField<double>(data_json, "wagonLength"),1.0};
     }catch(...){
         std::throw_with_nested(std::runtime_error("error reading length of wagons"));
     }
     
     try{
-        driverLength = sakurajin::unit_system::base::length{Helper::getJsonField<double>(data_json, "driverLength"),1.0};
+        driverLength = sakurajin::unit_system::length{Helper::getJsonField<double>(data_json, "driverLength"),1.0};
     }catch(...){
         std::throw_with_nested(std::runtime_error("error reading length of driver"));
     }
@@ -152,11 +150,11 @@ const std::string& train_properties::getName() const{
     return name;
 }
 
-base::mass train_properties::getMass() const{
+mass train_properties::getMass() const{
     return mass;
 }
 
-common::power train_properties::getMaxPower() const{
+power train_properties::getMaxPower() const{
     return maxPower;
 }
 
@@ -169,11 +167,11 @@ double train_properties::getTrackDrag() const{
 }
 
 
-sakurajin::unit_system::base::length libtrainsim::core::train_properties::getDriverLength() const {
+sakurajin::unit_system::length libtrainsim::core::train_properties::getDriverLength() const {
     return driverLength;
 }
 
-sakurajin::unit_system::common::area libtrainsim::core::train_properties::getSurfaceArea() const {
+sakurajin::unit_system::area libtrainsim::core::train_properties::getSurfaceArea() const {
     return surfaceArea;
 }
 
@@ -181,7 +179,7 @@ libtrainsim::core::trainType libtrainsim::core::train_properties::getTrainType()
     return type;
 }
 
-sakurajin::unit_system::base::length libtrainsim::core::train_properties::getWagonLength() const {
+sakurajin::unit_system::length libtrainsim::core::train_properties::getWagonLength() const {
     return wagonLength;
 }
 

@@ -8,7 +8,7 @@
 
 #include "wiper.hpp"
 
-#include "speed.hpp"
+#include "unit_system.hpp"
 
 #include <chrono>
 #include <random>
@@ -92,7 +92,7 @@ namespace libtrainsim{
             
             std::shared_ptr<libtrainsim::Video::texture> getOutputTexture();
             
-            void updateTrainSpeed(sakurajin::unit_system::common::speed newTrainSpeed);
+            void updateTrainSpeed(sakurajin::unit_system::speed newTrainSpeed);
             
             std::shared_ptr<wiper> getWiper();
             

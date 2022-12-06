@@ -10,7 +10,7 @@
 #include "dimensions.hpp"
 #include "tabPage.hpp"
 
-#include "base.hpp"
+#include "unit_system.hpp"
 
 extern "C" {
     #include <libavcodec/avcodec.h>
@@ -98,7 +98,7 @@ namespace libtrainsim{
             /**
              * @brief all of the render times of the last render requests.
              */
-            std::vector<sakurajin::unit_system::base::time_si> renderTimes;
+            std::vector<sakurajin::unit_system::time_si> renderTimes;
             
             /**
              * @brief the number of the currently displayed frame
@@ -262,7 +262,7 @@ namespace libtrainsim{
              * @brief get the times the worker needed to decode its decode requests
              * if not new frame was decoded the return has no value.
              */
-            std::optional<std::vector<sakurajin::unit_system::base::time_si>> getNewRendertimes();
+            std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes();
         };
     }
 }

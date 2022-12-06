@@ -211,7 +211,7 @@ void libtrainsim::Video::videoManager::removeTexture ( const std::string& textur
     throw std::invalid_argument("a texture with the name '" + textureName + "' does not exist");
 }
 
-std::optional<std::vector<sakurajin::unit_system::base::time_si>> libtrainsim::Video::videoManager::getNewRendertimes() {
+std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::videoManager::getNewRendertimes() {
     return decode->getNewRendertimes();
 }
 

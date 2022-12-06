@@ -1,7 +1,7 @@
 #include "statusDisplay.hpp"
 
-using namespace sakurajin::unit_system::base::literals;
-using namespace sakurajin::unit_system::common::literals;
+using namespace sakurajin::unit_system;
+using namespace sakurajin::unit_system::literals;
 using namespace std::literals;
 
 libtrainsim::extras::statusDisplaySettings::statusDisplaySettings(statusDisplay& disp):tabPage{"statusDisplay"}, display{disp}{}
@@ -92,35 +92,35 @@ void libtrainsim::extras::statusDisplay::update() {
     
 }
 
-void libtrainsim::extras::statusDisplay::appendFrametime ( sakurajin::unit_system::base::time_si frametime ) {
-    frametime = sakurajin::unit_system::unit_cast(frametime, sakurajin::unit_system::prefix::milli);
+void libtrainsim::extras::statusDisplay::appendFrametime ( sakurajin::unit_system::time_si frametime ) {
+    frametime = sakurajin::unit_system::unit_cast(frametime, multiplier(std::milli::type{}));
     appendToGraph("frametimes", frametime.value);
 }
 
-void libtrainsim::extras::statusDisplay::appendRendertime ( sakurajin::unit_system::base::time_si rendertime ) {
-    rendertime = sakurajin::unit_system::unit_cast(rendertime, sakurajin::unit_system::prefix::milli);
+void libtrainsim::extras::statusDisplay::appendRendertime ( sakurajin::unit_system::time_si rendertime ) {
+    rendertime = sakurajin::unit_system::unit_cast(rendertime, multiplier(std::milli::type{}));
     appendToGraph("rendertimes", rendertime.value);
 }
 
 
-void libtrainsim::extras::statusDisplay::changeBeginPosition ( sakurajin::unit_system::base::length newBeginPosition ) {
+void libtrainsim::extras::statusDisplay::changeBeginPosition ( sakurajin::unit_system::length newBeginPosition ) {
     beginPosition = sakurajin::unit_system::unit_cast(newBeginPosition, 1);
 }
 
-void libtrainsim::extras::statusDisplay::changePosition ( sakurajin::unit_system::base::length newPosition ) {
+void libtrainsim::extras::statusDisplay::changePosition ( sakurajin::unit_system::length newPosition ) {
     currentPosition = sakurajin::unit_system::unit_cast(newPosition, 1);
 }
 
-void libtrainsim::extras::statusDisplay::changeEndPosition ( sakurajin::unit_system::base::length newEndPosition ) {
+void libtrainsim::extras::statusDisplay::changeEndPosition ( sakurajin::unit_system::length newEndPosition ) {
     endPosition = sakurajin::unit_system::unit_cast(newEndPosition, 1);
 }
 
-void libtrainsim::extras::statusDisplay::setAcceleration ( sakurajin::unit_system::common::acceleration newAcceleration ) {
+void libtrainsim::extras::statusDisplay::setAcceleration ( sakurajin::unit_system::acceleration newAcceleration ) {
     auto acc = sakurajin::unit_system::unit_cast(newAcceleration, 1);
     appendToGraph("acceleration", acc.value);
 }
 
-void libtrainsim::extras::statusDisplay::setVelocity ( sakurajin::unit_system::common::speed newVelocity ) {
+void libtrainsim::extras::statusDisplay::setVelocity ( sakurajin::unit_system::speed newVelocity ) {
     auto vel = sakurajin::unit_system::unit_cast(newVelocity, 1);
     appendToGraph("velocity", vel.value);
 }

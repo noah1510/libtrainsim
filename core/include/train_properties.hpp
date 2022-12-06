@@ -13,8 +13,7 @@
 
 #include "types.hpp"
 
-#include "base.hpp"
-#include "common.hpp"
+#include "unit_system.hpp"
 #include "helper.hpp"
 
 #include <filesystem>
@@ -48,17 +47,17 @@ namespace libtrainsim {
             /**
              * @brief The mass of the train in kg.
              */
-            sakurajin::unit_system::base::mass mass;
+            sakurajin::unit_system::mass mass;
 
             /**
             * @brief The maximum Power of a train in W
             */
-            sakurajin::unit_system::common::power maxPower;
+            sakurajin::unit_system::power maxPower;
 
             /**
              * @brief the surface area of the train
              */
-            sakurajin::unit_system::common::area surfaceArea;
+            sakurajin::unit_system::area surfaceArea;
             
             /**
              * @brief the number of wagon the train has
@@ -68,12 +67,12 @@ namespace libtrainsim {
             /**
              * @brief the length of each wagon
              */
-            sakurajin::unit_system::base::length wagonLength;
+            sakurajin::unit_system::length wagonLength;
             
             /**
              * @brief the length of the driving part of the train
              */
-            sakurajin::unit_system::base::length driverLength;
+            sakurajin::unit_system::length driverLength;
             
             /**
              * The type of this train.
@@ -110,17 +109,17 @@ namespace libtrainsim {
             /**
              * @brief The mass of the train in kg.
              */
-            sakurajin::unit_system::base::mass getMass() const;
+            sakurajin::unit_system::mass getMass() const;
 
             /**
              * @brief The maximum of Power in W the Train can have.
              */
-            sakurajin::unit_system::common::power getMaxPower() const;
+            sakurajin::unit_system::power getMaxPower() const;
 
             /**
              * @brief get the effective surface area of the train
              */
-            sakurajin::unit_system::common::area getSurfaceArea() const;
+            sakurajin::unit_system::area getSurfaceArea() const;
             
             /**
              * @brief get the number of wagon the train has 8excluding the driver part
@@ -130,12 +129,12 @@ namespace libtrainsim {
             /**
              *  @brief get the length of each wagon
              */
-            sakurajin::unit_system::base::length getWagonLength() const;
+            sakurajin::unit_system::length getWagonLength() const;
 
             /**
              * @brief get the length of the driver part of the train
              */
-            sakurajin::unit_system::base::length getDriverLength() const;
+            sakurajin::unit_system::length getDriverLength() const;
             
             /**
              * @brief get the type this train has

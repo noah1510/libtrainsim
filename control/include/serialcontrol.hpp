@@ -1,15 +1,21 @@
 #pragma once
 
-#include <chrono>
-#include "common.hpp"
-#include "core/include/input_axis.hpp"
 #include "helper.hpp"
-#include <rs232.hpp>
-#include <memory>
-#include <vector>
-#include <mutex>
-#include <shared_mutex>
+#include "input_axis.hpp"
+#include "unit_system.hpp"
+
+#include <chrono>
+#include <fstream>
 #include <future>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <nlohmann/json.hpp>
+#include <rs232.hpp>
+#include <shared_mutex>
+#include <string>
+#include <thread>
+#include <vector>
 
 namespace libtrainsim{
     namespace control{

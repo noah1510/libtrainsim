@@ -1,5 +1,4 @@
 #include "video_reader.hpp"
-#include "prefix.hpp"
 
 using namespace sakurajin::unit_system;
 using namespace std::literals;
@@ -256,7 +255,8 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
 
                 //append the new rendertime
                 EOF_Mutex.lock();
-                renderTimes.emplace_back(unit_cast(libtrainsim::core::Helper::now()-begin, prefix::milli));
+                auto dt = libtrainsim::core::Helper::now()-begin;
+                renderTimes.emplace_back(unit_cast(dt, multiplier(std::milli::type{})));
                 EOF_Mutex.unlock(); 
                 
             }catch(const std::exception& e){
@@ -407,7 +407,7 @@ void libtrainsim::Video::videoReader::requestFrame(uint64_t frame_num) {
     }
 }
 
-std::optional<std::vector<sakurajin::unit_system::base::time_si>> libtrainsim::Video::videoReader::getNewRendertimes() {
+std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::videoReader::getNewRendertimes() {
     EOF_Mutex.lock();
     auto times = renderTimes;
     renderTimes.clear();

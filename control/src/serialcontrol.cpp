@@ -1,12 +1,4 @@
 #include "serialcontrol.hpp"
-#include <rs232.hpp>
-#include <nlohmann/json.hpp>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <chrono>
-#include <thread>
-#include <vector>
 
 using namespace libtrainsim;
 using namespace libtrainsim::control;

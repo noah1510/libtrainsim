@@ -1,7 +1,7 @@
 #include "snowFx.hpp"
 
 using namespace std::literals;
-using namespace sakurajin::unit_system::common::literals;
+using namespace sakurajin::unit_system::literals;
 
 libtrainsim::extras::snowFx::snowFx(std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf){
     
@@ -275,7 +275,7 @@ void libtrainsim::extras::snowFx::updateTexture() {
     
 }
 
-void libtrainsim::extras::snowFx::updateTrainSpeed ( sakurajin::unit_system::common::speed newTrainSpeed ) {
+void libtrainsim::extras::snowFx::updateTrainSpeed ( sakurajin::unit_system::speed newTrainSpeed ) {
     newTrainSpeed = sakurajin::unit_system::unit_cast(newTrainSpeed,1.0);
     auto& val = newTrainSpeed.value;
     val = val < 1 ? 1 : val;

@@ -39,7 +39,7 @@ incdir = include_directories('include','..')
 core_deps = [
     dependency('threads'),
     dependency('nlohmann_json', required: true, fallback: ['nlohmann_json','nlohmann_json_dep']),
-    dependency('unit-system-common', required: true, fallback: 'unit-system'),
+    dependency('unit-system', required: true, fallback: 'unit-system'),
 ]
 
 libtrainsim_core = library(

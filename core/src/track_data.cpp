@@ -4,8 +4,8 @@
 #include <fstream>
 
 using namespace libtrainsim::core;
-using namespace sakurajin::unit_system::base;
-using namespace sakurajin::unit_system::base::literals;
+using namespace sakurajin::unit_system;
+using namespace sakurajin::unit_system::literals;
 
 Track_data_point::Track_data_point(
     uint64_t _frame, 
@@ -29,7 +29,7 @@ std::optional<double> libtrainsim::core::Track_data_point::frictionMultiplier() 
     return FrictionMultiplier;
 }
 
-sakurajin::unit_system::base::length libtrainsim::core::Track_data_point::location() const {
+sakurajin::unit_system::length libtrainsim::core::Track_data_point::location() const {
     return Location;
 }
 
@@ -147,7 +147,7 @@ uint64_t Track_data::getFrame_c(length location) const{
     return index;
 }
 
-const libtrainsim::core::Track_data_point & libtrainsim::core::Track_data::getDataPointAt ( sakurajin::unit_system::base::length location ) const {
+const libtrainsim::core::Track_data_point & libtrainsim::core::Track_data::getDataPointAt ( sakurajin::unit_system::length location ) const {
     return data[getFrame_c(location)];
 }
 

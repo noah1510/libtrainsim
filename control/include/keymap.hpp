@@ -2,8 +2,8 @@
 
 #include <map>
 #include <string>
-#include <vector>
 #include <tuple>
+#include <vector>
 
 namespace libtrainsim {
     namespace control{

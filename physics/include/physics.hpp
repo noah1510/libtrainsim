@@ -11,7 +11,7 @@
 #include "input_axis.hpp"
 #include "helper.hpp"
 
-#include "common.hpp"
+#include "unit_system.hpp"
 
 namespace libtrainsim{
     class physics{
@@ -22,33 +22,33 @@ namespace libtrainsim{
             /**
             * @brief The current acceleration of the train in ms^-2.
             */
-            sakurajin::unit_system::common::acceleration acceleration;
+            sakurajin::unit_system::acceleration current_acceleration;
 
             /**
             * @brief The current velocity of the train in ms^-1.
             */
-            sakurajin::unit_system::common::speed velocity;
+            sakurajin::unit_system::speed velocity;
 
             /**
             * @brief The highest possible velocity of train.The value can be changed to any other value which makes sense.
             * In the future this can be calculated by the resistance forces of Track and Train as well as the maximum of Trainpower.
             */
-            const sakurajin::unit_system::common::speed MaxVelocity{85.0};
+            const sakurajin::unit_system::speed MaxVelocity{85.0};
 
             /**
             * @brief The current location of the train at the track.
             */
-            sakurajin::unit_system::base::length location;
+            sakurajin::unit_system::length location;
 
             /**
             * @brief The current Traction of the Train
             */
-            sakurajin::unit_system::common::force currTraction;
+            sakurajin::unit_system::force currTraction;
 
             /**
             * @brief The current Power of the Train. This variable is calculated and therefore not a const variable
             */
-            sakurajin::unit_system::common::power currPower;
+            sakurajin::unit_system::power currPower;
 
             /**
             * @brief The current Speedlevel of the Train. This variable is set by playerinput, the default value is 0.0
@@ -72,14 +72,14 @@ namespace libtrainsim{
             * @brief This function calculates the maximum amount of the Force the Train can apply. This amount depends on the mass of the Train and the resistance force
             * between train and track.
             */
-            sakurajin::unit_system::common::force calcMaxForce(sakurajin::unit_system::base::mass mass, sakurajin::unit_system::common::acceleration g, long double train_drag)const;
+            sakurajin::unit_system::force calcMaxForce(sakurajin::unit_system::mass mass, sakurajin::unit_system::acceleration g, long double train_drag)const;
 
             /**
             * @brief This function calculates the whole amount of the resistance forces and adds them together. Therefore this function uses the different types of drag coefficients from the traindata and the trackdata,
             * Furthermore it uses the mass of the train as well as the location to get the train_drag coefficient correctly.
             * This function is not implemented yet and it will return 0 by using it.
             */
-            sakurajin::unit_system::common::force calcDrag();
+            sakurajin::unit_system::force calcDrag();
             
             //true if the emergency break is activated.
             //the train has to break full until it is stopped, after that it is allowed to accellerate again.
@@ -102,28 +102,28 @@ namespace libtrainsim{
             /**
             * @brief This function returns the current velocity of the train. If autoTick is true, this function will automatically call tick before returning the value.
             */
-            sakurajin::unit_system::common::speed getVelocity();
+            sakurajin::unit_system::speed getVelocity();
 
             /**
             * @brief This function returns the current location of the train along the track.
             * If autoTick is true, this function will automatically call tick before returning the value.
             */
-            sakurajin::unit_system::base::length getLocation();
+            sakurajin::unit_system::length getLocation();
 
             /**
             * @brief This function returns the current acceleration of the train. If autoTick is true, this function will automatically call tick before returning the value.
             */
-            sakurajin::unit_system::common::acceleration getAcceleration();
+            sakurajin::unit_system::acceleration getAcceleration();
 
             /**
             * @brief This function returns the current traction of the train. If autoTick is true, this function will automatically call tick before returning the value.
             */
-            sakurajin::unit_system::common::force getTraction();
+            sakurajin::unit_system::force getTraction();
 
             /**
             * @brief This function returns the current power of the train. If autoTick is true, this function will automatically call tick before returning the value.
             */
-            sakurajin::unit_system::common::power getCurrPower();
+            sakurajin::unit_system::power getCurrPower();
 
             /**
              * @brief activate the emergency break

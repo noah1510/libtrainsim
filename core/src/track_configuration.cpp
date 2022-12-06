@@ -5,8 +5,7 @@
 #include <fstream>
 
 using namespace libtrainsim::core;
-using namespace sakurajin::unit_system::common;
-using namespace sakurajin::unit_system::base;
+using namespace sakurajin::unit_system;
 
 const length& libtrainsim::core::undergorundDataPoint::begin() const {
     return std::get<0>(*this);
@@ -16,14 +15,14 @@ const length& libtrainsim::core::undergorundDataPoint::end() const {
     return std::get<1>(*this);
 }
 
-const sakurajin::unit_system::common::area& libtrainsim::core::undergorundDataPoint::area() const {
+const sakurajin::unit_system::area& libtrainsim::core::undergorundDataPoint::area() const {
     return std::get<2>(*this);
 }
 
 libtrainsim::core::undergorundDataPoint::undergorundDataPoint(
-    sakurajin::unit_system::base::length _begin,
-    sakurajin::unit_system::base::length _end,
-    sakurajin::unit_system::common::area _area
+    sakurajin::unit_system::length _begin,
+    sakurajin::unit_system::length _end,
+    sakurajin::unit_system::area _area
 ):tuple{_begin, _end, _area}{}
 
 
@@ -31,7 +30,7 @@ const std::string & libtrainsim::core::stopDataPoint::name() const {
     return std::get<0>(*this);
 }
 
-const sakurajin::unit_system::base::length & libtrainsim::core::stopDataPoint::position() const {
+const sakurajin::unit_system::length & libtrainsim::core::stopDataPoint::position() const {
     return std::get<1>(*this);
 }
 
@@ -41,7 +40,7 @@ const libtrainsim::core::stopTypes & libtrainsim::core::stopDataPoint::type() co
 
 libtrainsim::core::stopDataPoint::stopDataPoint (
     std::string _name, 
-    sakurajin::unit_system::base::length _position, 
+    sakurajin::unit_system::length _position, 
     libtrainsim::core::stopTypes _type 
 ): tuple{_name,_position,_type}{}
 
@@ -193,13 +192,13 @@ void Track::parseJsonData(){
                 auto en = Helper::getJsonField<double>(_dat, "end");
                 auto _ar = Helper::getOptionalJsonField<double>(_dat, "tunnelArea");
                 
-                auto start = sakurajin::unit_system::base::length{sta};
-                auto end = sakurajin::unit_system::base::length{en};
-                sakurajin::unit_system::common::area area;
+                auto start = sakurajin::unit_system::length{sta};
+                auto end = sakurajin::unit_system::length{en};
+                sakurajin::unit_system::area area;
                 if(_ar.has_value()){
-                    area = sakurajin::unit_system::common::area{_ar.value()};
+                    area = sakurajin::unit_system::area{_ar.value()};
                 }else{
-                    area = std::acos(0) * sakurajin::unit_system::common::square(3.5_m);
+                    area = std::acos(0) * sakurajin::unit_system::square(3.5_m);
                 }
                 
                 undergroundData.emplace_back(undergorundDataPoint{start, end, area});
@@ -220,7 +219,7 @@ void Track::parseJsonData(){
                 auto _loc = Helper::getJsonField<double>(_dat, "location");
                 auto _ty = Helper::getJsonField<std::string>(_dat, "type");
                 
-                auto _location = sakurajin::unit_system::base::length{_loc};
+                auto _location = sakurajin::unit_system::length{_loc};
                 stopTypes _type;
                 if(_ty == "station"){
                     _type = station;
@@ -292,9 +291,9 @@ std::filesystem::path Track::getVideoFilePath() const{
 
 std::tuple<
     bool, 
-    sakurajin::unit_system::common::area, 
-    sakurajin::unit_system::base::length
-> libtrainsim::core::Track::getUndergroundInfo ( sakurajin::unit_system::base::length position ) const {
+    sakurajin::unit_system::area, 
+    sakurajin::unit_system::length
+> libtrainsim::core::Track::getUndergroundInfo ( sakurajin::unit_system::length position ) const {
     auto end = undergroundData.size();
     if(end == 0){return {false, 0_m2, 0_m};}
     
@@ -335,7 +334,7 @@ void libtrainsim::core::Track::ensure() {
     }
 }
 
-void libtrainsim::core::Track::setFirstLocation ( sakurajin::unit_system::base::length pos) {
+void libtrainsim::core::Track::setFirstLocation ( sakurajin::unit_system::length pos) {
     try{
         ensure();
         startingPoint = sakurajin::unit_system::clamp(pos, track_dat->firstLocation(), track_dat->lastLocation());
@@ -344,7 +343,7 @@ void libtrainsim::core::Track::setFirstLocation ( sakurajin::unit_system::base::
     }
 }
 
-void libtrainsim::core::Track::setLastLocation ( sakurajin::unit_system::base::length pos) {
+void libtrainsim::core::Track::setLastLocation ( sakurajin::unit_system::length pos) {
     try{
         ensure();
         endPoint = sakurajin::unit_system::clamp(pos, track_dat->firstLocation(), track_dat->lastLocation());

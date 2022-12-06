@@ -3,8 +3,7 @@
 using namespace libtrainsim;
 using namespace libtrainsim::core;
 
-using namespace sakurajin::unit_system::base::literals;
-using namespace sakurajin::unit_system::common::literals;
+using namespace sakurajin::unit_system::literals;
 using namespace sakurajin::unit_system;
 
 physics::physics(const Track& conf, bool _autoTick):config(conf),autoTick(_autoTick){
@@ -12,7 +11,7 @@ physics::physics(const Track& conf, bool _autoTick):config(conf),autoTick(_autoT
     std::scoped_lock<std::shared_mutex> lock1(mutex_data);
     velocity = 0.0_mps;
     location = config.firstLocation();
-    acceleration = 0.0_mps2;
+    current_acceleration = 0.0_mps2;
 
 
 
@@ -32,22 +31,22 @@ void physics::emergencyBreak(){
     isEmergencyBreaking = true;
 }
 
-common::speed physics::getVelocity(){
+speed physics::getVelocity(){
     if(autoTick){tick();};
     std::shared_lock<std::shared_mutex> lock(mutex_data);
     return velocity;
 }
 
-base::length physics::getLocation(){
+length physics::getLocation(){
     if(autoTick){tick();};
     std::shared_lock<std::shared_mutex> lock(mutex_data);
     return location;
 }
 
-common::acceleration physics::getAcceleration(){
+acceleration physics::getAcceleration(){
     if(autoTick){tick();};
       std::shared_lock<std::shared_mutex> lock(mutex_data);
-      return acceleration;
+      return current_acceleration;
 }
 
 void physics::setSpeedlevel(core::input_axis slvl){
@@ -56,24 +55,24 @@ void physics::setSpeedlevel(core::input_axis slvl){
     speedlevel = slvl.get();
 }
 
-common::force physics::getTraction(){
+force physics::getTraction(){
     if(autoTick){tick();};
     std::shared_lock<std::shared_mutex> lock(mutex_data);
     return currTraction;
 }
 
-common::power physics::getCurrPower(){
+power physics::getCurrPower(){
   if(autoTick){tick();};
   std::shared_lock<std::shared_mutex> lock(mutex_data);
   return currPower;
 }
 
-common::force physics::calcMaxForce(base::mass mass, common::acceleration g, long double train_drag)const{
-    common::force maxforce = mass*g*train_drag;
+force physics::calcMaxForce(mass mass, acceleration g, long double train_drag)const{
+    force maxforce = mass*g*train_drag;
     return maxforce;
 }
 
-common::force physics::calcDrag(){
+force physics::calcDrag(){
   return 0_N;
 }
 
@@ -94,12 +93,12 @@ void physics::tick(){
 
     auto new_time = now();
 
-    base::time_si dt = unit_cast(new_time - last_update);
+    time_si dt = unit_cast(new_time - last_update);
 
     //all Variables needed to caclulate the physics
-    sakurajin::unit_system::common::power MaxPower;
-    sakurajin::unit_system::common::force MaxForce;
-    sakurajin::unit_system::base::mass mass;
+    sakurajin::unit_system::power MaxPower;
+    sakurajin::unit_system::force MaxForce;
+    sakurajin::unit_system::mass mass;
     long double air_drag = 0.0;
     long double train_drag = 0.0;
 
@@ -141,9 +140,9 @@ void physics::tick(){
     }
 
     //calculating parameters of movement by current Traction
-    acceleration = currTraction/mass;
-    velocity += acceleration * dt;
-    location += velocity * dt + 0.5 * (acceleration * dt * dt);
+    current_acceleration = currTraction/mass;
+    velocity += current_acceleration * dt;
+    location += velocity * dt + 0.5 * (current_acceleration * dt * dt);
 
     location = clamp(location, config.firstLocation(),config.lastLocation());
     velocity = clamp(velocity,0_mps,MaxVelocity);

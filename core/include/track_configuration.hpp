@@ -13,8 +13,7 @@
 #include "track_data.hpp"
 #include "train_properties.hpp"
 
-#include "length.hpp"
-#include "area.hpp"
+#include "unit_system.hpp"
 #include "helper.hpp"
 
 #include <filesystem>
@@ -28,34 +27,34 @@ namespace libtrainsim{
     namespace core {
         //an underground data point as defined in the [track json documentation](@ref track_format)
         class undergorundDataPoint : public std::tuple<
-            sakurajin::unit_system::base::length,
-            sakurajin::unit_system::base::length,
-            sakurajin::unit_system::common::area
+            sakurajin::unit_system::length,
+            sakurajin::unit_system::length,
+            sakurajin::unit_system::area
         >{
         public:
             /**
              * @brief construct an underground data point
              */
             undergorundDataPoint(
-                sakurajin::unit_system::base::length _begin,
-                sakurajin::unit_system::base::length _end,
-                sakurajin::unit_system::common::area _area
+                sakurajin::unit_system::length _begin,
+                sakurajin::unit_system::length _end,
+                sakurajin::unit_system::area _area
             );
             
             /**
              * @brief the point where the line begins
              */
-            const sakurajin::unit_system::base::length& begin() const;
+            const sakurajin::unit_system::length& begin() const;
             
             /**
              * @brief the point where the line ends
              */
-            const sakurajin::unit_system::base::length& end() const;
+            const sakurajin::unit_system::length& end() const;
             
             /**
              * @brief the point where the line ends
              */
-            const sakurajin::unit_system::common::area& area() const;
+            const sakurajin::unit_system::area& area() const;
         };
 
         //All of the valid stop types which are defined in the [json format documentation](@ref stops_data_format).
@@ -66,7 +65,7 @@ namespace libtrainsim{
         //A class to unpack a stop object specified in the [json format documentation](@ref stops_data_format).
         class stopDataPoint: public std::tuple<
             std::string,
-            sakurajin::unit_system::base::length,
+            sakurajin::unit_system::length,
             stopTypes
         >{
         public:
@@ -75,7 +74,7 @@ namespace libtrainsim{
              */
             stopDataPoint(
                 std::string _name,
-                sakurajin::unit_system::base::length _position,
+                sakurajin::unit_system::length _position,
                 stopTypes _type
             );
             
@@ -83,7 +82,7 @@ namespace libtrainsim{
             const std::string& name() const;
             
             //get the position of the stop
-            const sakurajin::unit_system::base::length& position() const;
+            const sakurajin::unit_system::length& position() const;
             
             //get the type of this stop
             const stopTypes& type() const;
@@ -126,13 +125,13 @@ namespace libtrainsim{
              * @brief The location where the train should start in the beginning.
              *
              */
-            sakurajin::unit_system::base::length startingPoint;
+            sakurajin::unit_system::length startingPoint;
 
             /**
              * @brief The location where the train should end.
              *
              */
-            sakurajin::unit_system::base::length endPoint;
+            sakurajin::unit_system::length endPoint;
 
             /**
              * @brief The name of the track
@@ -193,14 +192,14 @@ namespace libtrainsim{
              *
              * @return double the last location
              */
-            sakurajin::unit_system::base::length lastLocation() const;
+            sakurajin::unit_system::length lastLocation() const;
 
             /**
              * @brief returns the first location of the track.
              *
              * @return double the first location
              */
-            sakurajin::unit_system::base::length firstLocation() const;
+            sakurajin::unit_system::length firstLocation() const;
 
             /**
              * @brief Get the path to the video file.
@@ -224,9 +223,9 @@ namespace libtrainsim{
              */
             std::tuple<
                 bool, 
-                sakurajin::unit_system::common::area, 
-                sakurajin::unit_system::base::length
-            > getUndergroundInfo(sakurajin::unit_system::base::length position) const;
+                sakurajin::unit_system::area, 
+                sakurajin::unit_system::length
+            > getUndergroundInfo(sakurajin::unit_system::length position) const;
             
             /**
              * @brief returns all of the stops this track has defined 
@@ -248,7 +247,7 @@ namespace libtrainsim{
              * @note this function is not needed for operation but can be used to
              * specify at which stop the simulator should close
              */
-            void setLastLocation(sakurajin::unit_system::base::length);
+            void setLastLocation(sakurajin::unit_system::length);
             
             /**
              * @brief set where this track should begin
@@ -256,7 +255,7 @@ namespace libtrainsim{
              * @note this function is not needed for operation but can be used to
              * specify at which stop the simulator should open
              */
-            void setFirstLocation(sakurajin::unit_system::base::length);
+            void setFirstLocation(sakurajin::unit_system::length);
 
         };
     }

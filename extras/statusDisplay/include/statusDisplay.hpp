@@ -1,15 +1,7 @@
 #pragma once
 
 #include "imguiHandler.hpp"
-
-#include "time.hpp"
-#include "length.hpp"
-#include "speed.hpp"
-#include "acceleration.hpp"
-#include "prefix.hpp"
-
-#include <array>
-
+#include "unit_system.hpp"
 #include "input_axis.hpp"
 #include "helper.hpp"
 #include "statusDisplayGraph.hpp"
@@ -52,13 +44,13 @@ namespace libtrainsim{
             std::vector<std::string> defaultGraphNames;
             
             //The position where the track begins
-            sakurajin::unit_system::base::length beginPosition;
+            sakurajin::unit_system::length beginPosition;
             
             //the current position along the track
-            sakurajin::unit_system::base::length currentPosition;
+            sakurajin::unit_system::length currentPosition;
             
             //the position where the track ends
-            sakurajin::unit_system::base::length endPosition;
+            sakurajin::unit_system::length endPosition;
             
           public:
             /**
@@ -86,27 +78,27 @@ namespace libtrainsim{
             /**
              * @brief add a new frametime which will be displayed as the latest value.
              */
-            void appendFrametime(sakurajin::unit_system::base::time_si frametime);
+            void appendFrametime(sakurajin::unit_system::time_si frametime);
             
             /**
              * @brief add a new rendertime which will be displayed as the latest value.
              */
-            void appendRendertime(sakurajin::unit_system::base::time_si rendertime);
+            void appendRendertime(sakurajin::unit_system::time_si rendertime);
             
             /**
              * @brief update the current position of the train, to move the progress bar
              */
-            void changePosition(sakurajin::unit_system::base::length newPosition);
+            void changePosition(sakurajin::unit_system::length newPosition);
             
             /**
              * @brief set the begin position of the track for the progress bar
              */
-            void changeEndPosition(sakurajin::unit_system::base::length newEndPosition);
+            void changeEndPosition(sakurajin::unit_system::length newEndPosition);
             
             /**
              * @brief set the end position of the track for the progress bar
              */
-            void changeBeginPosition(sakurajin::unit_system::base::length newBeginPosition);
+            void changeBeginPosition(sakurajin::unit_system::length newBeginPosition);
             
             /**
              * @brief add a new speedLevel which will be displayed as the latest value.
@@ -116,12 +108,12 @@ namespace libtrainsim{
             /**
              * @brief add a new acceleration which will be displayed as the latest value.
              */
-            void setAcceleration(sakurajin::unit_system::common::acceleration newAcceleration);
+            void setAcceleration(sakurajin::unit_system::acceleration newAcceleration);
             
             /**
              * @brief add a new velocity which will be displayed as the latest value.
              */
-            void setVelocity(sakurajin::unit_system::common::speed newVelocity);
+            void setVelocity(sakurajin::unit_system::speed newVelocity);
             
             /**
              * @brief create a new graph to keep track of any value on a graph

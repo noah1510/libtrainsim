@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <limits>
 
-#include "length.hpp"
+#include "unit_system.hpp"
 #include "helper.hpp"
 
 #include <nlohmann/json.hpp>
@@ -38,7 +38,7 @@ namespace libtrainsim {
             /**
              * @brief The location along the track in m.
              */
-            sakurajin::unit_system::base::length Location;
+            sakurajin::unit_system::length Location;
             
             /**
              * @brief This is the current Radius of the Track
@@ -65,7 +65,7 @@ namespace libtrainsim {
             /**
              * @brief The location along the track in m.
              */
-            sakurajin::unit_system::base::length location() const;
+            sakurajin::unit_system::length location() const;
             
             /**
              * @brief This is the current Radius of the Track
@@ -88,7 +88,7 @@ namespace libtrainsim {
              */
             Track_data_point(
                 uint64_t _frame, 
-                sakurajin::unit_system::base::length _location, 
+                sakurajin::unit_system::length _location, 
                 std::optional<double> _radius, 
                 std::optional<double> _slope, 
                 std::optional<double> _frictionMultiplier
@@ -127,7 +127,7 @@ namespace libtrainsim {
              * @param upper the upper serch bound
              * @return int64_t the nearest frame to that location
              */
-            uint64_t getFrame_c(sakurajin::unit_system::base::length location) const;
+            uint64_t getFrame_c(sakurajin::unit_system::length location) const;
 
         public:
 
@@ -161,7 +161,7 @@ namespace libtrainsim {
              * @param location the location on the track in meters
              * @return int64_t the nearest frame to that location
              */
-            uint64_t getFrame(sakurajin::unit_system::base::length location) const;
+            uint64_t getFrame(sakurajin::unit_system::length location) const;
             
             /**
              * @brief Get the data point to the given location.
@@ -171,7 +171,7 @@ namespace libtrainsim {
              * @param location the location on the track in meters
              * @return const Track_data_point& the nearest data point to that location
              */
-            const Track_data_point& getDataPointAt(sakurajin::unit_system::base::length location) const;
+            const Track_data_point& getDataPointAt(sakurajin::unit_system::length location) const;
 
             /**
              * @brief Get the number of elements in the loaded json file
@@ -185,14 +185,14 @@ namespace libtrainsim {
              *
              * @return double the last location
              */
-            sakurajin::unit_system::base::length lastLocation() const;
+            sakurajin::unit_system::length lastLocation() const;
 
             /**
              * @brief returns the first location in the dataset
              *
              * @return double the first location
              */
-            sakurajin::unit_system::base::length firstLocation() const;
+            sakurajin::unit_system::length firstLocation() const;
 
 
         };
