@@ -67,6 +67,8 @@ jobs:
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-gdb
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-python-pip
 
       - name: compile libtrainsim
         shell: msys2 {0}
@@ -87,6 +89,7 @@ jobs:
           brew install ffmpeg
           brew install sdl2_image
           brew install sdl2_gfx
+          brew install python
 
       - uses: BSFishy/meson-build@v1.0.2
         name: build full
