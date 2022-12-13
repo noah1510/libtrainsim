@@ -8,6 +8,7 @@ sources = [
     'src/shader.cpp',
     'src/texture.cpp',
     'src/dimensions.cpp',
+    'src/window.cpp',
 ]
 
 video_deps = [
