@@ -31,6 +31,7 @@ extern "C" {
 
 #include "dimensions.hpp"
 #include "tabPage.hpp"
+#include "window.hpp"
 
 namespace libtrainsim{
     namespace Video{
@@ -58,6 +59,21 @@ namespace libtrainsim{
             const std::array< std::pair<std::string, int> ,4> FBOsizeOptions;
           public:
             basicSettings();
+        };
+        
+        class settingsWindow : public window{
+        private:
+            
+            /**
+             * @brief all of the tabs for the settings window
+             */
+            std::vector<std::shared_ptr<tabPage>> settingsTabs;
+            
+        public:
+            settingsWindow();
+            void addSettingsTab(std::shared_ptr<tabPage> newTab);
+            void removeSettingsTab(std::string_view tabName);
+            void drawContent() override;
         };
         
         /**
@@ -89,11 +105,8 @@ namespace libtrainsim{
              */
             ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
             
-            /**
-             * @brief control if the settings window is shown
-             * 
-             */
-            bool displayImGUiSettings = false;
+            //The settings window
+            std::unique_ptr<settingsWindow> settingsWin = nullptr;
             
             /**
              * @brief create the imguiHandler
@@ -196,11 +209,6 @@ namespace libtrainsim{
              * This variable keeps thrack of what thread is supposed to work. Use updateRenderThread() to change this.
              */
             std::thread::id mainThreadID;
-            
-            /**
-             * @brief all of the tabs for the settings window
-             */
-            std::vector<std::shared_ptr<tabPage>> settingsTabs;
             
             //the default size that FBOs should have when being created
             dimensions defaultFBOSize = {3840,2160};
@@ -379,24 +387,19 @@ namespace libtrainsim{
             
             //add a new settings tab
             static void addSettingsTab(std::shared_ptr<tabPage> newTab){
-                for(auto& tab:getInstance().settingsTabs){
-                    if(tab->getName() == newTab->getName()){
-                        throw std::invalid_argument{"a tab with this name already exists in the settings"};
-                    }
+                try{
+                    getInstance().settingsWin->addSettingsTab(newTab);
+                }catch(...){
+                    std::throw_with_nested(std::invalid_argument("Error adding new settings tab"));
                 }
-                getInstance().settingsTabs.emplace_back(newTab);
             }
             
             //remove a settings page from the settings window
             static void removeSettingsTab(std::string_view tabName){
-                auto i = getInstance().settingsTabs.begin();
-                i+=2;
-                while(i != getInstance().settingsTabs.end()){
-                    if((*i)->getName() == tabName){
-                        getInstance().settingsTabs.erase(i);
-                        return;
-                    }
-                    i++;
+                try{
+                    getInstance().settingsWin->removeSettingsTab(tabName);
+                }catch(...){
+                    std::throw_with_nested(std::invalid_argument("Error removing settings tab"));
                 }
             }
             

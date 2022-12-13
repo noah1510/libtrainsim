@@ -69,6 +69,48 @@ libtrainsim::Video::basicSettings::basicSettings() : tabPage("basic"), FBOsizeOp
     {"2160p", 2160}
 }}{}
 
+libtrainsim::Video::settingsWindow::settingsWindow() : window("Settings Window") {
+    
+    flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize;
+    showWindow = false;
+    
+    addSettingsTab(std::make_shared<basicSettings>());
+    addSettingsTab(std::make_shared<styleSettings>());
+    
+}
+
+void libtrainsim::Video::settingsWindow::drawContent() {
+    if(ImGui::BeginTabBar("settings tabs")){
+        for(auto& tab:settingsTabs){(*tab)();}
+        ImGui::EndTabBar();
+    }
+}
+
+
+void libtrainsim::Video::settingsWindow::addSettingsTab ( std::shared_ptr<tabPage> newTab ) {
+    for(auto& tab:settingsTabs){
+        if(tab->getName() == newTab->getName()){
+            throw std::invalid_argument{"a tab with this name already exists in the settings"};
+        }
+    }
+    settingsTabs.emplace_back(newTab);
+
+}
+
+void libtrainsim::Video::settingsWindow::removeSettingsTab ( std::string_view tabName ) {
+    auto i = settingsTabs.begin();
+    i+=2;
+    while(i != settingsTabs.end()){
+        if((*i)->getName() == tabName){
+            settingsTabs.erase(i);
+            return;
+        }
+        i++;
+    }
+}
+    
+
+
 libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
         throw std::runtime_error(SDL_GetError());
@@ -149,8 +191,7 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
         tex = nullptr;
     }
     
-    settingsTabs.emplace_back(std::make_shared<basicSettings>());
-    settingsTabs.emplace_back(std::make_shared<styleSettings>());
+    settingsWin = std::make_unique<settingsWindow>();
 }
 
 libtrainsim::Video::imguiHandler::~imguiHandler() {
@@ -186,23 +227,18 @@ void libtrainsim::Video::imguiHandler::startRender_impl() {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
     
-    ImGui::BeginMainMenuBar();
-        ImGui::MenuItem("Settings", NULL, &displayImGUiSettings);
-    ImGui::EndMainMenuBar();
-    
-    if(displayImGUiSettings){
-        ImGui::Begin(
-            "Settings Window", 
-            &displayImGUiSettings,
-            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize
-        );
-            
-            if(ImGui::BeginTabBar("settings tabs")){
-                for(auto& tab:settingsTabs){(*tab)();}
-                ImGui::EndTabBar();
-            }
-        ImGui::End();
+    //control if the settings window is shown
+    bool displayImGUiSettings = settingsWin->isVisible();
+    if(!displayImGUiSettings){
+        ImGui::BeginMainMenuBar();
+            ImGui::MenuItem("Settings", NULL, &displayImGUiSettings);
+        ImGui::EndMainMenuBar();
     }
+    
+    if(settingsWin->isVisible() != displayImGUiSettings){
+        settingsWin->show();
+    }
+    settingsWin->draw();
     
 }
 
