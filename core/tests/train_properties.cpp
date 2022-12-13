@@ -6,8 +6,7 @@
 
 using namespace libtrainsim::core;
 
-using namespace sakurajin::unit_system::base::literals;
-using namespace sakurajin::unit_system::common::literals;
+using namespace sakurajin::unit_system::literals;
 
 const static std::filesystem::path testPath = std::filesystem::path{TEST_DATA_DIRECTORY} / "core";
 

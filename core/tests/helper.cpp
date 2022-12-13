@@ -5,8 +5,7 @@
 
 using namespace libtrainsim::core;
 
-using namespace sakurajin::unit_system::base::literals;
-using namespace sakurajin::unit_system::common::literals;
+using namespace sakurajin::unit_system::literals;
 
 TEST(Helper, isRoughly){
     EXPECT_FALSE(Helper::isRoughly<double>(1.0,-1.0));

@@ -4,7 +4,7 @@
 #include "track_data.hpp"
 #include "libtrainsim_config.hpp"
 
-using namespace sakurajin::unit_system::base::literals;
+using namespace sakurajin::unit_system::literals;
 
 const static std::filesystem::path testPath = std::filesystem::path{TEST_DATA_DIRECTORY} / "core";
 
