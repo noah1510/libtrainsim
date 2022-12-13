@@ -9,6 +9,7 @@ sources = [
     'src/texture.cpp',
     'src/dimensions.cpp',
     'src/window.cpp',
+    'src/video_settings.cpp',
 ]
 
 video_deps = [
