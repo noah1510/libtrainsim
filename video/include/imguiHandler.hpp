@@ -81,7 +81,7 @@ namespace libtrainsim{
              * @brief The (main) sdl window
              * @warning this might be removed or at least changed in the future when more of the docking features are used
              */
-            SDL_Window* window = nullptr;
+            SDL_Window* sdl_window = nullptr;
             
             /**
              * @brief the background color of the main window

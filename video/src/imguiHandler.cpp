@@ -98,9 +98,9 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
-    window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
-    gl_context = SDL_GL_CreateContext(window);
-    SDL_GL_MakeCurrent(window, gl_context);
+    sdl_window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    gl_context = SDL_GL_CreateContext(sdl_window);
+    SDL_GL_MakeCurrent(sdl_window, gl_context);
     
     #ifdef ENABLE_VSYNC
         SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -114,15 +114,21 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = NULL;
     
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    // Enable Docking Support
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    //enable multi viewport support
+    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     ImGui::GetStyle().WindowTitleAlign.y = 0.5;
 
     // Setup Platform/Renderer backends
-    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+    ImGui_ImplSDL2_InitForOpenGL(sdl_window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version.c_str());
     
     // Load GL extensions using glad
@@ -158,7 +164,7 @@ libtrainsim::Video::imguiHandler::~imguiHandler() {
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
     }
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(sdl_window);
     IMG_Quit();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
@@ -208,7 +214,14 @@ void libtrainsim::Video::imguiHandler::endRender_impl() {
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_GL_SwapWindow(window);
+    SDL_GL_SwapWindow(sdl_window);
+    
+    // Update and Render additional Platform Windows
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable){
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
+    
     IOLock.unlock();
 }
 
@@ -295,7 +308,7 @@ void libtrainsim::Video::imguiHandler::setViewport ( const libtrainsim::Video::d
 void libtrainsim::Video::imguiHandler::updateRenderThread_impl() {
     std::scoped_lock lock{IOLock};
     forceViewportUpdate = true;
-    SDL_GL_MakeCurrent(window, gl_context);
+    SDL_GL_MakeCurrent(sdl_window, gl_context);
     mainThreadID = std::this_thread::get_id();
 }
 
