@@ -112,9 +112,6 @@ namespace libtrainsim{
             //The textures with specific amounts of darken
             std::array<std::shared_ptr<libtrainsim::Video::texture>,255> darkSteps;
             
-            //a texture that does a displacement of 0
-            std::shared_ptr<libtrainsim::Video::texture> displacement0;
-            
             //the last size the viewport was set to
             dimensions lastViewportSize = {0,0};
             

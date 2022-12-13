@@ -55,6 +55,7 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     // Enable Docking Support
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
     //enable multi viewport support
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
@@ -90,7 +91,6 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
 libtrainsim::Video::imguiHandler::~imguiHandler() {
     if(shaderLoaded){
         copyShader.reset();
-        displacement0.reset();
         for(auto& tex: darkSteps){
             tex.reset();
         }
@@ -300,13 +300,6 @@ void libtrainsim::Video::imguiHandler::loadShaders_impl ( const std::filesystem:
         drawShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"draw.frag");
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create draw shader"));
-    }
-    
-    //---------------load textures---------------
-    try{
-        displacement0 = std::make_shared<libtrainsim::Video::texture>(textureLocation/"displacement-0.tif");
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("could not init displacement-0 texture"));
     }
     
     //---------------init vertex buffers---------------
