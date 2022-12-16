@@ -49,13 +49,6 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     if(windowName == ""){
         throw std::invalid_argument("The window name may not be an empty string");
     }
-    
-    try{
-        imguiHandler::loadShaders(shaderLocation, textureLocation);
-        imguiHandler::glErrorCheck();
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("could not load imgui shader parts"));
-    }
 
     try{
         outputBuffer = std::make_shared<texture>("outBuffer"s);

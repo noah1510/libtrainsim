@@ -85,7 +85,80 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
         tex = nullptr;
     }
     
+    try{
+        loadShaders();
+    }catch(const std::exception& e){
+        libtrainsim::core::Helper::print_exception(e);
+    }
+    
     settingsWin = std::make_unique<settingsWindow>();
+}
+
+void libtrainsim::Video::imguiHandler::loadShaders() {
+    
+    //do not reload if shader are already loaded
+    if(shaderLoaded){
+        return;
+    }
+    
+    //---------------init Shader---------------
+    //load the copy shader
+    try{
+        auto copyConfig = Shader_configuration{
+            defaultShaderSources::getBasicVertexSource(),
+            defaultShaderSources::getCopyFragmentSource()
+        };
+        copyShader = std::make_shared<libtrainsim::Video::Shader>(copyConfig);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not create copy shader"));
+    }
+    //load the draw shader
+    try{
+        auto drawConfig = Shader_configuration{
+            defaultShaderSources::getBasicVertexSource(),
+            defaultShaderSources::getDrawFragmentSource()
+        };
+        drawShader = std::make_shared<libtrainsim::Video::Shader>(drawConfig);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Could not create draw shader"));
+    }
+    
+    //---------------init vertex buffers---------------
+    float vertices[] = {
+        // position           // texture coords
+         1.0f,  1.0f,   1.0f, 1.0f, // top right
+         1.0f, -1.0f,   1.0f, 0.0f, // bottom right
+        -1.0f, -1.0f,   0.0f, 0.0f, // bottom left
+        -1.0f,  1.0f,   0.0f, 1.0f  // top left 
+    };
+    unsigned int indices[] = {  
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+    
+    //create all of the blit buffers
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    
+    // position attribute
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // texture coord attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    
+    glBindVertexArray(0);
+    
+    shaderLoaded = true;
 }
 
 libtrainsim::Video::imguiHandler::~imguiHandler() {
@@ -279,65 +352,6 @@ void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::
     //reset all of the buffers
     glBindVertexArray(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void libtrainsim::Video::imguiHandler::loadShaders_impl ( const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation ) {
-    
-    //do not reload if shader are already loaded
-    if(shaderLoaded){
-        return;
-    }
-    
-    //---------------init Shader---------------
-    //load the copy shader
-    try{
-        copyShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"copy.frag");
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("Could not create copy shader"));
-    }
-    //load the draw shader
-    try{
-        drawShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"draw.frag");
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("Could not create draw shader"));
-    }
-    
-    //---------------init vertex buffers---------------
-    float vertices[] = {
-        // position           // texture coords
-         1.0f,  1.0f,   1.0f, 1.0f, // top right
-         1.0f, -1.0f,   1.0f, 0.0f, // bottom right
-        -1.0f, -1.0f,   0.0f, 0.0f, // bottom left
-        -1.0f,  1.0f,   0.0f, 1.0f  // top left 
-    };
-    unsigned int indices[] = {  
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-    
-    //create all of the blit buffers
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    
-    // position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    
-    glBindVertexArray(0);
-    
-    shaderLoaded = true;
 }
 
 void libtrainsim::Video::imguiHandler::bindVAO_impl() {

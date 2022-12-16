@@ -9,13 +9,6 @@ libtrainsim::extras::snowFx::snowFx(std::shared_ptr<libtrainsim::core::simulator
     auto shaderLocation = snowLocation / "shaders";
     auto textureLocation = snowLocation / "textures";
     
-    //ensure the imgui has the shaders and texture loaded
-    try{
-        libtrainsim::Video::imguiHandler::loadShaders(conf->getShaderLocation(), conf->getTextureLocation());
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("Could not init imguiHandler opengl parts"));
-    }
-    
     //---------------load the shaders and textures---------------
     try{
         displacementShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"displacement.vert",shaderLocation/"displacement.frag");

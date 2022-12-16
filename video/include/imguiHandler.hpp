@@ -29,6 +29,7 @@ extern "C" {
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "defaultShader.hpp"
 #include "dimensions.hpp"
 #include "video_settings.hpp"
 
@@ -74,6 +75,13 @@ namespace libtrainsim{
              * @brief create the imguiHandler
              */
             imguiHandler(std::string windowName);
+            
+            /**
+             * load the shaders and init opengl.
+             * This function is now called as part of the constructor, so the opengl functions are
+             * always available.
+             */
+            void loadShaders();
             
             /**
              * @brief destroy the imguiHandler
@@ -141,8 +149,6 @@ namespace libtrainsim{
             void updateRenderThread_impl();
             //implementation copy function
             void copy_impl(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture, glm::mat4 transformation);
-            //implementation load shaders function
-            void loadShaders_impl(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
             //implementation bindVAO function
             void bindVAO_impl();
             //implementation draw rect function
@@ -284,18 +290,6 @@ namespace libtrainsim{
             static void copy(std::shared_ptr<texture> src, std::shared_ptr<texture> dest, bool loadTexture = true, glm::mat4 transformation = glm::mat4(1.0f)){
                 try{
                     getInstance().copy_impl(src, dest, loadTexture, transformation);
-                }catch(...){
-                    std::throw_with_nested(std::runtime_error("Error copying textrue into frambuffer"));
-                }
-            }
-            
-            /**
-             * @brief inits opengl buffers and load shaders from filesystem
-             * 
-             */
-            static void loadShaders(const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation){
-                try{
-                    getInstance().loadShaders_impl(shaderLocation, textureLocation);
                 }catch(...){
                     std::throw_with_nested(std::runtime_error("Error copying textrue into frambuffer"));
                 }
