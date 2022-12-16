@@ -11,5 +11,10 @@ libtrainsim::Video::defaultShaderSources::defaultShaderSources(){
     displacementFragmentSource =
         #include "defaultShaderSources/displacement.frag"
         
+    copyFragmentSource = 
+        #include "defaultShaderSources/copy.frag"
+    
+    drawFragmentSource = 
+        #include "defaultShaderSources/draw.frag"
     
 }
