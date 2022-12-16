@@ -95,7 +95,8 @@ fragment_shader_source{fragSrc},
 tessControl_shader_source{tessControlSrc},
 tessEvaluation_shader_source{tessEvaluationSrc},
 geometry_shader_source{GeometrySrc},
-compute_shader_source{ComputeSrc}{}
+compute_shader_source{ComputeSrc},
+isCleared{false}{}
 
 
 std::string libtrainsim::Video::Shader_configuration::getFragmentSource() {
@@ -149,18 +150,6 @@ libtrainsim::Video::Shader::Shader ( const libtrainsim::Video::Shader_configurat
         std::throw_with_nested( std::runtime_error("could not create Shader") );
     }
     
-}
-
-libtrainsim::Video::Shader::Shader ( libtrainsim::Video::Shader_configuration config ) : shader_config{config} {
-    if(!shader_config.isValid()){
-        throw std::invalid_argument("Shder configuration is not valid!");
-    }
-    
-    try{
-        createShader();
-    }catch(...){
-        std::throw_with_nested( std::runtime_error("could not create Shader") );
-    }
 }
 
 libtrainsim::Video::Shader::Shader ( const std::filesystem::path& vertLoc, const std::filesystem::path& fragLoc ) : shader_config{vertLoc, fragLoc} {

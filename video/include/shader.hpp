@@ -214,14 +214,6 @@ namespace libtrainsim{
             Shader(const Shader_configuration& config);
             
             /**
-             * @brief creates a shader from a valid shader config
-             * 
-             * @throws std::invalid_argument if the config is invalid
-             * @throws std::nested_exception when there was an error compiling the shader
-             */
-            Shader(Shader_configuration config);
-            
-            /**
              * @brief create a shader from the filesystem
              * 
              * @throws std::nested_exception when there was an error reading the files
