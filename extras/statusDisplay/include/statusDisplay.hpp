@@ -5,6 +5,7 @@
 #include "input_axis.hpp"
 #include "helper.hpp"
 #include "statusDisplayGraph.hpp"
+#include "window.hpp"
 
 namespace libtrainsim{
     namespace extras{
@@ -23,12 +24,18 @@ namespace libtrainsim{
          * @brief a window to display real time stats for the simulator
          * 
          */
-        class statusDisplay{
+        class statusDisplay : public libtrainsim::Video::window{
           friend class statusDisplaySettings;
           private:
             
             //control if the latest value should be displayed
             bool displayLatestValue = true;
+            
+            //control if the graphs should be displayed
+            bool displayGraphs = false;
+            
+            //control if the progress along the track should be shown
+            bool displayProgress = true;
             
             //checks if a settings tab should be created and desetroyed by this class
             bool manageSettings;
@@ -52,6 +59,15 @@ namespace libtrainsim{
             //the position where the track ends
             sakurajin::unit_system::length endPosition;
             
+            /**
+             * @brief draws the content of the window
+             * 
+             * This updates the contents of the statusDisplay window.
+             * To actually display the window call the draw() function which
+             * is inherited from the window class.
+             */
+            void drawContent() override;
+            
           public:
             /**
              * @brief create a new status display
@@ -66,14 +82,6 @@ namespace libtrainsim{
              * @note if a settings tab was added it will be removed in here
              */
             ~statusDisplay();
-            
-            /**
-             * @brief Display the status window
-             * 
-             * This creates and displays the status window with all of the current stats that it has.
-             * @note you have to use the update functions to update the values displayed on the graphs
-             */
-            void update();
             
             /**
              * @brief add a new frametime which will be displayed as the latest value.

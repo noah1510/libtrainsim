@@ -8,8 +8,9 @@ libtrainsim::extras::statusDisplaySettings::statusDisplaySettings(statusDisplay&
 
 void libtrainsim::extras::statusDisplaySettings::displayContent() {
     
-
     ImGui::Checkbox("Display Latest Values", &display.displayLatestValue);
+    ImGui::Checkbox("Display Graphs", &display.displayGraphs);
+    ImGui::Checkbox("Display progress bar", &display.displayProgress);
     
     ImGui::Text("Graph visibility:");
     for(auto& graph:display.graphs){
@@ -23,7 +24,7 @@ void libtrainsim::extras::statusDisplaySettings::displayContent() {
 }
 
 
-libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings){
+libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings):window{"Status Window"}{
     libtrainsim::Video::imguiHandler::init();
     manageSettings = _manageSettings;
     
@@ -48,6 +49,9 @@ libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings){
     if(manageSettings){
         libtrainsim::Video::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
     }
+    
+    showWindow = true;
+    closableWindow = true;
 }
 
 
@@ -58,37 +62,21 @@ libtrainsim::extras::statusDisplay::~statusDisplay() {
 }
 
 
-void libtrainsim::extras::statusDisplay::update() {
-    
-    static bool firstStart = true;
-    if(firstStart){
-        auto size = ImGui::GetIO().DisplaySize;
-            
-        ImVec2 initialSize {size.x,200};
-        ImGui::SetNextWindowSize( initialSize );
-        
-        ImVec2 initialPos {0,size.y-200};
-        ImGui::SetNextWindowPos(initialPos);
-        firstStart = false;
-    }
-    
-    //actually start drawing th window
-    ImGui::Begin("Status Window");
-        
-        //display the prograss bar for the position
+void libtrainsim::extras::statusDisplay::drawContent() {
+    //display the prograss bar for the position
+    if(displayProgress){
         ImGui::ProgressBar((currentPosition-beginPosition)/(endPosition-beginPosition));
         if(ImGui::IsItemHovered()){
             ImGui::SetTooltip("The position along the Track. Begin: %Lfm, End: %LFm, Current: %LFm", beginPosition.value, endPosition.value, currentPosition.value);
         }
+    }
 
-        // Plot the all of the graphs
-        for(auto& graph:graphs){
-            if(graph.second){
-                graph.first.display(displayLatestValue);
-            }
+    // Plot the all of the graphs
+    for(auto& graph:graphs){
+        if(graph.second){
+            graph.first.display(displayLatestValue, displayGraphs);
         }
-
-    ImGui::End();
+    }
     
 }
 

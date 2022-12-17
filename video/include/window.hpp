@@ -12,12 +12,13 @@ namespace libtrainsim{
             bool showWindow = true;
             bool closableWindow = true;
             int flags = 0;
-        public:
             window(const std::string& _windowName);
+            window() = delete;
+            virtual void drawContent();
+        public:
             virtual ~window();
             //draw can be overridden but usually that is not needed.
             virtual void draw();
-            virtual void drawContent();
             bool isVisible() const;
             void show();
         };
