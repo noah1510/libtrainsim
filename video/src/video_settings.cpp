@@ -65,7 +65,7 @@ libtrainsim::Video::basicSettings::basicSettings() : tabPage("basic"), FBOsizeOp
     {"2160p", 2160}
 }}{}
 
-libtrainsim::Video::settingsWindow::settingsWindow() : window("Settings Window") {
+libtrainsim::Video::settingsWindow::settingsWindow() : window("Settings Window", false) {
     
     flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize;
     showWindow = false;

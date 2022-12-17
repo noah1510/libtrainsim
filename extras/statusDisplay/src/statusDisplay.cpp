@@ -50,7 +50,7 @@ libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings):window{"
         libtrainsim::Video::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
     }
     
-    showWindow = true;
+    showWindow = false;
     closableWindow = true;
 }
 

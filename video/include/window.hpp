@@ -12,7 +12,7 @@ namespace libtrainsim{
             bool showWindow = true;
             bool closableWindow = true;
             int flags = 0;
-            window(const std::string& _windowName);
+            window(const std::string& _windowName, bool registerWindow = true);
             window() = delete;
             window(window&&) = delete;
             window(const window&) = delete;

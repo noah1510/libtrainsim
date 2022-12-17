@@ -69,7 +69,7 @@ namespace libtrainsim{
             ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
             
             //The settings window
-            std::unique_ptr<settingsWindow> settingsWin = nullptr;
+            std::shared_ptr<settingsWindow> settingsWin = nullptr;
             
             /**
              * @brief create the imguiHandler
@@ -158,6 +158,9 @@ namespace libtrainsim{
             //implementation drawColor function
             void drawColor_impl(std::shared_ptr<texture> dest, glm::vec4 color);
             
+            void registerWindow_impl(window* _win);
+            void unregisterWindow_impl(window* _win);
+            
             /**
              * @brief generate a darken texture with a given strength
              */
@@ -177,6 +180,10 @@ namespace libtrainsim{
             
             //the default size that FBOs should have when being created
             dimensions defaultFBOSize = {3840,2160};
+            
+            //all the windows registered with the imguiHandler
+            //std::vector<std::shared_ptr<libtrainsim::Video::window>> registeredWindows;
+            std::vector<libtrainsim::Video::window*> registeredWindows;
             
           public:
             /**
@@ -372,6 +379,16 @@ namespace libtrainsim{
                     auto error = decodeGLError(errorCode);
                     throw std::runtime_error{"Got an openGL error: " + error};
                 }
+            }
+            
+            //register a window with the imgui hander
+            static void registerWindow(window* _win){
+                getInstance().registerWindow_impl(_win);
+            }
+            
+            //have a window no longer registered
+            static void unregisterWindow(window* _win){
+                getInstance().unregisterWindow_impl(_win);
             }
             
             //get a string describing a GL error in more detail from an error code.

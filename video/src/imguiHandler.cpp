@@ -91,7 +91,8 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
         libtrainsim::core::Helper::print_exception(e);
     }
     
-    settingsWin = std::make_unique<settingsWindow>();
+    settingsWin = std::make_shared<settingsWindow>();
+    registerWindow_impl(settingsWin.get());
 }
 
 void libtrainsim::Video::imguiHandler::loadShaders() {
@@ -194,16 +195,30 @@ void libtrainsim::Video::imguiHandler::startRender_impl() {
     ImGui::NewFrame();
     
     //control if the settings window is shown
-    bool displayImGUiSettings = settingsWin->isVisible();
-    if(!displayImGUiSettings){
-        ImGui::BeginMainMenuBar();
-            ImGui::MenuItem("Settings", NULL, &displayImGUiSettings);
-        ImGui::EndMainMenuBar();
+    bool displayWindowsList = false;
+    for(auto& win:registeredWindows){
+        if(!win->isVisible()){
+            displayWindowsList = true;
+            break;
+        }
     }
     
-    if(settingsWin->isVisible() != displayImGUiSettings){
-        settingsWin->show();
+    if(displayWindowsList){
+        if(ImGui::BeginMainMenuBar()){
+            if(ImGui::BeginMenu("Show Windows", true)){
+                for(auto win:registeredWindows){
+                    if(!win->isVisible()){
+                        if(ImGui::MenuItem(win->getName().c_str())){
+                            win->show();
+                        }
+                    }
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
     }
+
     settingsWin->draw();
     
 }
@@ -435,6 +450,19 @@ void libtrainsim::Video::imguiHandler::initDarkenTexture ( uint8_t strength ) {
 
     
     darkSteps[strength] = newTex;
+}
+
+void libtrainsim::Video::imguiHandler::registerWindow_impl ( libtrainsim::Video::window* _win ) {
+    registeredWindows.emplace_back(_win);
+}
+
+void libtrainsim::Video::imguiHandler::unregisterWindow_impl ( libtrainsim::Video::window* _win ) {
+    auto& wins = getInstance().registeredWindows;
+    for(auto i = wins.begin(); i < wins.end(); i++){
+        if(*i == _win){
+            i = wins.erase(i);
+        }
+    }
 }
 
 

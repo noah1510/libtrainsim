@@ -1,8 +1,19 @@
 #include "window.hpp"
 #include "imguiHandler.hpp"
 
-libtrainsim::Video::window::window(const std::string& _windowName): windowName{_windowName}{}
-libtrainsim::Video::window::~window(){}
+libtrainsim::Video::window::window(const std::string& _windowName, bool registerWindow): windowName{_windowName}{
+    if(registerWindow){
+        imguiHandler::registerWindow(this);
+    }
+}
+libtrainsim::Video::window::~window(){
+    try{
+        //imguiHandler::unregisterWindow(windowName);
+        imguiHandler::unregisterWindow(this);
+    }catch(...){
+        std::cerr << "tried to unregister a window that was not registered!" << std::endl;
+    }
+}
 
 void libtrainsim::Video::window::draw(){
     if(showWindow){
