@@ -40,7 +40,7 @@ namespace libtrainsim{
              * 
              * @param showLatest if true next to the name of the graph there will be the latest value
              */
-            void display(bool showLatest = true);
+            void display(bool showLatest = true, bool showGraph = true);
             
             /**
              * @brief append a value to the graph to be the latest value to be displayed
@@ -76,7 +76,7 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue ( float n
 }
 
 template<size_t VALUE_COUNT>
-void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::display(bool showLatest) {
+void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::display(bool showLatest, bool showGraph) {
     ImGui::BeginGroup();
     
         std::stringstream ss;
@@ -84,8 +84,13 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::display(bool showLate
         if(showLatest){
             ss << ": " << getLatest();
         }
-        
-        ImGui::PlotLines(ss.str().c_str(), values.data(), static_cast<int>(VALUE_COUNT) );
+        if(showGraph){
+            ImGui::PlotLines(ss.str().c_str(), values.data(), static_cast<int>(VALUE_COUNT) );
+        }else{
+            if(showLatest){
+                ImGui::Text("%s", ss.str().c_str());
+            }
+        }
         
         if(ImGui::IsItemHovered()){
             ImGui::BeginTooltip();
