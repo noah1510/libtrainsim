@@ -14,11 +14,14 @@ namespace libtrainsim{
             int flags = 0;
             window(const std::string& _windowName);
             window() = delete;
+            window(window&&) = delete;
+            window(const window&) = delete;
             virtual void drawContent();
         public:
             virtual ~window();
             //draw can be overridden but usually that is not needed.
             virtual void draw();
+            const std::string& getName() const;
             bool isVisible() const;
             void show();
         };

@@ -38,12 +38,12 @@ namespace libtrainsim{
              * @brief all of the tabs for the settings window
              */
             std::vector<std::shared_ptr<tabPage>> settingsTabs;
+            void drawContent() override;
             
         public:
             settingsWindow();
             void addSettingsTab(std::shared_ptr<tabPage> newTab);
             void removeSettingsTab(std::string_view tabName);
-            void drawContent() override;
         };
     }
 }

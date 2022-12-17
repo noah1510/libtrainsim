@@ -35,3 +35,7 @@ void libtrainsim::Video::window::show() {
     showWindow = true;
 }
 
+const std::string & libtrainsim::Video::window::getName() const {
+    return windowName;
+}
+
