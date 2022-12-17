@@ -114,9 +114,6 @@ namespace libtrainsim{
              */
             std::shared_ptr<Shader> drawShader;
             
-            //true if the opengl shader components are fully loaded
-            bool shaderLoaded = false;
-            
             //The textures with specific amounts of darken
             std::array<std::shared_ptr<libtrainsim::Video::texture>,255> darkSteps;
             

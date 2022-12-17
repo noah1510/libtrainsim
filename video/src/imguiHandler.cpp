@@ -96,12 +96,6 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
 }
 
 void libtrainsim::Video::imguiHandler::loadShaders() {
-    
-    //do not reload if shader are already loaded
-    if(shaderLoaded){
-        return;
-    }
-    
     //---------------init Shader---------------
     //load the copy shader
     try{
@@ -158,20 +152,16 @@ void libtrainsim::Video::imguiHandler::loadShaders() {
     glEnableVertexAttribArray(1);
     
     glBindVertexArray(0);
-    
-    shaderLoaded = true;
 }
 
 libtrainsim::Video::imguiHandler::~imguiHandler() {
-    if(shaderLoaded){
-        copyShader.reset();
-        for(auto& tex: darkSteps){
-            tex.reset();
-        }
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
+    copyShader.reset();
+    for(auto& tex: darkSteps){
+        tex.reset();
     }
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
     SDL_DestroyWindow(sdl_window);
     IMG_Quit();
     ImGui_ImplOpenGL3_Shutdown();
@@ -330,12 +320,6 @@ void libtrainsim::Video::imguiHandler::updateRenderThread_impl() {
 }
 
 void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::Video::texture> src, std::shared_ptr<libtrainsim::Video::texture> dest, bool loadTexture, glm::mat4 transformation ) {
-    
-    //thorw an error if shader are not loaded yet
-    if(!shaderLoaded){
-        throw std::runtime_error("load shader before using the shader parts");
-    }
-    
     if(src == nullptr || dest == nullptr){
         throw std::invalid_argument("nullptr not allowed for copy operation");
     }
@@ -370,31 +354,15 @@ void libtrainsim::Video::imguiHandler::copy_impl ( std::shared_ptr<libtrainsim::
 }
 
 void libtrainsim::Video::imguiHandler::bindVAO_impl() {
-    
-    //thorw an error if shader are not loaded yet
-    if(!shaderLoaded){
-        throw std::runtime_error("load shader before using the shader parts");
-    }
-    
     glBindVertexArray(VAO);
 }
 
 void libtrainsim::Video::imguiHandler::drawRect_impl() {
-    //thorw an error if shader are not loaded yet
-    if(!shaderLoaded){
-        throw std::runtime_error("load shader before using the shader parts");
-    }
-    
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 void libtrainsim::Video::imguiHandler::drawColor_impl ( std::shared_ptr<texture> dest, glm::vec4 color ) {
-    //thorw an error if shader are not loaded yet
-    if(!shaderLoaded){
-        throw std::runtime_error("load shader before using the shader parts");
-    }
-    
     if(dest == nullptr){
         throw std::invalid_argument("nullptr not allowed for copy operation");
     }
@@ -425,10 +393,6 @@ void libtrainsim::Video::imguiHandler::drawColor_impl ( std::shared_ptr<texture>
 
 
 std::shared_ptr<libtrainsim::Video::texture> libtrainsim::Video::imguiHandler::getDarkenTexture_impl ( uint8_t strength ) {
-    if(!shaderLoaded){
-        return nullptr;
-    }
-
     if(darkSteps[strength] == nullptr){
         initDarkenTexture(strength);
     }
