@@ -55,10 +55,12 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     // Enable Docking Support
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
     //enable multi viewport support
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
+    #ifdef EXP_ENABLE_MULTI_VIEWPORT
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    #endif
+    io.ConfigDockingTransparentPayload = true;
+    
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     ImGui::GetStyle().WindowTitleAlign.y = 0.5;
