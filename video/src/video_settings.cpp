@@ -55,8 +55,88 @@ void libtrainsim::Video::basicSettings::displayContent() {
         handle.defaultFBOSize.x() = sizeY*16/9;
         handle.defaultFBOSize.y() = sizeY;
         
+        //add an 'empty' line between the options
+        ImGui::TableNextColumn();
+        ImGui::Text(" ");
+        
+        //Add manual saving and loading of window configurations
+        ImGui::TableNextColumn();
+        static char saveLocation[1000] = "windowSettings.ini\0";
+        ImGui::InputText("Location of the save file:", saveLocation, 1000);
+        static bool startSaving = false;
+        if(ImGui::Button("Save Window Settings to file")){
+            startSaving = true;
+        }
+        
+        if(startSaving){
+            auto [a,d] = showPopups();
+            auto [location, isOkay] = checkPath(saveLocation, a, d);
+            if(isOkay){
+                ImGui::SaveIniSettingsToDisk(location.string().c_str());
+            }
+            if(a || d || isOkay){
+                startSaving = false;
+            }
+        }
+        
     ImGui::EndTable();
+    
 }
+
+std::tuple<bool, bool> libtrainsim::Video::basicSettings::showPopups() {
+    if(ImGui::BeginPopup("No ini")){
+        ImGui::Text("The file has no ini extention!");
+        ImGui::EndPopup();
+    }
+    
+    bool acceptOverwrite = false;
+    bool denyOverwrite = false;
+    if(ImGui::BeginPopup("Existing File")){
+        ImGui::Text("File already exists! Do you want to overwrite it?");
+        acceptOverwrite = ImGui::Button("Accept");
+        denyOverwrite = ImGui::Button("Deny");
+        ImGui::EndPopup();
+    }
+    
+    if(acceptOverwrite || denyOverwrite){
+        ImGui::CloseCurrentPopup();
+    }
+    
+    return {acceptOverwrite, denyOverwrite};
+}
+
+
+std::tuple<std::filesystem::path, bool> libtrainsim::Video::basicSettings::checkPath ( const std::filesystem::path& location, bool acceptOverwrite, bool denyOverwrite) {
+    auto cleanedLocation = location;
+    if(cleanedLocation.is_relative()){
+        cleanedLocation = std::filesystem::current_path() / cleanedLocation;
+    }
+    
+    if(denyOverwrite){
+        return {"",false};
+    }
+    
+    if(cleanedLocation.extension() != ".ini"){
+        ImGui::OpenPopup("No ini");
+        return {"", false};
+    }else if(std::filesystem::exists(cleanedLocation) && !acceptOverwrite){
+        ImGui::OpenPopup("Existing File");
+        return {"", false};
+    }
+    
+    auto loc = cleanedLocation;
+    loc.remove_filename();
+    try{
+        std::filesystem::create_directories(loc);
+    }catch(const std::exception& e){
+        libtrainsim::core::Helper::print_exception(e);
+    }
+    cleanedLocation = std::filesystem::relative(cleanedLocation);
+    
+    return {cleanedLocation, true};
+}
+
+
 
 libtrainsim::Video::basicSettings::basicSettings() : tabPage("basic"), FBOsizeOptions{{
     {"720p", 720},

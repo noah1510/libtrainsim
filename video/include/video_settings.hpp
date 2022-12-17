@@ -24,6 +24,16 @@ namespace libtrainsim{
           private:
             void displayContent() override;
             const std::array< std::pair<std::string, int> ,4> FBOsizeOptions;
+            
+            /*
+             * checks if the path is okay
+             * 
+             * return value:
+             *   cleanedLocation
+             *   isOkay
+            */
+            std::tuple<std::filesystem::path, bool> checkPath(const std::filesystem::path& location, bool acceptOverwrite, bool denyOverwrite);
+            std::tuple<bool,bool> showPopups();
           public:
             basicSettings();
         };
