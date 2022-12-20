@@ -1,5 +1,43 @@
 #include "imguiHandler.hpp"
 
+void libtrainsim::Video::noIniPopup::content() {
+    ImGui::Text("The file has no ini extention!");
+}
+
+libtrainsim::Video::noIniPopup::noIniPopup() : popup{"No ini"}{
+}
+
+
+void libtrainsim::Video::emptyFilePopup::content() {
+    ImGui::Text("The file does not exist and thus cannot be loaded!");
+}
+
+libtrainsim::Video::emptyFilePopup::emptyFilePopup() : popup{"Not an existing File"}{
+}
+
+
+void libtrainsim::Video::overwriteFilePopup::content() {
+    ImGui::Text("File already exists! Do you want to overwrite it?");
+    acceptOverwrite = ImGui::Button("Accept");
+    denyOverwrite = ImGui::Button("Deny");
+    
+    if(acceptOverwrite || denyOverwrite){
+        close();
+    }
+}
+
+libtrainsim::Video::overwriteFilePopup::overwriteFilePopup() : popup{"Existing File! Overwrite?"}{
+}
+
+std::tuple<bool, bool> libtrainsim::Video::overwriteFilePopup::getChoices() {
+    auto [a, d] = std::tuple<bool, bool>{acceptOverwrite, denyOverwrite};
+    acceptOverwrite = false;
+    denyOverwrite = false;
+    return {a, d};
+}
+
+
+
 void libtrainsim::Video::styleSettings::content() {
     imguiHandler& handle = imguiHandler::getInstance();
     float clearCol[3] = {handle.clear_color.x,handle.clear_color.y,handle.clear_color.z};
@@ -25,6 +63,11 @@ void libtrainsim::Video::basicSettings::content() {
     imguiHandler& handle = imguiHandler::getInstance();
     
     ImGui::BeginTable("basic Settings table", 1, (ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp));
+        //show all of the popups if they should be shown
+        noIni();
+        noFile();
+        askOverwrite();
+        
         //display the style changer with its tooltip
         ImGui::TableNextColumn();
         ImGui::ShowStyleSelector("active imgui style");
@@ -62,10 +105,6 @@ void libtrainsim::Video::basicSettings::content() {
         ImGui::TableNextColumn();
         ImGui::InputText("Location of the save file:", saveLocation, 1000);
         
-        
-        //show the popups
-        auto [a,d] = showPopups();
-        
         //select autosave
         ImGui::TableNextColumn();
         if(ImGui::Checkbox("Enable window autosave/load", &autosave)){
@@ -89,12 +128,14 @@ void libtrainsim::Video::basicSettings::content() {
                 startSaving = true;
             }
             
-            if(startSaving){
-                auto [location, isOkay] = checkSavePath(saveLocation, a, d);
+            if(noIni.justClosed()){
+                startSaving = false;
+            }
+            
+            if(startSaving && !noIni.isOpen() && !askOverwrite.isOpen()){
+                auto [location, isOkay] = checkSavePath(saveLocation);
                 if(isOkay){
                     ImGui::SaveIniSettingsToDisk(location.string().c_str());
-                }
-                if(a || d || isOkay){
                     startSaving = false;
                 }
             }
@@ -103,7 +144,7 @@ void libtrainsim::Video::basicSettings::content() {
             if(ImGui::Button("Load Window Settings from file")){
                 auto [location, isOkay] = checkLoadPath(saveLocation);
                 if(isOkay){
-                    ImGui::SaveIniSettingsToDisk(location.string().c_str());
+                    ImGui::LoadIniSettingsFromDisk(location.string().c_str());
                 }
             }
 
@@ -112,49 +153,24 @@ void libtrainsim::Video::basicSettings::content() {
     ImGui::EndTable();
 }
 
-std::tuple<bool, bool> libtrainsim::Video::basicSettings::showPopups() {
-    if(ImGui::BeginPopup("No ini")){
-        ImGui::Text("The file has no ini extention!");
-        ImGui::EndPopup();
-    }
-    
-    if(ImGui::BeginPopup("Not an existing File")){
-        ImGui::Text("The file does not exist and thus cannot be loaded!");
-        ImGui::EndPopup();
-    }
-    
-    bool acceptOverwrite = false;
-    bool denyOverwrite = false;
-    if(ImGui::BeginPopup("Existing File")){
-        ImGui::Text("File already exists! Do you want to overwrite it?");
-        acceptOverwrite = ImGui::Button("Accept");
-        denyOverwrite = ImGui::Button("Deny");
-        ImGui::EndPopup();
-    }
-    
-    if(acceptOverwrite || denyOverwrite){
-        ImGui::CloseCurrentPopup();
-    }
-    
-    return {acceptOverwrite, denyOverwrite};
-}
 
-
-std::tuple<std::filesystem::path, bool> libtrainsim::Video::basicSettings::checkSavePath ( const std::filesystem::path& location, bool acceptOverwrite, bool denyOverwrite) {
+std::tuple<std::filesystem::path, bool> libtrainsim::Video::basicSettings::checkSavePath ( const std::filesystem::path& location) {
     auto cleanedLocation = location;
     if(cleanedLocation.is_relative()){
         cleanedLocation = std::filesystem::current_path() / cleanedLocation;
     }
     
-    if(denyOverwrite){
+    
+    auto [acceptOverwrite,denyOverwrite] = askOverwrite.getChoices();
+    if(denyOverwrite || noIni.isOpen() || askOverwrite.isOpen()){
         return {"",false};
     }
     
     if(cleanedLocation.extension() != ".ini"){
-        ImGui::OpenPopup("No ini");
+        noIni.open();
         return {"", false};
     }else if(std::filesystem::exists(cleanedLocation) && !acceptOverwrite){
-        ImGui::OpenPopup("Existing File");
+        askOverwrite.open();
         return {"", false};
     }
     
@@ -176,13 +192,19 @@ std::tuple<std::filesystem::path, bool> libtrainsim::Video::basicSettings::check
         cleanedLocation = std::filesystem::current_path() / cleanedLocation;
     }
     
+    if(noFile.isOpen() || noIni.isOpen()){
+        return {"", false};
+    }
+    
     if(!std::filesystem::exists(cleanedLocation)){
-        ImGui::OpenPopup("Not an existing File");
+        noFile.open();
+        std::cerr << "empty file" << std::endl;
         return {"", false};
     }
     
     if(cleanedLocation.extension() != ".ini"){
-        ImGui::OpenPopup("No ini");
+        noIni.open();
+        std::cerr << "not an ini file" << std::endl;
         return {"", false};
     }
 
