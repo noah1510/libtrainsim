@@ -1,6 +1,6 @@
 #include "imguiHandler.hpp"
 
-void libtrainsim::Video::styleSettings::displayContent() {
+void libtrainsim::Video::styleSettings::content() {
     imguiHandler& handle = imguiHandler::getInstance();
     float clearCol[3] = {handle.clear_color.x,handle.clear_color.y,handle.clear_color.z};
     
@@ -21,7 +21,7 @@ void libtrainsim::Video::styleSettings::displayContent() {
 
 libtrainsim::Video::styleSettings::styleSettings() : tabPage("style"){}
 
-void libtrainsim::Video::basicSettings::displayContent() {
+void libtrainsim::Video::basicSettings::content() {
     imguiHandler& handle = imguiHandler::getInstance();
     
     ImGui::BeginTable("basic Settings table", 1, (ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp));
@@ -40,7 +40,6 @@ void libtrainsim::Video::basicSettings::displayContent() {
         ImGui::TableNextColumn();
         int sizeY = handle.defaultFBOSize.y();
         
-        static size_t fboSizeIndex = 1;
         if(ImGui::BeginCombo("Select default FBO size", FBOsizeOptions.at(fboSizeIndex).first.c_str() )){
             for(size_t i = 0; i < FBOsizeOptions.size();i++){
                 if(ImGui::Selectable(FBOsizeOptions.at(i).first.c_str(), fboSizeIndex == i)){
@@ -61,31 +60,66 @@ void libtrainsim::Video::basicSettings::displayContent() {
         
         //Add manual saving and loading of window configurations
         ImGui::TableNextColumn();
-        static char saveLocation[1000] = "windowSettings.ini\0";
         ImGui::InputText("Location of the save file:", saveLocation, 1000);
-        static bool startSaving = false;
-        if(ImGui::Button("Save Window Settings to file")){
-            startSaving = true;
+        
+        
+        //show the popups
+        auto [a,d] = showPopups();
+        
+        //select autosave
+        ImGui::TableNextColumn();
+        if(ImGui::Checkbox("Enable window autosave/load", &autosave)){
+            if(autosave){
+                auto [location, isOkay] = checkLoadPath(saveLocation);
+                if(!isOkay){
+                    autosave = false;
+                }else{
+                    ImGui::GetIO().IniFilename = location.string().c_str();
+                }
+            }else{
+                ImGui::GetIO().IniFilename = NULL;
+            }
         }
         
-        if(startSaving){
-            auto [a,d] = showPopups();
-            auto [location, isOkay] = checkPath(saveLocation, a, d);
-            if(isOkay){
-                ImGui::SaveIniSettingsToDisk(location.string().c_str());
+        //show the save and load buttons if autosave is disabled
+        if(!autosave){        
+            ImGui::TableNextColumn();
+            static bool startSaving = false;
+            if(ImGui::Button("Save Window Settings to file")){
+                startSaving = true;
             }
-            if(a || d || isOkay){
-                startSaving = false;
+            
+            if(startSaving){
+                auto [location, isOkay] = checkSavePath(saveLocation, a, d);
+                if(isOkay){
+                    ImGui::SaveIniSettingsToDisk(location.string().c_str());
+                }
+                if(a || d || isOkay){
+                    startSaving = false;
+                }
             }
+            
+            ImGui::TableNextColumn();
+            if(ImGui::Button("Load Window Settings from file")){
+                auto [location, isOkay] = checkLoadPath(saveLocation);
+                if(isOkay){
+                    ImGui::SaveIniSettingsToDisk(location.string().c_str());
+                }
+            }
+
         }
         
     ImGui::EndTable();
-    
 }
 
 std::tuple<bool, bool> libtrainsim::Video::basicSettings::showPopups() {
     if(ImGui::BeginPopup("No ini")){
         ImGui::Text("The file has no ini extention!");
+        ImGui::EndPopup();
+    }
+    
+    if(ImGui::BeginPopup("Not an existing File")){
+        ImGui::Text("The file does not exist and thus cannot be loaded!");
         ImGui::EndPopup();
     }
     
@@ -106,7 +140,7 @@ std::tuple<bool, bool> libtrainsim::Video::basicSettings::showPopups() {
 }
 
 
-std::tuple<std::filesystem::path, bool> libtrainsim::Video::basicSettings::checkPath ( const std::filesystem::path& location, bool acceptOverwrite, bool denyOverwrite) {
+std::tuple<std::filesystem::path, bool> libtrainsim::Video::basicSettings::checkSavePath ( const std::filesystem::path& location, bool acceptOverwrite, bool denyOverwrite) {
     auto cleanedLocation = location;
     if(cleanedLocation.is_relative()){
         cleanedLocation = std::filesystem::current_path() / cleanedLocation;
@@ -136,6 +170,25 @@ std::tuple<std::filesystem::path, bool> libtrainsim::Video::basicSettings::check
     return {cleanedLocation, true};
 }
 
+std::tuple<std::filesystem::path, bool> libtrainsim::Video::basicSettings::checkLoadPath ( const std::filesystem::path& location) {
+    auto cleanedLocation = location;
+    if(cleanedLocation.is_relative()){
+        cleanedLocation = std::filesystem::current_path() / cleanedLocation;
+    }
+    
+    if(!std::filesystem::exists(cleanedLocation)){
+        ImGui::OpenPopup("Not an existing File");
+        return {"", false};
+    }
+    
+    if(cleanedLocation.extension() != ".ini"){
+        ImGui::OpenPopup("No ini");
+        return {"", false};
+    }
+
+    cleanedLocation = std::filesystem::relative(cleanedLocation);
+    return {cleanedLocation, true};
+}
 
 
 libtrainsim::Video::basicSettings::basicSettings() : tabPage("basic"), FBOsizeOptions{{
@@ -155,7 +208,7 @@ libtrainsim::Video::settingsWindow::settingsWindow() : window("Settings Window",
     
 }
 
-void libtrainsim::Video::settingsWindow::drawContent() {
+void libtrainsim::Video::settingsWindow::content() {
     if(ImGui::BeginTabBar("settings tabs")){
         for(auto& tab:settingsTabs){(*tab)();}
         ImGui::EndTabBar();

@@ -28,7 +28,7 @@ namespace libtrainsim{
          */
         class videoDecodeSettings : public tabPage{
           private:
-            void displayContent() override;
+            void content() override;
             videoReader& decoder;
             const std::array< std::pair<std::string, int>, 11> AlgorithmOptions;
             const std::array< std::tuple<std::string, int>, 7> AlgorithmDetailsOptions;

@@ -12,7 +12,7 @@ namespace libtrainsim{
          */
         class styleSettings : public tabPage{
           private:
-            void displayContent() override;
+            void content() override;
           public:
             styleSettings();
         };
@@ -22,17 +22,30 @@ namespace libtrainsim{
          */
         class basicSettings : public tabPage{
           private:
-            void displayContent() override;
+            void content() override;
             const std::array< std::pair<std::string, int> ,4> FBOsizeOptions;
             
+            char saveLocation[1000] = "windowSettings.ini\0";
+            bool autosave = false;
+            size_t fboSizeIndex = 1;
+            
             /*
-             * checks if the path is okay
+             * checks if the save path is okay
              * 
              * return value:
              *   cleanedLocation
              *   isOkay
             */
-            std::tuple<std::filesystem::path, bool> checkPath(const std::filesystem::path& location, bool acceptOverwrite, bool denyOverwrite);
+            std::tuple<std::filesystem::path, bool> checkSavePath(const std::filesystem::path& location, bool acceptOverwrite, bool denyOverwrite);
+            
+            /*
+             * checks if the load path is okay
+             * 
+             * return value:
+             *   cleanedLocation
+             *   isOkay
+            */
+            std::tuple<std::filesystem::path, bool> checkLoadPath(const std::filesystem::path& location);
             std::tuple<bool,bool> showPopups();
           public:
             basicSettings();
@@ -48,7 +61,7 @@ namespace libtrainsim{
              * @brief all of the tabs for the settings window
              */
             std::vector<std::shared_ptr<tabPage>> settingsTabs;
-            void drawContent() override;
+            void content() override;
             
         public:
             settingsWindow();

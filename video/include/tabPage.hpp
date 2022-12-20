@@ -35,7 +35,7 @@ namespace libtrainsim{
              * @warning keep this function private or protected in child classes since it is not
              * supposed to be called from outside of the class. Use the () operator to draw the tab.
              */
-            virtual void displayContent();
+            virtual void content();
           
           public:
             

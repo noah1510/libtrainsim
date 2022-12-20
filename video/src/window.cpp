@@ -18,13 +18,13 @@ libtrainsim::Video::window::~window(){
 void libtrainsim::Video::window::draw(){
     if(showWindow){
         if(beginDraw()){
-            drawContent();
+            content();
         }
         endDraw();
     }
 }
 
-void libtrainsim::Video::window::drawContent(){}
+void libtrainsim::Video::window::content(){}
 
 bool libtrainsim::Video::window::beginDraw(){
     if(closableWindow){

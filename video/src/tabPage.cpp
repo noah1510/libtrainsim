@@ -5,11 +5,11 @@
 libtrainsim::Video::tabPage::tabPage(std::string name):displayText{name}{}
 libtrainsim::Video::tabPage::~tabPage(){}
 
-void libtrainsim::Video::tabPage::displayContent(){}
+void libtrainsim::Video::tabPage::content(){}
 
 void libtrainsim::Video::tabPage::operator()(){
     if(ImGui::BeginTabItem(displayText.c_str())){
-        this->displayContent();
+        this->content();
         ImGui::EndTabItem();
     } 
 }

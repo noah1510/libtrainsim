@@ -6,7 +6,7 @@ using namespace std::literals;
 
 libtrainsim::extras::statusDisplaySettings::statusDisplaySettings(statusDisplay& disp):tabPage{"statusDisplay"}, display{disp}{}
 
-void libtrainsim::extras::statusDisplaySettings::displayContent() {
+void libtrainsim::extras::statusDisplaySettings::content() {
     
     ImGui::Checkbox("Display Latest Values", &display.displayLatestValue);
     ImGui::Checkbox("Display Graphs", &display.displayGraphs);
@@ -62,7 +62,7 @@ libtrainsim::extras::statusDisplay::~statusDisplay() {
 }
 
 
-void libtrainsim::extras::statusDisplay::drawContent() {
+void libtrainsim::extras::statusDisplay::content() {
     //display the prograss bar for the position
     if(displayProgress){
         ImGui::ProgressBar((currentPosition-beginPosition)/(endPosition-beginPosition));

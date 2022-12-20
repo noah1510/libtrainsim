@@ -14,7 +14,7 @@ namespace libtrainsim{
         //a class to change the settings of the status display
         class statusDisplaySettings : public libtrainsim::Video::tabPage{
           private:
-            void displayContent() override;
+            void content() override;
             statusDisplay& display;
           public:
             statusDisplaySettings(statusDisplay& disp);
@@ -66,7 +66,7 @@ namespace libtrainsim{
              * To actually display the window call the draw() function which
              * is inherited from the window class.
              */
-            void drawContent() override;
+            void content() override;
             
           public:
             /**

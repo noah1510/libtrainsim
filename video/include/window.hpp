@@ -16,7 +16,7 @@ namespace libtrainsim{
             window() = delete;
             window(window&&) = delete;
             window(const window&) = delete;
-            virtual void drawContent();
+            virtual void content();
         public:
             virtual ~window();
             //draw can be overridden but usually that is not needed.

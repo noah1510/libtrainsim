@@ -51,7 +51,7 @@ libtrainsim::Video::videoDecodeSettings::videoDecodeSettings ( libtrainsim::Vide
     {"Enable full chroma input", SWS_FULL_CHR_H_INP}
 }}{};
 
-void libtrainsim::Video::videoDecodeSettings::displayContent() {
+void libtrainsim::Video::videoDecodeSettings::content() {
     //get the current flags
     decoder.contextMutex.lock_shared();
     auto currentFlags = decoder.scalingContextParams;
