@@ -115,7 +115,7 @@ void libtrainsim::Video::videoDecodeSettings::displayContent() {
 }
 
 
-libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filename){
+libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filename, uint64_t threadCount){
     //find all of the hardware devices
     std::vector<AVHWDeviceType> deviceTypes;
     AVHWDeviceType lastType = AV_HWDEVICE_TYPE_NONE;
@@ -174,6 +174,22 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     if (avcodec_parameters_to_context(av_codec_ctx, av_codec_params) < 0) {
         throw std::runtime_error("Couldn't initialize AVCodecContext");
     }
+    if(threadCount == 0){
+        //get the number of total threads from ffmpeg
+        //if there are less that 4 threads available only use 1
+        //otherwise use as many as possible (minus 2) and  up to 16 since more
+        //than that seems might cause problems (according to the mpv devs)
+        threadCount = av_cpu_count();
+        if(threadCount < 4){
+            threadCount = 1;
+        }else{
+            threadCount -= 2;
+        }
+    }
+    threadCount = std::clamp<int>(threadCount, 1, 16);
+    av_codec_ctx->thread_count = threadCount;
+    std::cout << "video decode on " << threadCount << " threads." << std::endl;
+    
     if (avcodec_open2(av_codec_ctx, av_codec, NULL) < 0) {
         throw std::runtime_error("Couldn't open codec");
     }

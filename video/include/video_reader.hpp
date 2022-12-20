@@ -203,8 +203,9 @@ namespace libtrainsim{
              * @brief create a new video decoder for a given video file
              * 
              * @param filename the path to the file that should be played back by this object
+             * @param threadCount the number of threads that should be used for video decode, 0 for autodetect
              */
-            videoReader(const std::filesystem::path& filename);
+            videoReader(const std::filesystem::path& filename, uint64_t threadCount = 0);
             
             /**
              * @brief destroys the video decoder
