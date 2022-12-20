@@ -20,6 +20,18 @@ namespace libtrainsim{
             
             //diable the default constructor
             popup() = delete;
+            
+            //mark that this popup should be opened during the next draw call
+            bool shouldOpen = false;
+            
+            //mark this popup to be closed
+            bool shouldClose = false;
+            
+            //is true when the popup is open
+            bool isPopupOpen = false;
+            
+            //true when the popup was open and is now closed
+            bool popupJustClosed = false;
           protected:
             /**
              * @brief create a new popup with a given name
@@ -53,6 +65,21 @@ namespace libtrainsim{
              * @brief open the popup
              */
             void open();
+            
+            /**
+             * @brief mark the popup to be closed
+             */
+            void close();
+            
+            /**
+             * @brief check if this popup is currently open
+             */
+            bool isOpen() const;
+            
+            /**
+             * @brief check if this popup was just closed
+             */
+            bool justClosed() const;
             
             /**
              * @brief get the name of the this tab
