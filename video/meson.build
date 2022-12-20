@@ -11,6 +11,7 @@ sources = [
     'src/window.cpp',
     'src/video_settings.cpp',
     'src/defaultShader.cpp',
+    'src/popup.cpp',
 ]
 
 video_deps = [
