@@ -13,9 +13,14 @@ sources = [
     'src/popup.cpp',
 ]
 
+cmake = import('cmake')
+
+nfde_proj = cmake.subproject('nativefiledialog-extended')
+
 video_deps = [
     dependency('threads', required: true),
     dependency('libtrainsim-core', required: true),
+    nfde_proj.dependency('nfd'),
 ]
 
 #handle normal builds 
