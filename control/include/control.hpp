@@ -46,7 +46,7 @@ namespace libtrainsim {
         * it is not possible to retrieve the currently pressed keys. If libtrainsim::video is not available the serialcontrol
         * part still works, its just that this can no longer detect window events and the closing flag is always false.
         */
-        class input_handler{
+        class LIBTRAINSIM_EXPORT_MACRO input_handler{
             private:
                 /**
                  * @brief the keymap used for the input_handler module

@@ -8,21 +8,21 @@
 
 namespace libtrainsim{
     namespace Video{
-        class noIniPopup : public popup{
+        class LIBTRAINSIM_EXPORT_MACRO noIniPopup : public popup{
           protected:
             void content() override;
           public:
             noIniPopup();
         };
         
-        class emptyFilePopup: public popup{
+        class LIBTRAINSIM_EXPORT_MACRO emptyFilePopup: public popup{
           protected:
             void content() override;
           public:
             emptyFilePopup();
         };
         
-        class overwriteFilePopup: public popup{
+        class LIBTRAINSIM_EXPORT_MACRO overwriteFilePopup: public popup{
           protected:
             bool acceptOverwrite = false;
             bool denyOverwrite = false;
@@ -37,7 +37,7 @@ namespace libtrainsim{
          * @brief the settings page for the style settings
          * 
          */
-        class styleSettings : public tabPage{
+        class LIBTRAINSIM_EXPORT_MACRO styleSettings : public tabPage{
           private:
             void content() override;
           public:
@@ -47,7 +47,7 @@ namespace libtrainsim{
         /**
          * @brief the settings page for the basic settings
          */
-        class basicSettings : public tabPage{
+        class LIBTRAINSIM_EXPORT_MACRO basicSettings : public tabPage{
           private:
             void content() override;
             const std::array< std::pair<std::string, int> ,4> FBOsizeOptions;
@@ -83,7 +83,7 @@ namespace libtrainsim{
         /**
          * @brief a class to handle the settings window
          */
-        class settingsWindow : public window{
+        class LIBTRAINSIM_EXPORT_MACRO settingsWindow : public window{
         private:
             
             /**

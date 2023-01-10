@@ -17,7 +17,7 @@ namespace libtrainsim{
          * @brief A general configuration class for the simulator
          * 
          */
-        class simulatorConfiguration{
+        class LIBTRAINSIM_EXPORT_MACRO simulatorConfiguration{
         private:
             
             /**

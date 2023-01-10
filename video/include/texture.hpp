@@ -27,7 +27,7 @@ namespace libtrainsim{
          * 
          * There is also a function to display the texture as an ImGui Image.
          */
-        class texture{
+        class LIBTRAINSIM_EXPORT_MACRO texture{
         private:
             /**
              * @brief the name of the texture

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <string_view>
+#include "helper.hpp"
 
 namespace libtrainsim{
     namespace Video{
@@ -13,7 +14,7 @@ namespace libtrainsim{
          * template class to provide the general inteface. Because of
          * this it is not possible to create objects of this class
          */
-        class tabPage{
+        class LIBTRAINSIM_EXPORT_MACRO tabPage{
           private:
             //The name of this tab
             std::string displayText;

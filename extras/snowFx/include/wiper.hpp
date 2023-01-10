@@ -9,7 +9,7 @@
 
 namespace libtrainsim{
     namespace extras{
-        class wiper{
+        class LIBTRAINSIM_EXPORT_MACRO wiper{
         private:
             //The rotation angle minimum in degrees
             float minRotation = 7.5;

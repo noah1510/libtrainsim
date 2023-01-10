@@ -6,6 +6,15 @@ project(
     version : '0.11.0'
 )
 
+# define the correct export macro on windows
+if target_machine.system() == 'windows'
+    if get_option('buildtype') != 'static'
+        add_project_arguments('-DLIBTRAINSIM_EXPORT_MACRO=__declspec(dllexport)', language: 'cpp')
+    else
+        add_project_arguments('-DLIBTRAINSIM_EXPORT_MACRO=__declspec(dllimport)', language: 'cpp')
+    endif
+endif
+
 #set the configuration
 conf_data = configuration_data()
 conf_data.set('HAS_CORE_SUPPORT', true)

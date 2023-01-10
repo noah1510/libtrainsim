@@ -14,7 +14,7 @@
 #include "unit_system.hpp"
 
 namespace libtrainsim{
-    class physics{
+    class LIBTRAINSIM_EXPORT_MACRO physics{
         private:
 
             std::shared_mutex mutex_data;

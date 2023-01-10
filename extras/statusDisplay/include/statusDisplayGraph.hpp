@@ -13,7 +13,7 @@ namespace libtrainsim{
          * @tparam VALUE_COUNT The number of samples this graph should have
          */
         template<size_t VALUE_COUNT>
-        class statusDisplayGraph{
+        class LIBTRAINSIM_EXPORT_MACRO statusDisplayGraph{
         private:
             /**
              * @brief the internal array to store the data values that are displayed

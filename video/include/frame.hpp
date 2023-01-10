@@ -12,6 +12,7 @@
 #endif
 
 #include <iostream>
+#include "helper.hpp"
 
 namespace libtrainsim {
     namespace Video{
@@ -19,7 +20,7 @@ namespace libtrainsim {
         * @brief an abstraction on whatever backend is used for handling frames.
         * 
         */
-        class Frame{
+        class LIBTRAINSIM_EXPORT_MACRO Frame{
             private:
                 
                 AVFrame* frameData = nullptr;

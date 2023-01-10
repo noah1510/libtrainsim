@@ -23,7 +23,7 @@ namespace libtrainsim{
          * It is required that there are a vertex shader and fragment shader. All other parts
          * are opional.
          */
-        class Shader_configuration{
+        class LIBTRAINSIM_EXPORT_MACRO Shader_configuration{
           private:
             /**
              * @brief the source of the vertex shader
@@ -162,7 +162,7 @@ namespace libtrainsim{
          * @brief a class to abstract opengl shaders
          * 
          */
-        class Shader{
+        class LIBTRAINSIM_EXPORT_MACRO Shader{
         private:
             /**
              * @brief The openGL shader Program ID

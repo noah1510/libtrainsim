@@ -27,7 +27,7 @@ namespace libtrainsim {
          * @brief This class stores the data of a single data point from the track data.
          * For the format of the json files look [here](@ref track_data_format).
          */
-        class Track_data_point {
+        class LIBTRAINSIM_EXPORT_MACRO Track_data_point {
         private:
             
             /**
@@ -100,7 +100,7 @@ namespace libtrainsim {
          * @brief This class stores the data of a given track.
          * For the format of the json files look [here](@ref track_data_format).
          */
-        class Track_data {
+        class LIBTRAINSIM_EXPORT_MACRO Track_data {
         private:
             /**
              * @brief The parsed data of the current Track.

@@ -26,7 +26,7 @@ namespace libtrainsim {
         * @brief This class is resposiblie for managing all the video material.
         * 
         */
-        class videoManager{
+        class LIBTRAINSIM_EXPORT_MACRO videoManager{
             private:
                 
                 //the buffer and texture for the creation of the rgb video image

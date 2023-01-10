@@ -1,10 +1,11 @@
 #pragma once
 
 #include <string>
+#include "helper.hpp"
 
 namespace libtrainsim{
     namespace Video{
-        class window{
+        class LIBTRAINSIM_EXPORT_MACRO window{
         protected:
             std::string windowName;
             bool beginDraw();

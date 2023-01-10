@@ -22,7 +22,7 @@ namespace libtrainsim{
         /**
         * @brief This class contains all parameter the serial telegram sends.
         */
-        class serial_channel{
+        class LIBTRAINSIM_EXPORT_MACRO serial_channel{
             private :
 
             public :
@@ -61,7 +61,7 @@ namespace libtrainsim{
         /**
         * @brief This class contains all variables and functions to handle hardware input.
         */
-        class serialcontrol{
+        class LIBTRAINSIM_EXPORT_MACRO serialcontrol{
             private:
                 
                 /**

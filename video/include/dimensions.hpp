@@ -13,7 +13,7 @@ namespace libtrainsim{
         /**
          * @brief a small class to handle dimensions
          */
-        class dimensions : public std::pair<float, float>{
+        class LIBTRAINSIM_EXPORT_MACRO dimensions : public std::pair<float, float>{
           private:
           public:
             /**

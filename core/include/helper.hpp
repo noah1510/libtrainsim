@@ -11,13 +11,17 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
+#ifndef LIBTRAINSIM_EXPORT_MACRO
+#define LIBTRAINSIM_EXPORT_MACRO
+#endif
+
 namespace libtrainsim{
     namespace core{
         /**
          * @brief A Helper class for Functionality needed across all classes and components
          * 
          */
-        class Helper{
+        class LIBTRAINSIM_EXPORT_MACRO Helper{
         private:
             /**
              * @brief Construct a new Helper object
@@ -53,6 +57,23 @@ namespace libtrainsim{
              */
             static void print_exception(const std::exception& e) {
                 Helper::get().print_exception_impl(e);
+            }
+
+            /**
+            * @brief splits a string into several others
+            *
+            * @param s the string to be split
+            * @param delimiter the character that determines where to split the string
+            * @return std::vector<std::string> a vector containing with the split parts of the string.
+            */
+            static std::vector<std::string> split_string(const std::string& s, char delimiter){
+                std::vector<std::string> tokens;
+                std::string token;
+                std::istringstream tokenStream(s);
+                while (std::getline(tokenStream, token, delimiter)){
+                    tokens.push_back(token);
+                }
+                return tokens;
             }
             
             /**

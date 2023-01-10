@@ -2,6 +2,7 @@
 
 #include <string>
 #include <string_view>
+#include "helper.hpp"
 
 namespace libtrainsim{
     namespace Video{
@@ -13,7 +14,7 @@ namespace libtrainsim{
          * draw functions have to be called in the correct place
          * which can be difficult.
          */
-        class popup{
+        class LIBTRAINSIM_EXPORT_MACRO popup{
           private:
             //The name of this popup
             std::string displayText;

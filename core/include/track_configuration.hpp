@@ -26,7 +26,7 @@
 namespace libtrainsim{
     namespace core {
         //an underground data point as defined in the [track json documentation](@ref track_format)
-        class undergorundDataPoint : public std::tuple<
+        class LIBTRAINSIM_EXPORT_MACRO undergorundDataPoint : public std::tuple<
             sakurajin::unit_system::length,
             sakurajin::unit_system::length,
             sakurajin::unit_system::area
@@ -58,12 +58,12 @@ namespace libtrainsim{
         };
 
         //All of the valid stop types which are defined in the [json format documentation](@ref stops_data_format).
-        enum stopTypes{
+        enum LIBTRAINSIM_EXPORT_MACRO stopTypes{
             station = 0
         };
         
         //A class to unpack a stop object specified in the [json format documentation](@ref stops_data_format).
-        class stopDataPoint: public std::tuple<
+        class LIBTRAINSIM_EXPORT_MACRO stopDataPoint: public std::tuple<
             std::string,
             sakurajin::unit_system::length,
             stopTypes
@@ -92,7 +92,7 @@ namespace libtrainsim{
         /**
          * @brief This class is used to load a track json file containing the definition of the [track](@ref track_format).
          */
-        class Track {
+        class LIBTRAINSIM_EXPORT_MACRO Track {
         private:
 
             /**

@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include "helper.hpp"
 
 namespace libtrainsim {
     namespace control{
@@ -11,7 +12,7 @@ namespace libtrainsim {
          * @brief assignes functions to specific keys
          * 
         */
-        class keymap{
+        class LIBTRAINSIM_EXPORT_MACRO keymap{
         private:
             /**
              * @brief The underlying map that assigns a function to each key.

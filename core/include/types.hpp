@@ -11,6 +11,8 @@
  
 #pragma once
 
+#include "helper.hpp"
+
 #include <string>
 #include <vector>
 #include <sstream>
@@ -33,19 +35,10 @@ namespace libtrainsim {
     namespace core {
 
         /**
-         * @brief splits a string into several others
-         *
-         * @param s the string to be split
-         * @param delimiter the character that determines where to split the string
-         * @return std::vector<std::string> a vector containing with the split parts of the string.
-         */
-        std::vector<std::string> split_string(const std::string& s, char delimiter);
-
-        /**
          * @brief a simple class for version checking
          *
          */
-        class version {
+        class LIBTRAINSIM_EXPORT_MACRO version {
         public:
             
             /**
@@ -148,13 +141,13 @@ namespace libtrainsim {
          * @brief the current version of the libtrainsim
          *
          */
-        const version lib_version(0,11,0);
+        const version LIBTRAINSIM_EXPORT_MACRO lib_version(0,11,0);
 
         /**
          * @brief the current version of the json formats
          *
          */
-        const version format_version(0,9,0);
+        const version LIBTRAINSIM_EXPORT_MACRO format_version(0,9,0);
 
     }
 }

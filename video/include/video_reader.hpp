@@ -26,7 +26,7 @@ namespace libtrainsim{
          * @brief the settings page for the video decoder settings
          * 
          */
-        class videoDecodeSettings : public tabPage{
+        class LIBTRAINSIM_EXPORT_MACRO videoDecodeSettings : public tabPage{
           private:
             void content() override;
             videoReader& decoder;
@@ -47,7 +47,7 @@ namespace libtrainsim{
          * @note if you want to check if the video decoder has quit use the reachedEndOfFile function.
          * 
          */
-        class videoReader{
+        class LIBTRAINSIM_EXPORT_MACRO videoReader{
           friend class videoDecodeSettings;
           private:
               

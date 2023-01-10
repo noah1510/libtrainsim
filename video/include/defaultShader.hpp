@@ -1,10 +1,11 @@
 #pragma once
 
 #include <string>
+#include "helper.hpp"
 
 namespace libtrainsim{
     namespace Video{
-        class defaultShaderSources{
+        class LIBTRAINSIM_EXPORT_MACRO defaultShaderSources{
         private:
             defaultShaderSources();
             static defaultShaderSources& getInstance(){

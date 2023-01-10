@@ -10,7 +10,7 @@ namespace libtrainsim {
          * It inherits all operatator overloads from the parent class, so in most cases it
          * can be used like a normal double just with contricted values.
          */
-        class input_axis : public clampedVariable<long double>{
+        class LIBTRAINSIM_EXPORT_MACRO input_axis : public clampedVariable<long double>{
         private:
             
         public:

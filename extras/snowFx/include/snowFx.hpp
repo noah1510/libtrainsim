@@ -18,7 +18,7 @@
 
 namespace libtrainsim{
     namespace extras{
-        class snowFx{
+        class LIBTRAINSIM_EXPORT_MACRO snowFx{
           private:
             //all of the textures for the snowflake image
             std::vector< std::shared_ptr<libtrainsim::Video::texture> > snowflake_textures;

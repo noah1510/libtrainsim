@@ -43,7 +43,7 @@ namespace libtrainsim{
          * @brief a class to handle of the general display code
          * 
          */
-        class imguiHandler{
+        class LIBTRAINSIM_EXPORT_MACRO imguiHandler{
           friend class ::libtrainsim::Video::basicSettings;
           friend class ::libtrainsim::Video::styleSettings;
           private:

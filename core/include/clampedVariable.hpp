@@ -12,7 +12,7 @@ namespace libtrainsim{
          * @tparam T the type that should be clamped between two values 
          */
         template <typename T>
-        class clampedVariable{
+        class LIBTRAINSIM_EXPORT_MACRO clampedVariable{
         private:
             T value = 0.0;
             const T lower;
