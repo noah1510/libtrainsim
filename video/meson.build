@@ -15,7 +15,10 @@ sources = [
 
 cmake = import('cmake')
 
-nfde_proj = cmake.subproject('nativefiledialog-extended')
+nfde_opts = cmake.subproject_options()
+nfde_opts.add_cmake_defines({'BUILD_SHARED_LIBS': get_option('default_library') != 'static'})
+
+nfde_proj = cmake.subproject('nativefiledialog-extended', options:nfde_opts)
 
 video_deps = [
     dependency('threads', required: true),
