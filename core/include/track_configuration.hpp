@@ -58,7 +58,7 @@ namespace libtrainsim{
         };
 
         //All of the valid stop types which are defined in the [json format documentation](@ref stops_data_format).
-        enum LIBTRAINSIM_EXPORT_MACRO stopTypes{
+        enum stopTypes{
             station = 0
         };
         

@@ -24,7 +24,7 @@ namespace libtrainsim {
         /**
          * @brief all of the types a train is allowed to have in the config
          */
-        enum class LIBTRAINSIM_EXPORT_MACRO trainType{
+        enum class trainType{
             //the train is a passenger train
             passenger,
             //the train is a cargo train
