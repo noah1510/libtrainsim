@@ -141,13 +141,13 @@ namespace libtrainsim {
          * @brief the current version of the libtrainsim
          *
          */
-        const version LIBTRAINSIM_EXPORT_MACRO lib_version(0,11,0);
+        const version lib_version(0,11,0);
 
         /**
          * @brief the current version of the json formats
          *
          */
-        const version LIBTRAINSIM_EXPORT_MACRO format_version(0,9,0);
+        const version format_version(0,9,0);
 
     }
 }
