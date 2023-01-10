@@ -70,11 +70,14 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     ImGui_ImplOpenGL3_Init(glsl_version.c_str());
     
     // Load GL extensions using glad
-    if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
+    //(int version = gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress);
+    auto version = epoxy_gl_version();
+    if (version == 0) {
         throw std::runtime_error("Could not create OpenGL context");
     }
     
-    std::cout << "OpenGL version loaded: " << GLVersion.major << "." << GLVersion.minor << std::endl;
+    //std::cout << "OpenGL version loaded: " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
+    std::cout << "OpenGL version loaded: " << version/10 << "." << version%10 << std::endl;
     std::cout << "OpenGL driver vendor: " << glGetString(GL_VENDOR) << std::endl;
     std::cout << "OpenGL driver renderer: " << glGetString(GL_RENDERER) << std::endl;
     

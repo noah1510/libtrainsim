@@ -10,13 +10,7 @@
 
 #include "video_config.hpp"
 
-extern "C" {
-    #include <glad/glad.h>
-}
-
-#include "imgui.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_opengl3.h"
+#include <epoxy/gl.h>
 
 extern "C" {
     #include <SDL2/SDL.h>
@@ -24,6 +18,10 @@ extern "C" {
     #include <SDL_image.h>
     #include <SDL_opengl.h>
 }
+
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
 
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>

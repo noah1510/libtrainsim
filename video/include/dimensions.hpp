@@ -2,8 +2,6 @@
 
 #include <tuple>
 
-
-#include <glad/glad.h>
 #include "imgui.h"
 #include "glm/glm.hpp"
 #include "helper.hpp"
