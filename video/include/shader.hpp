@@ -52,6 +52,7 @@ namespace libtrainsim{
             
             /**
              * @brief the source of the compute shader
+             * @warning this is only used when it is supported by the used gl version (opengl 4.3+)
              */
             std::optional<std::string> compute_shader_source = "";
             

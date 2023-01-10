@@ -376,18 +376,20 @@ void libtrainsim::Video::Shader::createShader () {
         }
     }
     
-    //compile and load the compute shader
-    if(shader_config.getComputeSource().has_value()){
-        try{
-            compileShader(shader_config.getComputeSource().value(), computeShader, GL_COMPUTE_SHADER);
-        }catch(...){
-            glDeleteShader(vertexShader);
-            glDeleteShader(fragmentShader);
-            glDeleteShader(geometryShader);
-            glDeleteShader(computeShader);
-            std::throw_with_nested(std::runtime_error("Could not compile or load compute shader"));
+    //compile and load the compute shader if they are supported
+    #ifdef GL_COMPUTE_SHADER
+        if(shader_config.getComputeSource().has_value()){
+            try{
+                compileShader(shader_config.getComputeSource().value(), computeShader, GL_COMPUTE_SHADER);
+            }catch(...){
+                glDeleteShader(vertexShader);
+                glDeleteShader(fragmentShader);
+                glDeleteShader(geometryShader);
+                glDeleteShader(computeShader);
+                std::throw_with_nested(std::runtime_error("Could not compile or load compute shader"));
+            }
         }
-    }
+    #endif
     
     //compile and load the tessalation control shader
     if(shader_config.getTessControlSource().has_value()){

@@ -393,13 +393,27 @@ namespace libtrainsim{
             static std::string decodeGLError(int errorCode) noexcept{
                 std::string error;
                 switch (errorCode){
+                    #ifdef GL_INVALID_ENUM
                     case GL_INVALID_ENUM:                   error = "INVALID_ENUM"; break;
+                    #endif
+                    #ifdef GL_INVALID_VALUE
                     case GL_INVALID_VALUE:                  error = "INVALID_VALUE"; break;
+                    #endif
+                    #ifdef GL_INVALID_OPERATION
                     case GL_INVALID_OPERATION:              error = "INVALID_OPERATION"; break;
+                    #endif
+                    #ifdef GL_STACK_OVERFLOW
                     case GL_STACK_OVERFLOW:                 error = "STACK_OVERFLOW"; break;
+                    #endif
+                    #ifdef GL_STACK_UNDERFLOW
                     case GL_STACK_UNDERFLOW:                error = "STACK_UNDERFLOW"; break;
+                    #endif
+                    #ifdef GL_OUT_OF_MEMORY
                     case GL_OUT_OF_MEMORY:                  error = "OUT_OF_MEMORY"; break;
+                    #endif
+                    #ifdef GL_INVALID_FRAMEBUFFER_OPERATION
                     case GL_INVALID_FRAMEBUFFER_OPERATION:  error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+                    #endif
                     default:                                error = "UNKNOWN_ERROR_TYPE"; break;
                 }
                 
@@ -411,14 +425,30 @@ namespace libtrainsim{
             static std::string decodeGLFramebufferStatus(int errorCode) noexcept{
                 std::string error;
                 switch (errorCode){
+                    #ifdef GL_FRAMEBUFFER_UNDEFINED
                     case GL_FRAMEBUFFER_UNDEFINED:                      error = "FRAMEBUFFER_UNDEFINED"; break;
+                    #endif
+                    #ifdef GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT
                     case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:          error = "FRAMEBUFFER_INCOMPLETE_ATTACHMENT"; break;
+                    #endif
+                    #ifdef GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT
                     case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:  error = "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"; break;
+                    #endif
+                    #ifdef GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER
                     case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:         error = "FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"; break;
+                    #endif
+                    #ifdef GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER
                     case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:         error = "FRAMEBUFFER_INCOMPLETE_READ_BUFFER"; break;
+                    #endif
+                    #ifdef GL_FRAMEBUFFER_UNSUPPORTED
                     case GL_FRAMEBUFFER_UNSUPPORTED:                    error = "FRAMEBUFFER_UNSUPPORTED"; break;
+                    #endif
+                    #ifdef GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
                     case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:         error = "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"; break;
+                    #endif
+                    #ifdef GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
                     case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:       error = "FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"; break;
+                    #endif
                     default:                                            error = "UNKNOWN_ERROR_TYPE"; break;
                 }
                 
