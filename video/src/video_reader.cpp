@@ -116,6 +116,7 @@ void libtrainsim::Video::videoDecodeSettings::content() {
 
 
 libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filename, uint64_t threadCount){
+    /*
     //find all of the hardware devices
     std::vector<AVHWDeviceType> deviceTypes;
     AVHWDeviceType lastType = AV_HWDEVICE_TYPE_NONE;
@@ -126,6 +127,7 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     for(size_t i = 0; i < deviceTypes.size(); i++){
         std::cout << "Supported HWDevice: " << av_hwdevice_get_type_name(deviceTypes[i]) << std::endl;
     }
+    */
     
     // Open the file using libavformat
     av_format_ctx = avformat_alloc_context();
@@ -188,6 +190,7 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     }
     threadCount = std::clamp<int>(threadCount, 1, 16);
     av_codec_ctx->thread_count = threadCount;
+    av_codec_ctx->thread_type = FF_THREAD_SLICE;
     std::cout << "video decode on " << threadCount << " threads." << std::endl;
     
     if (avcodec_open2(av_codec_ctx, av_codec, NULL) < 0) {
