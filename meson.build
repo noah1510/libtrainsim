@@ -3,7 +3,8 @@ project(
     'cpp',
     'c',
     default_options : ['cpp_std=c++17'],
-    version : '0.11.0'
+    version : '0.11.0',
+    meson_version : '>= 0.56.0',
 )
 
 # define the correct export macro on windows
