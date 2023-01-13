@@ -96,6 +96,10 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
         libtrainsim::core::Helper::print_exception(e);
     }
     
+    if (NFD_Init() != NFD_OKAY) {
+        throw std::runtime_error("Could not initialize nfd.");
+    }
+    
     settingsWin = std::make_shared<settingsWindow>();
     registerWindow_impl(settingsWin.get());
 }
@@ -167,6 +171,7 @@ libtrainsim::Video::imguiHandler::~imguiHandler() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
+    NFD_Quit();
     SDL_DestroyWindow(sdl_window);
     IMG_Quit();
     ImGui_ImplOpenGL3_Shutdown();

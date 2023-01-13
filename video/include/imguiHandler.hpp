@@ -27,6 +27,8 @@ extern "C" {
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "nfd.hpp"
+
 #include "defaultShader.hpp"
 #include "dimensions.hpp"
 #include "video_settings.hpp"
