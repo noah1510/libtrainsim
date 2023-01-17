@@ -14,3 +14,4 @@ option('experimental_multi_viewport', type: 'boolean', value: false, description
 option('build_full', type: 'boolean', value: false, description: 'set to true if you to build all components and create libtrainsim_full as dependency.')
 
 option('video_use_vsync', type: 'boolean', value: true, description: 'set this to true to sync the framerate with the screen and lower the amount of tearing (might lower the accuracy of the simulation speed in favor of better visuals)')
+option('video_performance_mode', type: 'boolean', value: false, description: 'set this to true to lower all video options for higher performance at the cost of some visual quality.')
