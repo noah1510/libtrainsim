@@ -89,6 +89,8 @@ void libtrainsim::extras::snowFx::loadFramebuffer ( std::shared_ptr<libtrainsim:
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
+    
+    Video::imguiHandler::loadPerformanceGLOptions();
         
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

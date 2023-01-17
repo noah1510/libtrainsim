@@ -388,6 +388,13 @@ namespace libtrainsim{
                 getInstance().unregisterWindow_impl(_win);
             }
             
+            static void loadPerformanceGLOptions(){
+                #ifdef LIBTRAINSIM_PREFORMANCE_VIDEO
+                    glDisable(GL_DITHER);
+                    glDisable(GL_MULTISAMPLE);
+                #endif
+            }
+            
             //get a string describing a GL error in more detail from an error code.
             //@note this does not handle GL_NO_ERROR check for that before calling this function
             static std::string decodeGLError(int errorCode) noexcept{
