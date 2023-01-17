@@ -176,7 +176,7 @@ namespace libtrainsim{
             std::thread::id mainThreadID;
             
             //the default size that FBOs should have when being created
-            dimensions defaultFBOSize = {3840,2160};
+            dimensions defaultFBOSize = {1920,1080};
             
             //all the windows registered with the imguiHandler
             //std::vector<std::shared_ptr<libtrainsim::Video::window>> registeredWindows;

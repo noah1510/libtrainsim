@@ -108,6 +108,7 @@ void libtrainsim::Video::videoManager::updateOutput() {
     
     displayShader->use();
     displayShader->setUniform("transform", outputBuffer->getProjection());
+    displayShader->setUniform("enabledUnits", displayTextures.size());
     
     for(unsigned int i = 0; i < displayTextures.size(); i++){
         displayTextures[i]->bind(i);
@@ -182,8 +183,6 @@ void libtrainsim::Video::videoManager::addTexture ( std::shared_ptr<texture> new
     }
     
     displayTextures.emplace_back(newTexture);
-    displayShader->use();
-    displayShader->setUniform("enabledUnits", displayTextures.size());
 }
 
 void libtrainsim::Video::videoManager::removeTexture ( const std::string& textureName ) {
@@ -194,9 +193,6 @@ void libtrainsim::Video::videoManager::removeTexture ( const std::string& textur
     for(auto i = displayTextures.begin(); i < displayTextures.end(); i++){
         if((*i)->getName() == textureName){
             displayTextures.erase(i);
-
-            displayShader->use();
-            displayShader->setUniform("enabledUnits", displayTextures.size());
             return;
         }
     }

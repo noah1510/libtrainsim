@@ -153,7 +153,7 @@ void libtrainsim::extras::snowFx::updateDrawTimes() {
     
     //queue all snowflakes to be drawn in the next 0.5 seconds
     uint64_t arrSize = nextSnowflakeDrawTimes.size();
-    while( currTime + 0.5s > nextSnowflakeDrawTimes.back() && ++arrSize <= maxSnowflakes){
+    while( currTime + 1.0s > nextSnowflakeDrawTimes.back() && ++arrSize <= maxSnowflakes){
         auto nextTime =  generateNewTime( nextSnowflakeDrawTimes.back() );
         nextSnowflakeDrawTimes.emplace_back(nextTime);
     }
