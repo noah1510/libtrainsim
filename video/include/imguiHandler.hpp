@@ -48,7 +48,7 @@ namespace libtrainsim{
           friend class ::libtrainsim::Video::styleSettings;
           private:
             //The glsl version that is required to be used by shaders
-            std::string glsl_version = "#version 410 core";
+            std::string glsl_version = "#version 330 core";
             
             /**
              * @brief The (main) gl context

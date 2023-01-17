@@ -3,6 +3,8 @@ build
 doc
 subprojects/*
 !subprojects/*.wrap
+.meson-subproject-wrap-hash.txt
+
 
 libtrainsim.kdev4
 
