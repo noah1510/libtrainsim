@@ -59,6 +59,9 @@ namespace libtrainsim {
                 //all of the textures that are displayed on the output texture 
                 std::vector< std::shared_ptr<texture> > displayTextures;
 
+                //generate the source of the display shader and compile it
+                void generateDisplayShader();
+
             public:
                 /**
                 * @brief Construct a new video object (must only be called by getInstance when necessary)
@@ -115,7 +118,7 @@ namespace libtrainsim {
                 * @param windowName the name the window is going to have
                 * @param shaderLocation The folder where all of the shader files are stored
                 */
-                void createWindow(const std::string& windowName, const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation);
+                void createWindow(const std::string& windowName);
 
                 /**
                 * @brief just refresh the window contents without changing the displayed content.

@@ -300,8 +300,9 @@ void libtrainsim::Video::imguiHandler::initFramebuffer_impl ( unsigned int& FBO,
 
 void libtrainsim::Video::imguiHandler::loadFramebuffer_impl ( unsigned int buf, dimensions dims, glm::vec4 clearColor ) {
     warnOffThread();
-    
+
     glBindFramebuffer(GL_FRAMEBUFFER, buf);
+    if(buf == 0){return;};
     setViewport(dims);
 
     glDisable(GL_DEPTH_TEST);

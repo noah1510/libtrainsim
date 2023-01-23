@@ -33,7 +33,7 @@ const std::filesystem::path& libtrainsim::Video::videoManager::getFilePath() con
     return decode->getLoadedFile();
 }
 
-void libtrainsim::Video::videoManager::createWindow ( const std::string& windowName, const std::filesystem::path& shaderLocation, const std::filesystem::path& textureLocation ) {
+void libtrainsim::Video::videoManager::createWindow ( const std::string& windowName) {
     if(currentWindowName != "" || windowFullyCreated){
         throw std::runtime_error("window alread exists");
     }
@@ -61,11 +61,7 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     }
     
     try{
-        displayShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"display.vert", shaderLocation/"display.frag");
-        
-        displayShader->use();
-        std::vector<int> units {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-        displayShader->setUniform("tex", units);
+        generateDisplayShader();
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not create output shader"));
     }
@@ -83,6 +79,49 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
     updateOutput();
     
     windowFullyCreated = true;
+}
+
+void libtrainsim::Video::videoManager::generateDisplayShader(){
+
+    auto maxTextureUnits = libtrainsim::Video::imguiHandler::getMaxTextureUnits();
+    std::stringstream fragmentSource;
+    fragmentSource << R""""(
+        #version 330 core
+        layout(location = 0) out vec4 FragColor;
+        in vec2 TexCoord;
+        in vec2 Coord;
+    )"""";
+
+    fragmentSource << "    uniform sampler2D tex[" << maxTextureUnits << "];\n";
+    fragmentSource << R""""(
+        uniform uint enabledUnits;
+        void main(){
+            vec4 outColor;
+            FragColor = vec4(0.0,0.0,0.0,0.0);
+    )"""";
+
+    std::vector<int> units{};
+    units.reserve(maxTextureUnits);
+    for(unsigned int i = 0; i < maxTextureUnits; i++){
+        units.emplace_back(i);
+        fragmentSource << "if(enabledUnits > " << i << "u){";
+        fragmentSource << "    outColor = texture(tex[" << i << "], TexCoord);";
+        fragmentSource << "    FragColor = mix(FragColor, outColor, outColor.a);";
+        fragmentSource << "}else{return;}";
+    }
+
+    fragmentSource << "}" << std::endl;
+
+    libtrainsim::Video::Shader_configuration disp_conf{
+        libtrainsim::Video::defaultShaderSources::getBasicVertexSource(),
+        fragmentSource.str()
+    };
+
+    displayShader = std::make_shared<libtrainsim::Video::Shader>(disp_conf);
+    
+    displayShader->use();
+    displayShader->setUniform("tex", units);
+
 }
 
 double libtrainsim::Video::videoManager::getHeight() {
