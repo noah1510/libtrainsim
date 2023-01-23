@@ -210,7 +210,11 @@ void libtrainsim::Video::videoManager::refreshWindow() {
 
 void libtrainsim::Video::videoManager::addTexture ( std::shared_ptr<texture> newTexture ) {
     if(displayTextures.size() == libtrainsim::Video::imguiHandler::getMaxTextureUnits()){
-        throw std::runtime_error("For now only 16 display textures are supported, remove one to add this one!");
+        std::stringstream ss;
+        ss << "For now only ";
+        ss << libtrainsim::Video::imguiHandler::getMaxTextureUnits();
+        ss << " display textures are supported, remove one to add this one!";
+        throw std::runtime_error(ss.str());
     }
     
     auto texName = newTexture->getName();

@@ -33,9 +33,6 @@ namespace libtrainsim{
             //the buffer and texture used to create the image output
             std::shared_ptr<libtrainsim::Video::texture> imageTexture;
             
-            //the buffer and texture used to create the blurred output
-            std::shared_ptr<libtrainsim::Video::texture> blurTexture;
-            
             //all of the displacement textures for various types of effects
             std::vector< std::shared_ptr<libtrainsim::Video::texture> > displacementTextures;
             
@@ -64,10 +61,10 @@ namespace libtrainsim{
             double speedModifier = 1.1;
             
             //draws a snowflake to the output buffer if needed
-            void drawSnowflake();
+            void drawSnowflakes();
             
             //a version of the copy shader that also slightly moves the image down
-            void copyMoveDown(std::shared_ptr<libtrainsim::Video::texture> output, std::shared_ptr<libtrainsim::Video::texture> input);
+            void copyMoveDown(std::shared_ptr<libtrainsim::Video::texture> dest, std::shared_ptr<libtrainsim::Video::texture> source);
             
             //load a framebuffer with the wanted loader settigns
             void loadFramebuffer(std::shared_ptr<libtrainsim::Video::texture> buf);

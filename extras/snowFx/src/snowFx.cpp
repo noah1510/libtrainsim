@@ -6,7 +6,6 @@ using namespace sakurajin::unit_system::literals;
 libtrainsim::extras::snowFx::snowFx(std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf){
     
     auto snowLocation = conf->getExtrasLocation() / "snowFx";
-    auto shaderLocation = snowLocation / "shaders";
     auto textureLocation = snowLocation / "textures";
     
     //---------------load the shaders and textures---------------
@@ -25,11 +24,12 @@ libtrainsim::extras::snowFx::snowFx(std::shared_ptr<libtrainsim::core::simulator
     try{
         outputTexture = std::make_shared<libtrainsim::Video::texture>();
         imageTexture = std::make_shared<libtrainsim::Video::texture>();
-        blurTexture = std::make_shared<libtrainsim::Video::texture>();
         
         outputTexture->createFramebuffer(FBOSize);
         imageTexture->createFramebuffer(FBOSize);
-        blurTexture->createFramebuffer(FBOSize);
+
+        libtrainsim::Video::imguiHandler::copy(libtrainsim::Video::imguiHandler::getDarkenTexture(0), outputTexture);
+        libtrainsim::Video::imguiHandler::copy(libtrainsim::Video::imguiHandler::getDarkenTexture(0), imageTexture);
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create framebuffers"));
     }
@@ -109,9 +109,9 @@ std::shared_ptr<libtrainsim::Video::texture> libtrainsim::extras::snowFx::loadSn
     return flake_tex;
 }
 
-void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<libtrainsim::Video::texture> output, std::shared_ptr<libtrainsim::Video::texture> input) {
+void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<libtrainsim::Video::texture> dest, std::shared_ptr<libtrainsim::Video::texture> source) {
     glm::mat4 projection = glm::mat4(1.0f);
-    loadFramebuffer(output);
+    dest->loadFramebuffer();
     
     displacementShader->use();
     
@@ -119,7 +119,7 @@ void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<libtrainsim::Vide
     displacementShader->setUniform("transform", projection);
     
     //load the fx layer as background
-    input->bind(0);
+    source->bind(0);
     displacementShader->setUniform("img", 0);
     
     //load move down displacment texture
@@ -208,62 +208,85 @@ glm::mat4 libtrainsim::extras::snowFx::getSnowflakeTransformation() {
     return orth * projection;
 }
 
-void libtrainsim::extras::snowFx::drawSnowflake() {
+void libtrainsim::extras::snowFx::drawSnowflakes() {
     
+    auto currTime = libtrainsim::core::Helper::now();
+
     //load the buffer and the shader
-    loadFramebuffer(imageTexture);
+    //loadFramebuffer(outputTexture);
+    outputTexture->loadFramebuffer();
+
     displacementShader->use();
     displacementShader->setUniform("img", 0);
     displacementShader->setUniform("displacement", 1);
 
     //load the actual displacement map
-    displacementTextures[1]->bind(1);
-    
-    //draw the snowflake
-    auto flake = snowflake_textures[ distribution_image(number_generator) ];
-    flake->bind(0);
-    
-    //set the displacement multiplier to a random number
-    //the 150 is an arbitray value, it is supposed to be close to the maximum speed of the train
-    //the faster the train is the more mashed up the snowflakes are
-    float displacementStrength = distribution_displacementStrength(number_generator) * 0.1 * std::cbrt(speedModifier);
-    displacementShader->setUniform("multiplier", displacementStrength);
-    
-    //set the transformation for the snowflake
-    auto transform = getSnowflakeTransformation();
-    displacementShader->setUniform("transform", transform);
-    
-    //actually draw the next snowflake
+    displacementTextures[0]->bind(1);
+
+    imageTexture->bind(0);
+    displacementShader->setUniform("multiplier", 1.0f);
     libtrainsim::Video::imguiHandler::drawRect();
+
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_MAX);
+
+    //load the actual displacement map
+    displacementTextures[1]->bind(1);
+
+    float speedScaler = 0.1 * std::cbrt(speedModifier);
+
+    //draw a new snowflake if needed
+    while(shouldDrawSnowflake(currTime)){
+
+        //draw the snowflake
+        auto flake = snowflake_textures[ distribution_image(number_generator) ];
+        flake->bind(0);
+        
+        //set the displacement multiplier to a random number
+        //the 150 is an arbitray value, it is supposed to be close to the maximum speed of the train
+        //the faster the train is the more mashed up the snowflakes are
+        //float displacementStrength = distribution_displacementStrength(number_generator) * speedScaler;
+        //displacementShader->setUniform("multiplier", displacementStrength);
+        
+        //set the transformation for the snowflake
+        auto transform = getSnowflakeTransformation();
+        displacementShader->setUniform("transform", transform);
+        
+        //actually draw the next snowflake
+        libtrainsim::Video::imguiHandler::drawRect();
+    }
 }
 
 
 void libtrainsim::extras::snowFx::updateTexture() {
     
     //copy the snowflake layer onto the output
-    copyMoveDown(outputTexture, imageTexture);
+    //copyMoveDown(outputTexture, imageTexture);
+    //libtrainsim::Video::imguiHandler::copy(imageTexture, outputTexture);
     
     //draw new snowflak(s) if needed
-    auto currTime = libtrainsim::core::Helper::now();
-    while(shouldDrawSnowflake(currTime)){
-        //draw a new snowflake if needed
-        drawSnowflake();
-    }
+    drawSnowflakes();
     
     //copy the output back into the input layer to keep snowflakes next draw
-    copyMoveDown(imageTexture, outputTexture);
+    //copyMoveDown(imageTexture, outputTexture);
+    libtrainsim::Video::imguiHandler::copy(outputTexture, imageTexture);
     
     //wipe where the wiper is
-    wiperHandler->updateWiper(imageTexture);
+    //wiperHandler->updateWiper(imageTexture);
     
     //display the wiped snowflake layer
-    copyMoveDown(outputTexture, imageTexture);
+    //copyMoveDown(outputTexture, imageTexture);
+    //libtrainsim::Video::imguiHandler::copy(outputTexture, imageTexture);
     
     //display the wiper with its current position
-    wiperHandler->displayWiper(outputTexture);
+    //wiperHandler->displayWiper(outputTexture);
     
     //refill the timestamps for the next snowflakes to be generated
     updateDrawTimes();
+
+    libtrainsim::Video::imguiHandler::loadFramebuffer(0);
     
 }
 

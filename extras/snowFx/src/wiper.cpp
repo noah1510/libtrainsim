@@ -149,6 +149,8 @@ void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Vide
 }
 
 void libtrainsim::extras::wiper::displayWiper ( std::shared_ptr<libtrainsim::Video::texture> outputImage ) {
+    libtrainsim::Video::imguiHandler::copy(outputImage, wiperFBO);
+
     outputImage->loadFramebuffer();
     
     auto shader = libtrainsim::Video::imguiHandler::getCopyShader();
