@@ -2,6 +2,7 @@
 
 #include "imguiHandler.hpp"
 
+#include "defaultShader.hpp"
 #include "helper.hpp"
 #include "texture.hpp"
 #include "shader.hpp"
@@ -79,8 +80,6 @@ namespace libtrainsim{
             bool shouldDrawSnowflake(const decltype(libtrainsim::core::Helper::now())& timestamp);
             void updateDrawTimes();
             
-            uint64_t snowflakesDrawn = 0;
-            
             libtrainsim::Video::dimensions FBOSize = {0,0};
             
           public:
@@ -95,8 +94,6 @@ namespace libtrainsim{
             void updateTrainSpeed(sakurajin::unit_system::speed newTrainSpeed);
             
             std::shared_ptr<wiper> getWiper();
-            
-            uint64_t getSnowflakeCount() const;
             
         };
     }
