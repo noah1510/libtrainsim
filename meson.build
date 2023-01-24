@@ -2,7 +2,10 @@ project(
     'libtrainsim',
     'cpp',
     'c',
-    default_options : ['cpp_std=c++17'],
+    default_options : [
+        'cpp_std=c++17',
+        'warning_level=everything'
+    ],
     version : '0.11.0',
     meson_version : '>= 0.56.0',
 )

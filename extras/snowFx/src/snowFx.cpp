@@ -286,7 +286,7 @@ void libtrainsim::extras::snowFx::updateTexture() {
     //refill the timestamps for the next snowflakes to be generated
     updateDrawTimes();
 
-    libtrainsim::Video::imguiHandler::loadFramebuffer(0);
+    libtrainsim::Video::imguiHandler::unsetBuffers();
     
 }
 

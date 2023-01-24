@@ -174,13 +174,22 @@ void libtrainsim::Video::texture::updateImage (const uint8_t* data, const libtra
     }
 }
 
-void libtrainsim::Video::texture::resize ( const libtrainsim::Video::dimensions& newSize ) {
-    std::scoped_lock lock{acessMutex};
+void libtrainsim::Video::texture::resize ( const libtrainsim::Video::dimensions& newSize, bool resetTexture ) {
+    acessMutex.lock();
+
     if(!framebufferMode){
-        throw std::invalid_argument("Cannot change the size outside of framebuffer mode");
+        if(!resetTexture){
+            acessMutex.unlock();
+            throw std::invalid_argument("Cannot change the size outside of framebuffer mode");
+        }
+
+        acessMutex.unlock();
+        updateImage(nullptr, newSize);
+        return;
     }
     
     imageSize = newSize;
+    acessMutex.unlock();
 }
 
 
@@ -198,20 +207,41 @@ void libtrainsim::Video::texture::bind(unsigned int unit) {
 }
 
 void libtrainsim::Video::texture::createFramebuffer ( const libtrainsim::Video::dimensions& framebufferSize ) {
-    acessMutex.lock();
+    imguiHandler::warnOffThread();
     
-    if(framebufferMode){
-        acessMutex.unlock();
+    if(framebufferSize != imageSize){
         try{
-            resize(framebufferSize);
+            resize(framebufferSize, true);
         }catch(...){
              std::throw_with_nested(std::invalid_argument("Could not update the framebuffer size"));
         }
+
+    }
+
+    if(framebufferMode){
         return;
     }
     
     try{
-        imguiHandler::initFramebuffer(FBO, textureID, framebufferSize);
+        acessMutex.lock();
+        
+        //create the framebuffer for the output image
+        glGenFramebuffers(1, &FBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+        
+        unsigned int DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+        glDrawBuffers(1, DrawBuffers);
+        
+        auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if(status != GL_FRAMEBUFFER_COMPLETE){
+            std::stringstream ss;
+            ss << "Could not create output framebuffer. Error: " << imguiHandler::decodeGLFramebufferStatus(status);
+            throw std::runtime_error(ss.str());
+        }
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }catch(...){
         std::throw_with_nested(std::runtime_error("cannot create framebuffer"));
     }
@@ -221,13 +251,35 @@ void libtrainsim::Video::texture::createFramebuffer ( const libtrainsim::Video::
     acessMutex.unlock();
 }
 
+void libtrainsim::Video::texture::createFramebuffer(){
+    try{
+        createFramebuffer(imguiHandler::getDefaultFBOSize());
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("cannot create framebuffer with default size"));
+    }
+}
+
 void libtrainsim::Video::texture::loadFramebuffer() {
     std::scoped_lock lock{acessMutex};
-    
     if(!framebufferMode){
         throw std::invalid_argument("Cannot load texture as framebuffer if is is not initialized as framebuffer");
     }
-    imguiHandler::loadFramebuffer(FBO,imageSize);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    imguiHandler::setViewport(imageSize);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    
+    imguiHandler::loadPerformanceGLOptions();
+        
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glBlendEquation(GL_MAX);
+    
+    auto clearColor = imguiHandler::getClearColor();
+    glClearColor(clearColor.x,clearColor.y,clearColor.z,clearColor.w);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 bool libtrainsim::Video::texture::hasFramebuffer() const noexcept {

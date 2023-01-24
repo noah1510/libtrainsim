@@ -142,7 +142,7 @@ namespace libtrainsim{
              * 
              * @throws std::invalid_argument if the texture is not in framebuffer mode
              */
-            void resize(const dimensions& newSize);
+            void resize(const dimensions& newSize, bool resetTexture = false);
             
             /**
              * @brief put the texture into framebuffer mode
@@ -158,6 +158,21 @@ namespace libtrainsim{
              * @param framebufferSize The (new) size of the framebuffer 
              */
             void createFramebuffer(const dimensions& framebufferSize);
+            
+            /**
+             * @brief put the texture into framebuffer mode
+             * 
+             * @details this function allows using this texture as framebuffer.
+             * This allows this texture to be rendered into. This function uses
+             * The default framebuffer size from the imguiHandler.
+             * 
+             * @note if the texture is already in framebuffer mode this function will call resize
+             * 
+             * @throws std::nested_exception if the framebuffer cannot be created
+             * @throws std::nested_exception if the framebuffer size cannot be updated
+             * 
+             */
+            void createFramebuffer();
             
             /**
              * @brief returns true if the texture is in framebuffer mode

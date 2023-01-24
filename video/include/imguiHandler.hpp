@@ -120,8 +120,6 @@ namespace libtrainsim{
             //the last size the viewport was set to
             dimensions lastViewportSize = {0,0};
             
-            //set the viewport to the given size
-            void setViewport(const dimensions& viewportSize);
             
             //force the viewport to be updated even if the viewport size is the same as the last
             bool forceViewportUpdate = true;
@@ -138,10 +136,6 @@ namespace libtrainsim{
             void startRender_impl();
             //implementation for the end Render function
             void endRender_impl();
-            //implementation for init framebuffer function
-            void initFramebuffer_impl(unsigned int& FBO, unsigned int& texture, dimensions dims );
-            //implementation for load framebuffer function
-            void loadFramebuffer_impl ( unsigned int buf, dimensions dims, glm::vec4 clearColor );
             //implementation update render thread function
             void updateRenderThread_impl();
             //implementation copy function
@@ -154,6 +148,8 @@ namespace libtrainsim{
             std::shared_ptr<texture> getDarkenTexture_impl(uint8_t strength);
             //implementation drawColor function
             void drawColor_impl(std::shared_ptr<texture> dest, glm::vec4 color);
+
+            void setViewport_impl(const dimensions& viewportSize);
             
             void registerWindow_impl(window* _win);
             void unregisterWindow_impl(window* _win);
@@ -223,23 +219,17 @@ namespace libtrainsim{
                 }
                 getInstance().endRender_impl();
             }
-            
-            /**
-             * @brief initialize a framebuffer with a given texture attached to it
-             */
-            static void initFramebuffer(unsigned int& FBO, unsigned int& texture, dimensions dims = dimensions{3840,2160}){
-                try{
-                    getInstance().initFramebuffer_impl(FBO,texture,dims);
-                }catch(...){
-                    std::throw_with_nested(std::runtime_error("Cannot init framebuffer"));
-                }
+
+            static void unsetBuffers(){
+                init();
+                warnOffThread();
+                glBindVertexArray(0);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
-            
-            /**
-             * @brief make a given framebuffer active
-             */
-            static void loadFramebuffer ( unsigned int buf, dimensions dims = dimensions{3840,2160}, glm::vec4 clearColor = {0,0,0,0} ){
-                getInstance().loadFramebuffer_impl(buf, dims, clearColor);
+
+            //set the viewport to the given size
+            static void setViewport(const dimensions& viewportSize){
+                getInstance().setViewport_impl(viewportSize);
             }
             
             /**
@@ -363,6 +353,11 @@ namespace libtrainsim{
             //get the size a new FBo should have by default
             static dimensions getDefaultFBOSize(){
                 return getInstance().defaultFBOSize;
+            }
+
+            //get the default clear color defined by the style settings
+            static ImVec4 getClearColor(){
+                return getInstance().clear_color;
             }
             
             /**
