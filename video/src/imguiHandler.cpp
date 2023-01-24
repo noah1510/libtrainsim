@@ -13,7 +13,7 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
         throw std::runtime_error( "error initializing sdl_image"s + IMG_GetError() );
     }
 
-    // GL 4.6 + GLSL 460
+    // GL 3.3 + GLSL 330
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -27,6 +27,7 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
 
     // Create window with graphics context
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -80,6 +81,8 @@ libtrainsim::Video::imguiHandler::imguiHandler(std::string windowName){
     std::cout << "OpenGL version loaded: " << version/10 << "." << version%10 << std::endl;
     std::cout << "OpenGL driver vendor: " << glGetString(GL_VENDOR) << std::endl;
     std::cout << "OpenGL driver renderer: " << glGetString(GL_RENDERER) << std::endl;
+    std::cout << "support for shader pipelines?: " << 
+    epoxy_has_gl_extension("GL_ARB_separate_shader_objects") << std::endl;
     
     mainThreadID = std::this_thread::get_id();
     
