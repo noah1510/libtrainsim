@@ -98,7 +98,7 @@ jobs:
           action: test
           directory: build
           options: --verbose
-          meson-version: 0.56.1
+          meson-version: 1.0.0
       - name: clearing build directory
         run: rm -rf build
 
