@@ -223,7 +223,11 @@ namespace libtrainsim{
              */
             uint64_t seekCutoff = 200;
             
+<<<<<<< HEAD
             void initHWDecoding(const AVCodec** av_codec);
+=======
+            void initHWDecoding(AVCodec* av_codec);
+>>>>>>> 4bb26ea0f7b56b828ab3d73058225ad0f8eec377
         public:
             /**
              * @brief create a new video decoder for a given video file

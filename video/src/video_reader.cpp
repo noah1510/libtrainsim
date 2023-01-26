@@ -379,7 +379,6 @@ void libtrainsim::Video::videoReader::initHWDecoding(const AVCodec** av_codec) {
         throw std::runtime_error("Couldn't initialize AVCodecContext");
     }
     
-    
     /* Callback pixel format. */
     auto oldCallback = av_codec_ctx->get_format;
     av_codec_ctx->get_format = get_hw_pixel_format;
@@ -392,7 +391,6 @@ void libtrainsim::Video::videoReader::initHWDecoding(const AVCodec** av_codec) {
         return;
     }
     av_codec_ctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
-    
     
     if (avcodec_open2(av_codec_ctx, *av_codec, NULL) < 0) {
         std::cerr << "Couldn't open codec" << std::endl;
@@ -451,6 +449,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(const AVCodec** av_codec) {
         enableHWDecode = false;
         return;
     }
+    
     std::cout << "enable hardware decode since everything seems to initialze just fine." << std::endl;
     enableHWDecode = true;
         
