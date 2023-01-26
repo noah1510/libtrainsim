@@ -17,6 +17,8 @@ extern "C" {
     #include <libavformat/avformat.h>
     #include <libswscale/swscale.h>
     #include <libavutil/cpu.h>
+    #include <libavutil/pixdesc.h>
+    #include <libavutil/hwcontext.h>
 }
 
 namespace libtrainsim{
@@ -81,13 +83,13 @@ namespace libtrainsim{
                 AV_HWDEVICE_TYPE_CUDA,
                 AV_HWDEVICE_TYPE_VAAPI,
                 //AV_HWDEVICE_TYPE_DXVA2,
-                AV_HWDEVICE_TYPE_VULKAN,
-                AV_HWDEVICE_TYPE_QSV,
-                AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
-                AV_HWDEVICE_TYPE_D3D11VA,
+                //AV_HWDEVICE_TYPE_VULKAN,
+                //AV_HWDEVICE_TYPE_QSV,
+                //AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
+                //AV_HWDEVICE_TYPE_D3D11VA,
                 AV_HWDEVICE_TYPE_DRM,
                 AV_HWDEVICE_TYPE_OPENCL,
-                AV_HWDEVICE_TYPE_MEDIACODEC
+                //AV_HWDEVICE_TYPE_MEDIACODEC
             };
             
             //The params for the scaling context
@@ -221,7 +223,7 @@ namespace libtrainsim{
              */
             uint64_t seekCutoff = 200;
             
-            void initHWDecoding(AVCodec* av_codec);
+            void initHWDecoding(const AVCodec** av_codec);
         public:
             /**
              * @brief create a new video decoder for a given video file

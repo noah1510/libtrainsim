@@ -144,66 +144,61 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     uri = filename;
 
     // Find the first valid video stream inside the file
-    video_stream_index = -1;
     AVCodecParameters* av_codec_params;
-    AVCodec* av_codec;
-    for (unsigned int i = 0; i < av_format_ctx->nb_streams; ++i) {
-        av_codec_params = av_format_ctx->streams[i]->codecpar;
-        av_codec = const_cast<AVCodec*>( avcodec_find_decoder(av_codec_params->codec_id) );
-        if (!av_codec) {
-            continue;
-        }
-        if (av_codec_params->codec_type == AVMEDIA_TYPE_VIDEO) {
-            video_stream_index = i;
-            renderSize.x() = av_codec_params->width;
-            renderSize.y() = av_codec_params->height;
-            auto framerate_tmp = av_format_ctx->streams[i]->avg_frame_rate;
-            framerate = static_cast<double>(framerate_tmp.num)/static_cast<double>(framerate_tmp.den);
-            std::cout << "video average framerate:" << framerate << " fps" << std::endl;
-            break;
-        }
-    }
-    if (video_stream_index == -1) {
+    const AVCodec* av_codec;
+    
+    video_stream_index = av_find_best_stream(av_format_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, &av_codec, 0);
+    if (video_stream_index < 0) {
         throw std::invalid_argument("Couldn't find valid video stream inside file");
     }
-
-    // Set up a codec context for the decoder
-    av_codec_ctx = avcodec_alloc_context3(av_codec);
-    if (!av_codec_ctx) {
-        throw std::runtime_error("Couldn't create AVCodecContext");
-    }
-    if (avcodec_parameters_to_context(av_codec_ctx, av_codec_params) < 0) {
-        throw std::runtime_error("Couldn't initialize AVCodecContext");
-    }
+    
+    //load important parameterss from video data
+    av_codec_params = av_format_ctx->streams[video_stream_index]->codecpar;
+    renderSize.x() = av_codec_params->width;
+    renderSize.y() = av_codec_params->height;
+    auto framerate_tmp = av_format_ctx->streams[video_stream_index]->avg_frame_rate;
+    framerate = static_cast<double>(framerate_tmp.num)/static_cast<double>(framerate_tmp.den);
+    std::cout << "video average framerate:" << framerate << " fps" << std::endl;
     
     //init the hardware decoding
-    initHWDecoding(av_codec);
+    initHWDecoding(&av_codec);
     
-    if(threadCount == 0){
-        //get the number of total threads from ffmpeg
-        //if there are less that 4 threads available only use 1
-        //otherwise use as many as possible (minus 2) and  up to 16 since more
-        //than that seems might cause problems (according to the mpv devs)
-        threadCount = av_cpu_count();
-        if(threadCount < 4){
-            threadCount = 1;
-        }else{
-            threadCount -= 2;
-        }
-    }
-    threadCount = std::clamp<int>(threadCount, 1, 16);
-    av_codec_ctx->thread_count = threadCount;
-    av_codec_ctx->thread_type = FF_THREAD_SLICE;
-    std::cout << "video decode on " << threadCount << " threads." << std::endl;
-    
-    if (avcodec_open2(av_codec_ctx, av_codec, NULL) < 0) {
-        throw std::runtime_error("Couldn't open codec");
-    }
-
+    //only calling this for software decode
     if(!enableHWDecode){
+        
+        // Set up a codec context for the decoder
+        av_codec_ctx = avcodec_alloc_context3(av_codec);
+        if (!av_codec_ctx) {
+            throw std::runtime_error("Couldn't create AVCodecContext");
+        }
+        if (avcodec_parameters_to_context(av_codec_ctx, av_codec_params) < 0) {
+            throw std::runtime_error("Couldn't initialize AVCodecContext");
+        }
+    
+        if(threadCount == 0){
+            //get the number of total threads from ffmpeg
+            //if there are less that 4 threads available only use 1
+            //otherwise use as many as possible (minus 2) and  up to 16 since more
+            //than that seems might cause problems (according to the mpv devs)
+            threadCount = av_cpu_count();
+            if(threadCount < 4){
+                threadCount = 1;
+            }else{
+                threadCount -= 2;
+            }
+        }
+        threadCount = std::clamp<int>(threadCount, 1, 16);
+        av_codec_ctx->thread_count = threadCount;
+        av_codec_ctx->thread_type = FF_THREAD_SLICE;
+        std::cout << "video decode on " << threadCount << " threads." << std::endl;
+        
         hw_av_frame = av_frame_alloc();
         if (!hw_av_frame) {
             throw std::runtime_error("Couldn't allocate hardware AVFrame");
+        }
+    
+        if (avcodec_open2(av_codec_ctx, av_codec, NULL) < 0) {
+            throw std::runtime_error("Couldn't open codec");
         }
     }
     av_packet = av_packet_alloc();
@@ -329,13 +324,14 @@ libtrainsim::Video::videoReader::~videoReader() {
     }
 }
 
-void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
+void libtrainsim::Video::videoReader::initHWDecoding(const AVCodec** av_codec) {
     //load the hardware acceleration context
     std::vector<const AVCodecHWConfig*> hw_configs;
     for (int i = 0; i < 20; i++){
-        auto hw_config = avcodec_get_hw_config(av_codec, i);
+        auto hw_config = avcodec_get_hw_config(*av_codec, i);
         if(hw_config != NULL){
             if(hw_config->device_type == AV_HWDEVICE_TYPE_NONE){break;};
+            if(!(hw_config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX)){continue;};
             hw_configs.emplace_back(hw_config);
         }
     }
@@ -370,8 +366,20 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
         return;
     }
     
-    //load the hw context
+    //set the pixel format
     hw_pix_fmt = selectedConfig->pix_fmt;
+    
+    // Set up a codec context for the decoder
+    av_codec_ctx = avcodec_alloc_context3(*av_codec);
+    if (!av_codec_ctx) {
+        throw std::runtime_error("Couldn't create AVCodecContext");
+    }
+    auto av_codec_params = av_format_ctx->streams[video_stream_index]->codecpar;
+    if (avcodec_parameters_to_context(av_codec_ctx, av_codec_params) < 0) {
+        throw std::runtime_error("Couldn't initialize AVCodecContext");
+    }
+    
+    
     /* Callback pixel format. */
     auto oldCallback = av_codec_ctx->get_format;
     av_codec_ctx->get_format = get_hw_pixel_format;
@@ -384,6 +392,18 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
         return;
     }
     av_codec_ctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+    
+    
+    if (avcodec_open2(av_codec_ctx, *av_codec, NULL) < 0) {
+        std::cerr << "Couldn't open codec" << std::endl;
+        av_codec_ctx->get_format = oldCallback;
+        enableHWDecode = false;
+        return;
+        
+    }
+    
+    //@todo get working with help from https://github.com/FFmpeg/FFmpeg/blob/master/doc/examples/hw_decode.c
+    /*
     auto* hw_frames_const = av_hwdevice_get_hwframe_constraints(hw_device_ctx, NULL);
 
     if (hw_frames_const == NULL){
@@ -405,7 +425,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
 
     av_hwframe_constraints_free(&hw_frames_const);
     
-    /* GPU is incapable to convert to YUV420p to us, lets give up. */
+    //GPU is incapable to convert to YUV420p to us, lets give up.
     if (*tmp_pix_fmt == AV_PIX_FMT_NONE){
         std::cerr << "Your HW device do not support conversion to YUV420p!" << std::endl;
         av_codec_ctx->get_format = oldCallback;
@@ -413,6 +433,7 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
         enableHWDecode = false;
         return;
     }
+*/
     
     av_frame = av_frame_alloc();
     if (!av_frame) {
@@ -430,7 +451,6 @@ void libtrainsim::Video::videoReader::initHWDecoding(AVCodec* av_codec) {
         enableHWDecode = false;
         return;
     }
-
     std::cout << "enable hardware decode since everything seems to initialze just fine." << std::endl;
     enableHWDecode = true;
         
@@ -465,9 +485,10 @@ void libtrainsim::Video::videoReader::readNextFrame() {
             throw std::runtime_error("Failed to decode packet" + makeAVError(response));
         }
         
-        if (enableHWDecode){
+        //if (hw_av_frame->format == hw_pix_fmt){
+        if(enableHWDecode){
             /* GPU, receive data from GPU to CPU and convert. */
-            av_frame->format = AV_PIX_FMT_YUV420P;
+            //av_frame->format = AV_PIX_FMT_YUV420P;
             response = av_hwframe_transfer_data(av_frame, hw_av_frame, 0);
 
             if (response < 0){
