@@ -30,6 +30,9 @@ libtrainsim::extras::snowFx::snowFx(std::shared_ptr<libtrainsim::core::simulator
 
         libtrainsim::Video::imguiHandler::copy(libtrainsim::Video::imguiHandler::getDarkenTexture(0), outputTexture);
         libtrainsim::Video::imguiHandler::copy(libtrainsim::Video::imguiHandler::getDarkenTexture(0), imageTexture);
+        
+        outputTexture->setClearColor({0.0,0.0,0.0,0.0});
+        imageTexture->setClearColor({0.0,0.0,0.0,0.0});
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create framebuffers"));
     }
@@ -216,6 +219,10 @@ void libtrainsim::extras::snowFx::drawSnowflakes() {
     //loadFramebuffer(outputTexture);
     outputTexture->loadFramebuffer();
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_MAX);
+    
     displacementShader->use();
     displacementShader->setUniform("img", 0);
     displacementShader->setUniform("displacement", 1);
@@ -226,11 +233,6 @@ void libtrainsim::extras::snowFx::drawSnowflakes() {
     imageTexture->bind(0);
     displacementShader->setUniform("multiplier", 1.0f);
     libtrainsim::Video::imguiHandler::drawRect();
-
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_MAX);
 
     //load the actual displacement map
     displacementTextures[1]->bind(1);
@@ -247,8 +249,8 @@ void libtrainsim::extras::snowFx::drawSnowflakes() {
         //set the displacement multiplier to a random number
         //the 150 is an arbitray value, it is supposed to be close to the maximum speed of the train
         //the faster the train is the more mashed up the snowflakes are
-        //float displacementStrength = distribution_displacementStrength(number_generator) * speedScaler;
-        //displacementShader->setUniform("multiplier", displacementStrength);
+        float displacementStrength = distribution_displacementStrength(number_generator) * speedScaler;
+        displacementShader->setUniform("multiplier", displacementStrength);
         
         //set the transformation for the snowflake
         auto transform = getSnowflakeTransformation();
@@ -257,6 +259,8 @@ void libtrainsim::extras::snowFx::drawSnowflakes() {
         //actually draw the next snowflake
         libtrainsim::Video::imguiHandler::drawRect();
     }
+    
+    glDisable(GL_BLEND);
 }
 
 

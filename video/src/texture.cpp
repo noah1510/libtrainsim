@@ -277,8 +277,13 @@ void libtrainsim::Video::texture::loadFramebuffer() {
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glBlendEquation(GL_MAX);
     
-    auto clearColor = imguiHandler::getClearColor();
-    glClearColor(clearColor.x,clearColor.y,clearColor.z,clearColor.w);
+    if(clearColorOverride.has_value()){
+        auto clearColor = clearColorOverride.value();
+        glClearColor(clearColor.x,clearColor.y,clearColor.z,clearColor.w);
+    }else{
+         auto clearColor = imguiHandler::getClearColor();
+         glClearColor(clearColor.x,clearColor.y,clearColor.z,clearColor.w);
+    }
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -288,6 +293,10 @@ bool libtrainsim::Video::texture::hasFramebuffer() const noexcept {
 
 unsigned int libtrainsim::Video::texture::getFBO() const noexcept {
     return FBO;
+}
+
+void libtrainsim::Video::texture::setClearColor ( glm::vec4 clearCol) {
+    clearColorOverride = std::make_optional<glm::vec4>(clearCol);
 }
 
 

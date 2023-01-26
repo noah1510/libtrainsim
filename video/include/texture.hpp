@@ -58,6 +58,11 @@ namespace libtrainsim{
              * @brief the opengl id of the framebuffer
              */
             unsigned int FBO = 0;
+            
+            /**
+             * @biref the clear color that should be used instead of the default one
+             */
+            std::optional<glm::vec4> clearColorOverride;
         public:
             /**
              * @brief create an empty texture
@@ -185,6 +190,12 @@ namespace libtrainsim{
              * @throws std::invalid_argument if the texture is not in framebuffer mode
              */
             void loadFramebuffer();
+            
+            /**
+             * @brief set the clear color to a custom value
+             * 
+             */
+            void setClearColor(glm::vec4);
             
             /**
              * @brief display the texture as an image in the currently active imgui window
