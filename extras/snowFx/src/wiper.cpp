@@ -15,6 +15,7 @@ libtrainsim::extras::wiper::wiper(std::shared_ptr<libtrainsim::core::simulatorCo
     try{
         wiperFBO = std::make_shared<libtrainsim::Video::texture>();
         wiperFBO->createFramebuffer(libtrainsim::Video::imguiHandler::getDefaultFBOSize());
+        wiperFBO->setClearColor({0,0,0,0});
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create wiper framebuffer"));
     }
@@ -22,6 +23,7 @@ libtrainsim::extras::wiper::wiper(std::shared_ptr<libtrainsim::core::simulatorCo
     try{
         wiperMask = std::make_shared<libtrainsim::Video::texture>();
         wiperMask->createFramebuffer(libtrainsim::Video::imguiHandler::getDefaultFBOSize());
+        wiperMask->setClearColor({0,0,0,0});
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create wiper mask framebuffer"));
     }
@@ -96,6 +98,8 @@ void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Vide
     
     //clear the wiper mask before updating it
     wiperMaskClear();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     if(turningLeft){
         nextRot += wiperSpeed;
@@ -124,6 +128,8 @@ void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Vide
     }
     
     //--render the wiper image onto the mask--
+    
+    glDisable(GL_BLEND);
     
     //--wiper buffer--
     wiperFBO->loadFramebuffer();
@@ -154,15 +160,20 @@ void libtrainsim::extras::wiper::displayWiper ( std::shared_ptr<libtrainsim::Vid
     outputImage->loadFramebuffer();
     
     auto shader = libtrainsim::Video::imguiHandler::getCopyShader();
+    
     shader->use();
     wiperFBO->bind(0);
     shader->setUniform("sourceImage",0);
     libtrainsim::Video::imguiHandler::drawRect();
     
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
     wiperImage->bind(0);
     auto transform = getWiperTransform();
     shader->setUniform("transform", transform);
     libtrainsim::Video::imguiHandler::drawRect();
+    glDisable(GL_BLEND);
     
 }
 

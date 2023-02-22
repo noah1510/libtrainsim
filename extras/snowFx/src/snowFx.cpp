@@ -218,10 +218,6 @@ void libtrainsim::extras::snowFx::drawSnowflakes() {
     //load the buffer and the shader
     //loadFramebuffer(outputTexture);
     outputTexture->loadFramebuffer();
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_MAX);
     
     displacementShader->use();
     displacementShader->setUniform("img", 0);
@@ -231,9 +227,14 @@ void libtrainsim::extras::snowFx::drawSnowflakes() {
     displacementTextures[0]->bind(1);
 
     imageTexture->bind(0);
-    displacementShader->setUniform("multiplier", 1.0f);
+    displacementShader->setUniform("multiplier", 0.0f);
     libtrainsim::Video::imguiHandler::drawRect();
 
+    //activate the correct alpha blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_MAX);
+    
     //load the actual displacement map
     displacementTextures[1]->bind(1);
 
@@ -260,6 +261,8 @@ void libtrainsim::extras::snowFx::drawSnowflakes() {
         libtrainsim::Video::imguiHandler::drawRect();
     }
     
+    glBlendFunc(GL_ONE, GL_ZERO);
+    glBlendEquation(GL_FUNC_ADD);
     glDisable(GL_BLEND);
 }
 
@@ -275,17 +278,17 @@ void libtrainsim::extras::snowFx::updateTexture() {
     
     //copy the output back into the input layer to keep snowflakes next draw
     //copyMoveDown(imageTexture, outputTexture);
-    libtrainsim::Video::imguiHandler::copy(outputTexture, imageTexture);
-    
-    //wipe where the wiper is
-    //wiperHandler->updateWiper(imageTexture);
-    
-    //display the wiped snowflake layer
-    //copyMoveDown(outputTexture, imageTexture);
     //libtrainsim::Video::imguiHandler::copy(outputTexture, imageTexture);
     
+    //wipe where the wiper is
+    wiperHandler->updateWiper(outputTexture);
+    
+    //display the wiped snowflake layer
+    copyMoveDown(imageTexture, outputTexture);
+    //libtrainsim::Video::imguiHandler::copy(imageTexture, outputTexture);
+    
     //display the wiper with its current position
-    //wiperHandler->displayWiper(outputTexture);
+    wiperHandler->displayWiper(outputTexture);
     
     //refill the timestamps for the next snowflakes to be generated
     updateDrawTimes();
