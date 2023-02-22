@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://git.thm.de/singlegfx/simplegl.git
+revision = main
+
+[provides]
+dependency_names = ['simplegl']

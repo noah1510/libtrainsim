@@ -10,26 +10,26 @@ libtrainsim::extras::snowFx::snowFx(std::shared_ptr<libtrainsim::core::simulator
     
     //---------------load the shaders and textures---------------
     try{
-        libtrainsim::Video::Shader_configuration disp_config{
-            libtrainsim::Video::defaultShaderSources::getBasicVertexSource(),
-            libtrainsim::Video::defaultShaderSources::getDisplacementFragmentSource()
+        SimpleGFX::SimpleGL::Shader_configuration disp_config{
+            SimpleGFX::SimpleGL::defaultShaderSources::getBasicVertexSource(),
+            SimpleGFX::SimpleGL::defaultShaderSources::getDisplacementFragmentSource()
         };
-        displacementShader = std::make_shared<libtrainsim::Video::Shader>(disp_config);
+        displacementShader = std::make_shared<SimpleGFX::SimpleGL::Shader>(disp_config);
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create displacement shader"));
     }
     
     //framebuffers
-    FBOSize = libtrainsim::Video::imguiHandler::getDefaultFBOSize();
+    FBOSize = SimpleGFX::SimpleGL::imguiHandler::getDefaultFBOSize();
     try{
-        outputTexture = std::make_shared<libtrainsim::Video::texture>();
-        imageTexture = std::make_shared<libtrainsim::Video::texture>();
+        outputTexture = std::make_shared<SimpleGFX::SimpleGL::texture>();
+        imageTexture = std::make_shared<SimpleGFX::SimpleGL::texture>();
         
         outputTexture->createFramebuffer(FBOSize);
         imageTexture->createFramebuffer(FBOSize);
 
-        libtrainsim::Video::imguiHandler::copy(libtrainsim::Video::imguiHandler::getDarkenTexture(0), outputTexture);
-        libtrainsim::Video::imguiHandler::copy(libtrainsim::Video::imguiHandler::getDarkenTexture(0), imageTexture);
+        SimpleGFX::SimpleGL::imguiHandler::copy(SimpleGFX::SimpleGL::imguiHandler::getDarkenTexture(0), outputTexture);
+        SimpleGFX::SimpleGL::imguiHandler::copy(SimpleGFX::SimpleGL::imguiHandler::getDarkenTexture(0), imageTexture);
         
         outputTexture->setClearColor({0.0,0.0,0.0,0.0});
         imageTexture->setClearColor({0.0,0.0,0.0,0.0});
@@ -55,7 +55,7 @@ libtrainsim::extras::snowFx::snowFx(std::shared_ptr<libtrainsim::core::simulator
         for(int i = 0; i < 3; i++){
             std::stringstream URI{};
             URI << "displacement-" << i << ".tif";
-            auto disTex = std::make_shared<libtrainsim::Video::texture>(textureLocation/URI.str());
+            auto disTex = std::make_shared<SimpleGFX::SimpleGL::texture>(textureLocation/URI.str());
             displacementTextures.emplace_back(disTex);
         }
     }catch(...){
@@ -90,7 +90,7 @@ libtrainsim::extras::snowFx::snowFx(std::shared_ptr<libtrainsim::core::simulator
 libtrainsim::extras::snowFx::~snowFx() {
 }
 
-void libtrainsim::extras::snowFx::loadFramebuffer ( std::shared_ptr<libtrainsim::Video::texture> buf ) {
+void libtrainsim::extras::snowFx::loadFramebuffer ( std::shared_ptr<SimpleGFX::SimpleGL::texture> buf ) {
     buf->loadFramebuffer();
 
     glEnable(GL_BLEND);
@@ -99,20 +99,20 @@ void libtrainsim::extras::snowFx::loadFramebuffer ( std::shared_ptr<libtrainsim:
 }
 
 
-std::shared_ptr<libtrainsim::Video::texture> libtrainsim::extras::snowFx::loadSnowflake ( const std::filesystem::path& URI ) {
+std::shared_ptr<SimpleGFX::SimpleGL::texture> libtrainsim::extras::snowFx::loadSnowflake ( const std::filesystem::path& URI ) {
     //load the texture and create a framebuffer to copy the tex into
-    auto flake_tex = std::make_shared<libtrainsim::Video::texture>(URI);
-    //auto flake = std::make_shared<libtrainsim::Video::texture>();
+    auto flake_tex = std::make_shared<SimpleGFX::SimpleGL::texture>(URI);
+    //auto flake = std::make_shared<SimpleGFX::SimpleGL::texture>();
     //flake->createFramebuffer(flake_tex->getSize());
     
     //copy the texture into the framebuffer
-    //libtrainsim::Video::imguiHandler::copy(flake_tex, flake);
+    //SimpleGFX::SimpleGL::imguiHandler::copy(flake_tex, flake);
     
     //return the framebuffer texture.
     return flake_tex;
 }
 
-void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<libtrainsim::Video::texture> dest, std::shared_ptr<libtrainsim::Video::texture> source) {
+void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<SimpleGFX::SimpleGL::texture> dest, std::shared_ptr<SimpleGFX::SimpleGL::texture> source) {
     glm::mat4 projection = glm::mat4(1.0f);
     dest->loadFramebuffer();
     
@@ -132,7 +132,7 @@ void libtrainsim::extras::snowFx::copyMoveDown(std::shared_ptr<libtrainsim::Vide
     //set the displacement to 0, to not move the fx layer
     displacementShader->setUniform("multiplier", 0.003f);
     
-    libtrainsim::Video::imguiHandler::drawRect();
+    SimpleGFX::SimpleGL::imguiHandler::drawRect();
 }
 
 decltype ( libtrainsim::core::Helper::now() ) libtrainsim::extras::snowFx::generateNewTime(const decltype(libtrainsim::core::Helper::now())& timestamp) {
@@ -228,7 +228,7 @@ void libtrainsim::extras::snowFx::drawSnowflakes() {
 
     imageTexture->bind(0);
     displacementShader->setUniform("multiplier", 0.0f);
-    libtrainsim::Video::imguiHandler::drawRect();
+    SimpleGFX::SimpleGL::imguiHandler::drawRect();
 
     //activate the correct alpha blending
     glEnable(GL_BLEND);
@@ -258,7 +258,7 @@ void libtrainsim::extras::snowFx::drawSnowflakes() {
         displacementShader->setUniform("transform", transform);
         
         //actually draw the next snowflake
-        libtrainsim::Video::imguiHandler::drawRect();
+        SimpleGFX::SimpleGL::imguiHandler::drawRect();
     }
     
     glBlendFunc(GL_ONE, GL_ZERO);
@@ -271,21 +271,21 @@ void libtrainsim::extras::snowFx::updateTexture() {
     
     //copy the snowflake layer onto the output
     //copyMoveDown(outputTexture, imageTexture);
-    //libtrainsim::Video::imguiHandler::copy(imageTexture, outputTexture);
+    //SimpleGFX::SimpleGL::imguiHandler::copy(imageTexture, outputTexture);
     
     //draw new snowflak(s) if needed
     drawSnowflakes();
     
     //copy the output back into the input layer to keep snowflakes next draw
     //copyMoveDown(imageTexture, outputTexture);
-    //libtrainsim::Video::imguiHandler::copy(outputTexture, imageTexture);
+    //SimpleGFX::SimpleGL::imguiHandler::copy(outputTexture, imageTexture);
     
     //wipe where the wiper is
     wiperHandler->updateWiper(outputTexture);
     
     //display the wiped snowflake layer
     copyMoveDown(imageTexture, outputTexture);
-    //libtrainsim::Video::imguiHandler::copy(imageTexture, outputTexture);
+    //SimpleGFX::SimpleGL::imguiHandler::copy(imageTexture, outputTexture);
     
     //display the wiper with its current position
     wiperHandler->displayWiper(outputTexture);
@@ -293,7 +293,7 @@ void libtrainsim::extras::snowFx::updateTexture() {
     //refill the timestamps for the next snowflakes to be generated
     updateDrawTimes();
 
-    libtrainsim::Video::imguiHandler::unsetBuffers();
+    SimpleGFX::SimpleGL::imguiHandler::unsetBuffers();
     
 }
 
@@ -308,7 +308,7 @@ void libtrainsim::extras::snowFx::updateTrainSpeed ( sakurajin::unit_system::spe
 }
 
 
-std::shared_ptr<libtrainsim::Video::texture> libtrainsim::extras::snowFx::getOutputTexture() {
+std::shared_ptr<SimpleGFX::SimpleGL::texture> libtrainsim::extras::snowFx::getOutputTexture() {
     return outputTexture;
 }
 

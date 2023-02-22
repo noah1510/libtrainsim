@@ -7,29 +7,29 @@ libtrainsim::extras::wiper::wiper(std::shared_ptr<libtrainsim::core::simulatorCo
     auto textureLocation = wiperLocation / "textures";
     
     try{
-        wiperImage = std::make_shared<libtrainsim::Video::texture>(textureLocation/"wiper.tif");
+        wiperImage = std::make_shared<SimpleGFX::SimpleGL::texture>(textureLocation/"wiper.tif");
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create wiper texture"));
     }
     
     try{
-        wiperFBO = std::make_shared<libtrainsim::Video::texture>();
-        wiperFBO->createFramebuffer(libtrainsim::Video::imguiHandler::getDefaultFBOSize());
+        wiperFBO = std::make_shared<SimpleGFX::SimpleGL::texture>();
+        wiperFBO->createFramebuffer(SimpleGFX::SimpleGL::imguiHandler::getDefaultFBOSize());
         wiperFBO->setClearColor({0,0,0,0});
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create wiper framebuffer"));
     }
     
     try{
-        wiperMask = std::make_shared<libtrainsim::Video::texture>();
-        wiperMask->createFramebuffer(libtrainsim::Video::imguiHandler::getDefaultFBOSize());
+        wiperMask = std::make_shared<SimpleGFX::SimpleGL::texture>();
+        wiperMask->createFramebuffer(SimpleGFX::SimpleGL::imguiHandler::getDefaultFBOSize());
         wiperMask->setClearColor({0,0,0,0});
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not create wiper mask framebuffer"));
     }
     
     try{
-        wiperShader = std::make_shared<libtrainsim::Video::Shader>(shaderLocation/"copy.vert",shaderLocation/"wiper.frag");
+        wiperShader = std::make_shared<SimpleGFX::SimpleGL::Shader>(shaderLocation/"copy.vert",shaderLocation/"wiper.frag");
         wiperShader->use();
         wiperShader->setUniform("img",0);
         wiperShader->setUniform("mask",1);
@@ -76,23 +76,23 @@ glm::mat4 libtrainsim::extras::wiper::getWiperTransform() const {
 
 void libtrainsim::extras::wiper::wiperMaskClear() {
     wiperMask->loadFramebuffer();
-    auto shader = libtrainsim::Video::imguiHandler::getCopyShader();
+    auto shader = SimpleGFX::SimpleGL::imguiHandler::getCopyShader();
     shader->use();
     shader->setUniform("sourceImage",0);
 }
 
 void libtrainsim::extras::wiper::updateWiperMask() {
-    auto shader = libtrainsim::Video::imguiHandler::getCopyShader();
+    auto shader = SimpleGFX::SimpleGL::imguiHandler::getCopyShader();
     
     wiperImage->bind(0);
     auto transform = getWiperTransform();
     shader->setUniform("transform", transform);
-    libtrainsim::Video::imguiHandler::drawRect();
+    SimpleGFX::SimpleGL::imguiHandler::drawRect();
     
 }
 
 
-void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Video::texture> outputImage ) {
+void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<SimpleGFX::SimpleGL::texture> outputImage ) {
     //--update the angle of the wiper--
     libtrainsim::core::clampedVariable<float> nextRot = currentRotation;
     
@@ -147,24 +147,24 @@ void libtrainsim::extras::wiper::updateWiper ( std::shared_ptr<libtrainsim::Vide
     wiperMask->bind(1);
     
     //draw the mask onto the snow
-    libtrainsim::Video::imguiHandler::drawRect();
+    SimpleGFX::SimpleGL::imguiHandler::drawRect();
     
     //--copy the results back into the output image--
-    libtrainsim::Video::imguiHandler::copy(wiperFBO, outputImage);
+    SimpleGFX::SimpleGL::imguiHandler::copy(wiperFBO, outputImage);
     
 }
 
-void libtrainsim::extras::wiper::displayWiper ( std::shared_ptr<libtrainsim::Video::texture> outputImage ) {
-    libtrainsim::Video::imguiHandler::copy(outputImage, wiperFBO);
+void libtrainsim::extras::wiper::displayWiper ( std::shared_ptr<SimpleGFX::SimpleGL::texture> outputImage ) {
+    SimpleGFX::SimpleGL::imguiHandler::copy(outputImage, wiperFBO);
 
     outputImage->loadFramebuffer();
     
-    auto shader = libtrainsim::Video::imguiHandler::getCopyShader();
+    auto shader = SimpleGFX::SimpleGL::imguiHandler::getCopyShader();
     
     shader->use();
     wiperFBO->bind(0);
     shader->setUniform("sourceImage",0);
-    libtrainsim::Video::imguiHandler::drawRect();
+    SimpleGFX::SimpleGL::imguiHandler::drawRect();
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -172,7 +172,7 @@ void libtrainsim::extras::wiper::displayWiper ( std::shared_ptr<libtrainsim::Vid
     wiperImage->bind(0);
     auto transform = getWiperTransform();
     shader->setUniform("transform", transform);
-    libtrainsim::Video::imguiHandler::drawRect();
+    SimpleGFX::SimpleGL::imguiHandler::drawRect();
     glDisable(GL_BLEND);
     
 }

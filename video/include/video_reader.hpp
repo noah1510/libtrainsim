@@ -27,7 +27,7 @@ namespace libtrainsim{
          * @brief the settings page for the video decoder settings
          * 
          */
-        class LIBTRAINSIM_EXPORT_MACRO videoDecodeSettings : public tabPage{
+        class LIBTRAINSIM_EXPORT_MACRO videoDecodeSettings : public SimpleGFX::SimpleGL::tabPage{
           private:
             void content() override;
             videoReader& decoder;
@@ -78,7 +78,7 @@ namespace libtrainsim{
             /**
              * @brief the size of the video
              */
-            dimensions renderSize{0,0};
+            SimpleGFX::SimpleGL::dimensions renderSize{0,0};
             
             /**
              * @brief the path to the video file
@@ -251,7 +251,7 @@ namespace libtrainsim{
             /**
              * @brief get the dimensions of the video file
              */
-            dimensions getDimensions() const;
+            SimpleGFX::SimpleGL::dimensions getDimensions() const;
             
             /**
              * @brief get the currently displayed frame number

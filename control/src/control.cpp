@@ -40,7 +40,7 @@ std::vector<std::string> libtrainsim::control::input_handler::getKeyFunctions() 
     
     #ifdef HAS_VIDEO_SUPPORT
 
-        if(libtrainsim::Video::imguiHandler::shouldTerminate()){
+        if(SimpleGFX::SimpleGL::imguiHandler::shouldTerminate()){
             functions.emplace_back("TERMINATE");
         }
     
@@ -81,7 +81,7 @@ bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
 void libtrainsim::control::input_handler::update() {
     #ifdef HAS_VIDEO_SUPPORT
     try{
-        libtrainsim::Video::imguiHandler::errorOffThread();
+        SimpleGFX::SimpleGL::imguiHandler::errorOffThread();
     }catch(...){
         std::throw_with_nested(std::runtime_error("make sure to update the controls on the main render thread"));
     }

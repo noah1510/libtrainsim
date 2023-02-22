@@ -30,12 +30,12 @@ namespace libtrainsim {
             private:
                 
                 //the buffer and texture for the creation of the rgb video image
-                std::shared_ptr<texture> outputBuffer;
+                std::shared_ptr<SimpleGFX::SimpleGL::texture> outputBuffer;
                 
                 /**
                  * @brief the shader used to render the video into a texture
                  */
-                std::shared_ptr<Shader> displayShader = nullptr;
+                std::shared_ptr<SimpleGFX::SimpleGL::Shader> displayShader = nullptr;
                 
                 /**
                  * @brief the name this window currently has
@@ -57,7 +57,7 @@ namespace libtrainsim {
                 void updateOutput();
                 
                 //all of the textures that are displayed on the output texture 
-                std::vector< std::shared_ptr<texture> > displayTextures;
+                std::vector< std::shared_ptr<SimpleGFX::SimpleGL::texture> > displayTextures;
 
                 //generate the source of the display shader and compile it
                 void generateDisplayShader();
@@ -140,7 +140,7 @@ namespace libtrainsim {
                 /**
                  * @brief adds a texture to be rendered on top of the video
                  */
-                void addTexture(std::shared_ptr<texture> newTexture);
+                void addTexture(std::shared_ptr<SimpleGFX::SimpleGL::texture> newTexture);
                 
                 /**
                  * @brief remove a texture from being rendered

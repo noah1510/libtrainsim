@@ -1,6 +1,7 @@
 #include "video_reader.hpp"
 
 using namespace sakurajin::unit_system;
+using namespace SimpleGFX::SimpleGL;
 using namespace std::literals;
 
 //create a full error message from an av error id
@@ -291,11 +292,11 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     });
     
     auto settingsTab = std::make_shared<videoDecodeSettings>(*this);
-    libtrainsim::Video::imguiHandler::addSettingsTab(settingsTab);
+    imguiHandler::addSettingsTab(settingsTab);
 }
 
 libtrainsim::Video::videoReader::~videoReader() {
-    libtrainsim::Video::imguiHandler::removeSettingsTab("decodeSettings");
+    imguiHandler::removeSettingsTab("decodeSettings");
     
     if(!reachedEndOfFile()){
         EOF_Mutex.lock();
@@ -410,7 +411,7 @@ bool libtrainsim::Video::videoReader::reachedEndOfFile() {
     return reachedEOF;
 }
 
-libtrainsim::Video::dimensions libtrainsim::Video::videoReader::getDimensions() const {
+dimensions libtrainsim::Video::videoReader::getDimensions() const {
     return renderSize;
 }
 

@@ -3,7 +3,7 @@ sources = [
 ]
 
 statusDisplayDeps = [
-    dependency('libtrainsim-video', required: true),
+    dependency('libtrainsim-core', required: true),
 ]
 
 incdir = include_directories('include','.','..')

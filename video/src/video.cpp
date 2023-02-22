@@ -1,6 +1,7 @@
 #include "video.hpp"
 
 using namespace std::literals;
+using namespace SimpleGFX::SimpleGL;
 
 libtrainsim::Video::videoManager::videoManager(){
     try{
@@ -83,7 +84,7 @@ void libtrainsim::Video::videoManager::createWindow ( const std::string& windowN
 
 void libtrainsim::Video::videoManager::generateDisplayShader(){
 
-    auto maxTextureUnits = libtrainsim::Video::imguiHandler::getMaxTextureUnits();
+    auto maxTextureUnits = imguiHandler::getMaxTextureUnits();
     std::stringstream fragmentSource;
     fragmentSource << R""""(
         #version 330 core
@@ -112,12 +113,12 @@ void libtrainsim::Video::videoManager::generateDisplayShader(){
 
     fragmentSource << "}" << std::endl;
 
-    libtrainsim::Video::Shader_configuration disp_conf{
-        libtrainsim::Video::defaultShaderSources::getBasicVertexSource(),
+    Shader_configuration disp_conf{
+        defaultShaderSources::getBasicVertexSource(),
         fragmentSource.str()
     };
 
-    displayShader = std::make_shared<libtrainsim::Video::Shader>(disp_conf);
+    displayShader = std::make_shared<Shader>(disp_conf);
     
     displayShader->use();
     displayShader->setUniform("tex", units);
@@ -184,7 +185,7 @@ void libtrainsim::Video::videoManager::refreshWindow() {
         updateOutput();
 
         //get the image size
-        libtrainsim::Video::dimensions newSize = ImGui::GetContentRegionAvail();
+        dimensions newSize = ImGui::GetContentRegionAvail();
         auto dim = newSize.x()/newSize.y();
         
         //correct the new image size to keep the image ratio at 16:9
@@ -209,10 +210,10 @@ void libtrainsim::Video::videoManager::refreshWindow() {
 }
 
 void libtrainsim::Video::videoManager::addTexture ( std::shared_ptr<texture> newTexture ) {
-    if(displayTextures.size() == libtrainsim::Video::imguiHandler::getMaxTextureUnits()){
+    if(displayTextures.size() == imguiHandler::getMaxTextureUnits()){
         std::stringstream ss;
         ss << "For now only ";
-        ss << libtrainsim::Video::imguiHandler::getMaxTextureUnits();
+        ss << imguiHandler::getMaxTextureUnits();
         ss << " display textures are supported, remove one to add this one!";
         throw std::runtime_error(ss.str());
     }

@@ -25,7 +25,7 @@ void libtrainsim::extras::statusDisplaySettings::content() {
 
 
 libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings):window{"Status Window"}{
-    libtrainsim::Video::imguiHandler::init();
+    SimpleGFX::SimpleGL::imguiHandler::init();
     manageSettings = _manageSettings;
     
     defaultGraphNames = {
@@ -47,7 +47,7 @@ libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings):window{"
     graphs.emplace_back(std::pair{statusDisplayGraph<100>{"speedLevel", "SpeedLevel"},true});
     
     if(manageSettings){
-        libtrainsim::Video::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
+        SimpleGFX::SimpleGL::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
     }
     
     showWindow = false;
@@ -57,7 +57,7 @@ libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings):window{"
 
 libtrainsim::extras::statusDisplay::~statusDisplay() {
     if(manageSettings){
-        libtrainsim::Video::imguiHandler::removeSettingsTab("statusDisplay");
+        SimpleGFX::SimpleGL::imguiHandler::removeSettingsTab("statusDisplay");
     }
 }
 

@@ -38,16 +38,16 @@ namespace libtrainsim{
             const float wiperScaling = 0.85f;
             
             //The loaded wiper texture
-            std::shared_ptr<libtrainsim::Video::texture> wiperImage;
+            std::shared_ptr<SimpleGFX::SimpleGL::texture> wiperImage;
             
             //an output buffer for the wiper
-            std::shared_ptr<libtrainsim::Video::texture> wiperFBO;
+            std::shared_ptr<SimpleGFX::SimpleGL::texture> wiperFBO;
             
             //The mask that is applied for actually wiping off an texture
-            std::shared_ptr<libtrainsim::Video::texture> wiperMask;
+            std::shared_ptr<SimpleGFX::SimpleGL::texture> wiperMask;
             
             //The shader to wipe snow off a surface
-            std::shared_ptr<libtrainsim::Video::Shader> wiperShader;
+            std::shared_ptr<SimpleGFX::SimpleGL::Shader> wiperShader;
             
             //the constant transformations to speed up the calculations
             glm::mat4 coreTransform;
@@ -82,13 +82,13 @@ namespace libtrainsim{
              * @brief update the wiper mask and wipe parts from a given image
              * 
              */
-            void updateWiper(std::shared_ptr<libtrainsim::Video::texture> outputImage);
+            void updateWiper(std::shared_ptr<SimpleGFX::SimpleGL::texture> outputImage);
             
             /**
              * @brief display the wiper texture on an image
              * 
              */
-            void displayWiper(std::shared_ptr<libtrainsim::Video::texture> outputImage);
+            void displayWiper(std::shared_ptr<SimpleGFX::SimpleGL::texture> outputImage);
             
             /**
              * @brief get the current rotation in degrees

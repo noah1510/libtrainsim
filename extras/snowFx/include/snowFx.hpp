@@ -22,19 +22,19 @@ namespace libtrainsim{
         class LIBTRAINSIM_EXPORT_MACRO snowFx{
           private:
             //all of the textures for the snowflake image
-            std::vector< std::shared_ptr<libtrainsim::Video::texture> > snowflake_textures;
+            std::vector< std::shared_ptr<SimpleGFX::SimpleGL::texture> > snowflake_textures;
             
             //the shader for the opengl operations
-            std::shared_ptr<libtrainsim::Video::Shader> displacementShader;
+            std::shared_ptr<SimpleGFX::SimpleGL::Shader> displacementShader;
             
             //the texture for the image output
-            std::shared_ptr<libtrainsim::Video::texture> outputTexture;
+            std::shared_ptr<SimpleGFX::SimpleGL::texture> outputTexture;
             
             //the buffer and texture used to create the image output
-            std::shared_ptr<libtrainsim::Video::texture> imageTexture;
+            std::shared_ptr<SimpleGFX::SimpleGL::texture> imageTexture;
             
             //all of the displacement textures for various types of effects
-            std::vector< std::shared_ptr<libtrainsim::Video::texture> > displacementTextures;
+            std::vector< std::shared_ptr<SimpleGFX::SimpleGL::texture> > displacementTextures;
             
             //initialize random numbers
             std::mt19937_64 number_generator;
@@ -53,7 +53,7 @@ namespace libtrainsim{
             decltype(libtrainsim::core::Helper::now()) generateNewTime(const decltype(libtrainsim::core::Helper::now())& timestamp);
             
             //this loads a snowflake file into a texture buffer
-            std::shared_ptr<libtrainsim::Video::texture> loadSnowflake(const std::filesystem::path& URI);
+            std::shared_ptr<SimpleGFX::SimpleGL::texture> loadSnowflake(const std::filesystem::path& URI);
             
             //a simple multiplier to change the rate at which new snowflakes spawn
             double weather_intensity = 1.0;
@@ -64,10 +64,10 @@ namespace libtrainsim{
             void drawSnowflakes();
             
             //a version of the copy shader that also slightly moves the image down
-            void copyMoveDown(std::shared_ptr<libtrainsim::Video::texture> dest, std::shared_ptr<libtrainsim::Video::texture> source);
+            void copyMoveDown(std::shared_ptr<SimpleGFX::SimpleGL::texture> dest, std::shared_ptr<SimpleGFX::SimpleGL::texture> source);
             
             //load a framebuffer with the wanted loader settigns
-            void loadFramebuffer(std::shared_ptr<libtrainsim::Video::texture> buf);
+            void loadFramebuffer(std::shared_ptr<SimpleGFX::SimpleGL::texture> buf);
             
             //the object to handle all of the wiper stuff
             std::shared_ptr<wiper> wiperHandler;
@@ -77,7 +77,7 @@ namespace libtrainsim{
             bool shouldDrawSnowflake(const decltype(libtrainsim::core::Helper::now())& timestamp);
             void updateDrawTimes();
             
-            libtrainsim::Video::dimensions FBOSize = {0,0};
+            SimpleGFX::SimpleGL::dimensions FBOSize = {0,0};
             
           public:
             snowFx(std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf);
@@ -86,7 +86,7 @@ namespace libtrainsim{
             
             void updateTexture();
             
-            std::shared_ptr<libtrainsim::Video::texture> getOutputTexture();
+            std::shared_ptr<SimpleGFX::SimpleGL::texture> getOutputTexture();
             
             void updateTrainSpeed(sakurajin::unit_system::speed newTrainSpeed);
             

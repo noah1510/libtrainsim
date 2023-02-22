@@ -12,7 +12,7 @@ namespace libtrainsim{
         class statusDisplay;
       
         //a class to change the settings of the status display
-        class LIBTRAINSIM_EXPORT_MACRO statusDisplaySettings : public libtrainsim::Video::tabPage{
+        class LIBTRAINSIM_EXPORT_MACRO statusDisplaySettings : public SimpleGFX::SimpleGL::tabPage{
           private:
             void content() override;
             statusDisplay& display;
@@ -24,7 +24,7 @@ namespace libtrainsim{
          * @brief a window to display real time stats for the simulator
          * 
          */
-        class LIBTRAINSIM_EXPORT_MACRO statusDisplay : public libtrainsim::Video::window{
+        class LIBTRAINSIM_EXPORT_MACRO statusDisplay : public SimpleGFX::SimpleGL::window{
           friend class statusDisplaySettings;
           private:
             
