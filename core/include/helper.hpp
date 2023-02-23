@@ -176,6 +176,34 @@ namespace libtrainsim{
             }
             
             /**
+             * @brief Get an optional value from json data
+             * 
+             * This function prevents the program from crashing if the field does not exist.
+             * It also handles the type conversion and throws an error if the field cannot be converted.
+             * This function will not throw errors when there is no value only if the type is wrong.
+             * This function returns fallback value in case the optional value does not exist
+             * 
+             * @tparam T The type the field should have
+             * @param data_json the json data object
+             * @param location the name of the wanted field
+             * @param fallbackValue the value to return if the wanted field does not exist
+             * @return T The value of the json field in the requested type or fallbackValue if it does not exist
+             */
+            template<typename T>
+            static T getOptionalJsonField(const nlohmann::json& data_json, const std::string& location, const T& fallbackValue){
+                T val;
+                try{
+                    val = getJsonField<T>(data_json,location);
+                }catch(const nlohmann::json::exception&){
+                    return fallbackValue;
+                }catch(...){
+                    std::throw_with_nested("error parsing optional field");
+                }
+                
+                return val;
+            }
+            
+            /**
              * @brief checks if a vector contains a given element
              * @warning The function only returns if the object was found not where it is!
              * 

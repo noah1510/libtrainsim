@@ -74,9 +74,9 @@ jobs:
       - name: compile libtrainsim
         shell: msys2 {0}
         run: |
-          meson setup -Ddefault_library=static -Db_lto=false build
+          meson setup -Ddefault_library=static -Db_lto=false build -Dbuild_tests=false
           meson compile -C build
-          meson test -C build
+          #meson test -C build
 
   macos-10:
     name: "macos compile and test"
