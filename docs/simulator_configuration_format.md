@@ -9,8 +9,6 @@ The json file is an object with the following fields:
 **Required:**
 
 * serialConfig (string) (since 0.7.0)
-* shaderLocation (string) (since 0.8.0)
-* textureLocation (string) (since 0.9.0)
 * tracks (array of string or [object](@ref track_format)) (since 0.7.0)
 * trains (array of string or [object](@ref train_properties_format)) (since 0.7.0)
 
@@ -19,6 +17,8 @@ The json file is an object with the following fields:
 * formatVersion (string) (since 0.7.0)
 * defaultTrack (int) (since 0.7.0)
 * settingFileReadOnly (bool) (since 0.8.0)
+* shaderLocation (string) (since 0.8.0, optional since 0.9.0)
+* textureLocation (string) (since 0.9.0)
 * extrasLocation (string) (since 0.9.0)
 
 ### Detailed descriptions
@@ -28,18 +28,6 @@ All relative filepaths are relative to the simulator configuration file.
 #### serialConfig
 
 This is the relative file path to the [serial configuration file](@ref serial_config_format).
-
-#### shaderLocation
-
-The folder where all of the shader files are stored in.
-For the basic video module at least the displacement shader is required.
-Modules in the extra namespace should have their shader in a separate Folder.
-
-#### textureLocation
-
-The folder where all of the texutres are stored in.
-The video module requires there to be the darken and displacement-0 texture to work.
-Modules in the extras namespace should not have their textures here but instead in their separate folder.
 
 #### tracks
 
@@ -68,6 +56,20 @@ If the field does not exist track 0 is selected by default.
 
 This field specifies if the library is not allowed to change the settings file.
 If this field does not exist it is set to false (modifications are allow) by default.
+
+#### shaderLocation
+
+The folder where all of the shader files are stored in.
+For the basic video module at least the displacement shader is required.
+Modules in the extra namespace should have their shader in a separate Folder.
+By default this is "shaders".
+
+#### textureLocation
+
+The folder where all of the texutres are stored in.
+The video module requires there to be the darken and displacement-0 texture to work.
+Modules in the extras namespace should not have their textures here but instead in their separate folder.
+By default this is "textures".
 
 #### extrasLocation
 

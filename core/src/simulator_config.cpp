@@ -39,15 +39,21 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     }
     
     try{
-        shaderFolderLocation = p / Helper::getJsonField<std::string>(data_json,"shaderLocation");
+        shaderFolderLocation = p / Helper::getOptionalJsonField<std::string>(data_json,"shaderLocation", "shaders");
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not load shader location"));
     }
     
     try{
-        textureFolderLocation = p / Helper::getJsonField<std::string>(data_json,"textureLocation");
+        textureFolderLocation = p / Helper::getOptionalJsonField<std::string>(data_json,"textureLocation", "textures");
     }catch(...){
         std::throw_with_nested(std::runtime_error("Could not load texture location"));
+    }
+    
+    try{
+        extrasLocation = p / Helper::getOptionalJsonField<std::string>(data_json,"extrasLocation", "extras");
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error reading the extras location"));
     }
     
     try{
@@ -58,32 +64,17 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
         
         tracks.reserve(dat.size());
         
-        //unsigned int n_threads = std::thread::hardware_concurrency();
-        //std::vector< std::future<libtrainsim::core::Track> > loadingQueue;
-        
         for(size_t i = 0;i < dat.size();i++){
             if(dat[i].is_string()){
                 std::filesystem::path loc{dat[i].get<std::string>()};
                 tracks.emplace_back(libtrainsim::core::Track(p/loc, lazyLoad));
             }else if(dat[i].is_object()){
                 //construct track from json object
+                
             }else{
                 throw std::runtime_error("not a valid track format");
             }
         }
-        
-        /*
-        for(auto& v:loadingQueue){
-            if(!v.valid()){
-                throw std::runtime_error("got a non valid future 1");
-            }
-            v.wait();
-            if(!v.valid()){
-                throw std::runtime_error("got a non valid future 2");
-            }
-            auto val = v.get();
-            tracks.emplace_back(val);
-        }*/
         
     }catch(...){
         std::throw_with_nested(std::runtime_error("error reading tracks"));
@@ -115,34 +106,16 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     }
 
     try{
-        auto val = Helper::getOptionalJsonField<int>(data_json, "defaultTrack");
-        if(val.has_value()){
-            selectTrack(val.value());
-        }
+        auto val = Helper::getOptionalJsonField<int>(data_json, "defaultTrack",0);
+        selectTrack(val);
     }catch(...){
         std::throw_with_nested(std::runtime_error("error setting the default track"));
     }
     
     try{
-        auto val = Helper::getOptionalJsonField<bool>(data_json,"settingFileReadOnly");
-        if(val.has_value()){
-            readOnly = val.value();
-        }
+        readOnly = Helper::getOptionalJsonField<bool>(data_json,"settingFileReadOnly",false);
     }catch(...){
         std::throw_with_nested(std::runtime_error("error reading the readOnly option"));
-    }
-    
-    try{
-        extrasLocation = p / "extras";
-        auto val = Helper::getOptionalJsonField<std::string>(data_json, "extrasLocation");
-        if(val.has_value()){
-            if(!std::filesystem::exists(p/val.value())){
-                throw std::runtime_error("extras location does not exist");
-            }
-            extrasLocation = p / val.value();
-        }
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("Error reading the extras location"));
     }
     
     fileLocation = URI;
