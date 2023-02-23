@@ -174,6 +174,16 @@ namespace libtrainsim{
             Track(const std::filesystem::path& URI, bool lazyLoad = false);
 
             /**
+             * @brief Create a track from json data and a parent path.
+             * @note The json file need the correct [format](@ref track_format).
+             *
+             * @param data_json The json data
+             * @param parentPath The path this config is loaded from (needed to locate the video)
+             * @param lazyLoad true if you only want to load the data on the first
+             */
+            Track(const nlohmann::json& data_json, const std::filesystem::path& parentPath, bool lazyLoad = false);
+            
+            /**
              * @brief returning the Track_data of this track
              *
              * @return const Track_data& the track data

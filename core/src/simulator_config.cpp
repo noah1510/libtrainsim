@@ -69,8 +69,7 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
                 std::filesystem::path loc{dat[i].get<std::string>()};
                 tracks.emplace_back(libtrainsim::core::Track(p/loc, lazyLoad));
             }else if(dat[i].is_object()){
-                //construct track from json object
-                
+                tracks.emplace_back(libtrainsim::core::Track(dat[i], p, lazyLoad));
             }else{
                 throw std::runtime_error("not a valid track format");
             }

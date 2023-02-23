@@ -78,6 +78,23 @@ Track::Track(const std::filesystem::path& URI, bool lazyLoad){
     
 }
 
+Track::Track(const nlohmann::json& _data_json, const std::filesystem::path& _parentPath, bool lazyLoad){
+    
+    parentPath = _parentPath;
+    data_json = _data_json;
+    
+    try{
+        parseJsonData();
+        if(!lazyLoad){
+            parseTrack();
+            data_json.reset();
+        }
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("could not parse json data"));
+    }
+    
+}
+
 void libtrainsim::core::Track::parseTrack() {
     if(!data_json.has_value()){
         return;
@@ -103,18 +120,17 @@ void libtrainsim::core::Track::parseTrack() {
     
     try{
         startingPoint.value = Helper::getJsonField<double>(data_json.value(),"startingPoint");
+        startingPoint = std::clamp(startingPoint,track_dat->firstLocation(),track_dat->lastLocation());
     }catch(...){
         startingPoint = track_dat->firstLocation();
     }
     
     try{
         endPoint.value = Helper::getJsonField<double>(data_json.value(),"endPoint");
+        endPoint = std::clamp(endPoint,track_dat->firstLocation(),track_dat->lastLocation());
     }catch(...){
         endPoint = track_dat->lastLocation();
     }
-    
-    startingPoint = std::clamp(startingPoint,track_dat->firstLocation(),track_dat->lastLocation());
-    endPoint = std::clamp(endPoint,track_dat->firstLocation(),track_dat->lastLocation());
     
     if(startingPoint > endPoint){
         throw std::runtime_error("the last location was smaller than the first position");
@@ -174,10 +190,7 @@ void Track::parseJsonData(){
     }
     
     try{
-        auto mult = Helper::getOptionalJsonField<double>(data_json.value(), "defaultTrackFrictionMultiplier");
-        if(mult.has_value()){
-            defaultTrackFrictionMultiplier = mult.value();
-        }
+        defaultTrackFrictionMultiplier = Helper::getOptionalJsonField<double>(data_json.value(), "defaultTrackFrictionMultiplier", 1.0);
     }catch(...){
         std::throw_with_nested(std::runtime_error("Error reading defaultTrackFrictionMultiplier"));
     }
@@ -236,14 +249,13 @@ void Track::parseJsonData(){
     }
     
     try{
-        auto excludeTrackBounds = Helper::getOptionalJsonField<bool>(data_json.value(), "excludeTrackBounds");
-        if(excludeTrackBounds.has_value() && excludeTrackBounds.value() && stopsData.size() > 1){
-        }else{
+        auto excludeTrackBounds = Helper::getOptionalJsonField<bool>(data_json.value(), "excludeTrackBounds", true);
+        if(!excludeTrackBounds || stopsData.size() < 2){
             stopsData.reserve(stopsData.size()+2);
             stopsData.insert(stopsData.begin(), {"begin", 0_m, station});
             stopsData.insert(stopsData.end(), {"end", {std::numeric_limits<long double>::infinity(),1}, station});
         }
-            
+        
         stationsData.reserve(stopsData.size());
         for(auto& dat:stopsData){
             if(dat.type() == station){

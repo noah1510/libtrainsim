@@ -79,7 +79,7 @@ This is an array which contains the data in the correct [format](@ref stops_data
 If this is true the Track will no longer return the begin and end of the track as a stop.
 This is only considered if stops are defined.
 If there are less that 2 stops this will always be treated as false.
-By default this is false.
+By default this is true.
 
 #### undergroundData
 
