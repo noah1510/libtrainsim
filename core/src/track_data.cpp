@@ -10,8 +10,8 @@ using namespace sakurajin::unit_system::literals;
 Track_data_point::Track_data_point(
     uint64_t _frame, 
     length _location, 
-    std::optional<double> _radius, 
-    std::optional<double> _slope, 
+    double _radius, 
+    double _slope, 
     std::optional<double> _frictionMultiplier
 ):
     Frame{_frame},
@@ -33,11 +33,11 @@ sakurajin::unit_system::length libtrainsim::core::Track_data_point::location() c
     return Location;
 }
 
-std::optional<double> libtrainsim::core::Track_data_point::radius() const {
+double libtrainsim::core::Track_data_point::radius() const {
     return Radius;
 }
 
-std::optional<double> libtrainsim::core::Track_data_point::slope() const {
+double libtrainsim::core::Track_data_point::slope() const {
     return Slope;
 }
 
@@ -91,15 +91,9 @@ void Track_data::parseJsonData(const nlohmann::json& data_json){
         for (auto dat:data_json){
             length location{ Helper::getJsonField<double>(dat,"location")};
             auto frame = Helper::getJsonField<uint64_t>(dat, "frame");
-            auto slope = Helper::getOptionalJsonField<double>(dat,"slope");
+            auto slope = Helper::getOptionalJsonField<double>(dat,"slope",0);
+            auto radius = Helper::getOptionalJsonField<double>(dat,"radius",std::numeric_limits<double>::infinity());
             auto frictionMultiplier = Helper::getOptionalJsonField<double>(dat,"frictionMultiplier");
-            auto radiusJson = Helper::getOptionalJsonField(dat,"radius");
-            std::optional<double> radius = std::optional<double>{std::numeric_limits<double>::infinity()};
-            if(radiusJson.has_value()){
-                if(radiusJson->is_number_float()){
-                    radius = std::make_optional(radiusJson->get<double>());
-                }
-            }
             
             libtrainsim::core::Track_data_point point{frame,location,radius,slope,frictionMultiplier};
             data.emplace_back(point);

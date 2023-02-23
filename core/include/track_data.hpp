@@ -43,12 +43,12 @@ namespace libtrainsim {
             /**
              * @brief This is the current Radius of the Track
              */
-            std::optional<double> Radius;
+            double Radius;
             
             /**
              * @brief This is the current slope of the Track in degrees
              */
-            std::optional<double> Slope;
+            double Slope;
             
             /**
              * @brief The multiplier for the Track friction for the current position
@@ -70,12 +70,12 @@ namespace libtrainsim {
             /**
              * @brief This is the current Radius of the Track
              */
-            std::optional<double> radius() const;
+            double radius() const;
             
             /**
              * @brief This is the current slope of the Track in degrees
              */
-            std::optional<double> slope() const;
+            double slope() const;
             
             /**
              * @brief The multiplier for the Track friction for the current position
@@ -89,8 +89,8 @@ namespace libtrainsim {
             Track_data_point(
                 uint64_t _frame, 
                 sakurajin::unit_system::length _location, 
-                std::optional<double> _radius, 
-                std::optional<double> _slope, 
+                double _radius, 
+                double _slope, 
                 std::optional<double> _frictionMultiplier
             );
             
