@@ -7,6 +7,7 @@ sources = [
 video_deps = [
     dependency('threads', required: true),
     dependency('libtrainsim-core', required: true),
+    dependency('simplegl', required: true, fallback: 'simplegl', version : '>=0.1.0'),
 ]
 
 #handle normal builds 

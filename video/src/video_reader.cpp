@@ -29,7 +29,7 @@ inline void libtrainsim::Video::videoReader::incrementFramebuffer(uint8_t& curre
     currentBuffer++;
     currentBuffer%=FRAME_BUFFER_COUNT;
 }
-
+/*
 libtrainsim::Video::videoDecodeSettings::videoDecodeSettings ( libtrainsim::Video::videoReader& VR ) : tabPage{"decodeSettings"}, decoder{VR}, AlgorithmOptions{{
     {"fast bilinear", SWS_FAST_BILINEAR},
     {"bilinear", SWS_BILINEAR},
@@ -114,7 +114,7 @@ void libtrainsim::Video::videoDecodeSettings::content() {
         decoder.seekCutoff = cutoff;
     }
 }
-
+*/
 
 libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filename, uint64_t threadCount){
     /*
@@ -291,12 +291,12 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
         return true;
     });
     
-    auto settingsTab = std::make_shared<videoDecodeSettings>(*this);
-    imguiHandler::addSettingsTab(settingsTab);
+    //auto settingsTab = std::make_shared<videoDecodeSettings>(*this);
+    //imguiHandler::addSettingsTab(settingsTab);
 }
 
 libtrainsim::Video::videoReader::~videoReader() {
-    imguiHandler::removeSettingsTab("decodeSettings");
+    //imguiHandler::removeSettingsTab("decodeSettings");
     
     if(!reachedEndOfFile()){
         EOF_Mutex.lock();

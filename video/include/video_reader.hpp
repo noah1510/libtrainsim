@@ -5,11 +5,9 @@
 #include <tuple>
 #include <future>
 
-#include "texture.hpp"
 #include "helper.hpp"
-#include "dimensions.hpp"
-#include "tabPage.hpp"
 
+#include "simplegl.hpp"
 #include "unit_system.hpp"
 
 extern "C" {
@@ -27,7 +25,7 @@ namespace libtrainsim{
          * @brief the settings page for the video decoder settings
          * 
          */
-        class LIBTRAINSIM_EXPORT_MACRO videoDecodeSettings : public SimpleGFX::SimpleGL::tabPage{
+        /*class LIBTRAINSIM_EXPORT_MACRO videoDecodeSettings : public SimpleGFX::SimpleGL::tabPage{
           private:
             void content() override;
             videoReader& decoder;
@@ -35,7 +33,7 @@ namespace libtrainsim{
             const std::array< std::tuple<std::string, int>, 7> AlgorithmDetailsOptions;
           public:
             videoDecodeSettings(videoReader& VR);
-        };
+        };*/
         
         /**
          * @brief a class the handle asynchronous video decode from a single file
@@ -49,7 +47,7 @@ namespace libtrainsim{
          * 
          */
         class LIBTRAINSIM_EXPORT_MACRO videoReader{
-          friend class videoDecodeSettings;
+          //friend class videoDecodeSettings;
           private:
               
             // all of the ffmpeg state variables
