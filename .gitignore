@@ -2,7 +2,13 @@ build
 .cache
 doc
 subprojects/*
-!subprojects/*.wrap
+!subprojects/simplegl.wrap
+!subprojects/simplegfx.wrap
+!subprojects/ffmpeg.wrap
+!subprojects/gtest.wrap
+!subprojects/rs232.wrap
+!subprojects/unit-system.wrap
+
 .meson-subproject-wrap-hash.txt
 
 
