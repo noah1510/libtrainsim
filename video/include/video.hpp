@@ -84,7 +84,7 @@ namespace libtrainsim {
                 * To construct it a window name
                 * 
                 */
-                videoManager(const std::string& windowName, std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings);
+                videoManager(std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings);
 
                 /**
                 * @brief Destroy the video object, on destruction everything will be reset.

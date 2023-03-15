@@ -238,11 +238,10 @@ const libtrainsim::Video::videoReader & libtrainsim::Video::simulatorWindowGLAre
 
 
 libtrainsim::Video::videoManager::videoManager(
-    const std::string& windowName,
     std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings
 ):Gtk::Window{}{
 
-    set_title(windowName);
+    set_title(simSettings->getCurrentTrack().getName());
     set_default_size(1280, 720);
 
     mainGLArea = Gtk::make_managed<simulatorWindowGLArea>(simSettings);
@@ -256,7 +255,7 @@ libtrainsim::Video::videoManager::videoManager(
     areaFrame->set_child(*mainGLArea);
 
     keyboardController = Gtk::EventControllerKey::create();
-    keyboardController->signal_key_pressed().connect([this](guint keyval, guint keycode, Gdk::ModifierType state){
+    keyboardController->signal_key_pressed().connect([this](guint keyval, guint, Gdk::ModifierType){
         if(keyval == GDK_KEY_Escape){
             close();
             return true;
@@ -267,6 +266,13 @@ libtrainsim::Video::videoManager::videoManager(
             }else{
                 fullscreen();
             }
+            return true;
+        }
+
+        //temporary solution to play the video
+        static uint64_t framnum = 0;
+        if(keyval == GDK_KEY_w){
+            mainGLArea->gotoFrame(++framnum);
             return true;
         }
 
