@@ -66,7 +66,7 @@ namespace libtrainsim {
         * @brief This class is resposiblie for managing all the video material.
         * 
         */
-        class LIBTRAINSIM_EXPORT_MACRO videoManager : Gtk::Window{
+        class LIBTRAINSIM_EXPORT_MACRO videoManager : public Gtk::Window{
             private:
                 
                 //a mutex to secure this class for multithreading

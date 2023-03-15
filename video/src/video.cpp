@@ -19,6 +19,8 @@ void libtrainsim::Video::simulatorWindowGLArea::on_realize() {
     make_current();
     throw_if_error();
 
+    texUnits = SimpleGFX::SimpleGL::GLHelper::getMaxTextureUnits();
+
     textureProperties bgProps{};
     bgProps.name = "background";
     auto bgTexture = std::make_shared<texture>(bgProps);
@@ -26,7 +28,6 @@ void libtrainsim::Video::simulatorWindowGLArea::on_realize() {
     addTexture(bgTexture);
 
     try{
-        texUnits = SimpleGFX::SimpleGL::GLHelper::getMaxTextureUnits();
         loadBuffers();
     }catch(...){
         std::throw_with_nested(std::runtime_error("error creating data buffers"));
@@ -38,11 +39,6 @@ void libtrainsim::Video::simulatorWindowGLArea::on_realize() {
     }catch(const std::exception& e){
         std::throw_with_nested(std::runtime_error("cannot init display shader"));
     }
-
-    //for(auto tex: displacements){
-    //    tex->finish(ctx);
-    //}
-    //bg->finish(ctx);
 
     realized = true;
 }
@@ -235,6 +231,10 @@ void libtrainsim::Video::simulatorWindowGLArea::gotoFrame ( uint64_t frame_num )
     decode.requestFrame(frame_num);
 }
 
+const libtrainsim::Video::videoReader & libtrainsim::Video::simulatorWindowGLArea::getDecoder() const{
+    return decode;
+}
+
 
 
 libtrainsim::Video::videoManager::videoManager(
@@ -306,4 +306,6 @@ std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::
     return mainGLArea->getNewRendertimes();
 }
 
-
+const libtrainsim::Video::videoReader & libtrainsim::Video::videoManager::getDecoder() const{
+    return mainGLArea->getDecoder();
+}
