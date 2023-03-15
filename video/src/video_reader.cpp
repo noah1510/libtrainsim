@@ -116,7 +116,7 @@ void libtrainsim::Video::videoDecodeSettings::content() {
 }
 */
 
-libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filename, uint64_t threadCount){
+libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings, uint64_t threadCount){
     /*
     //find all of the hardware devices
     std::vector<AVHWDeviceType> deviceTypes;
@@ -135,6 +135,8 @@ libtrainsim::Video::videoReader::videoReader(const std::filesystem::path& filena
     if (!av_format_ctx) {
         throw std::runtime_error("Couldn't created AVFormatContext");
     }
+
+    auto filename = simSettings->getCurrentTrack().getVideoFilePath();
     
     if(!std::filesystem::exists(filename) || filename.empty()){
         throw std::invalid_argument("video file does not exist or is empty");
