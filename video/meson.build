@@ -1,6 +1,5 @@
 sources = [
     'src/video.cpp',
-    'src/frame.cpp',
     'src/video_reader.cpp',
 ]
 
