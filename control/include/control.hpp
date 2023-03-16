@@ -80,6 +80,15 @@ namespace libtrainsim {
                  */
                 std::unique_ptr<serialcontrol> serial;
 
+                #ifdef HAS_VIDEO_SUPPORT
+                Glib::RefPtr<Gtk::EventControllerKey> keyboardController = nullptr;
+                #endif
+
+                std::vector < std::tuple<
+                    std::function<bool(std::string)>,
+                    int
+                > > eventCallbacks;
+
             public:
 
                /**
@@ -136,6 +145,12 @@ namespace libtrainsim {
                  * @warning This needs to be called on the render thread. Otherwise this function throws an error.
                  */
                 void update();
+
+                void addEventCallback(std::function<bool(std::string)> callback, int priority = 0);
+
+                #ifdef HAS_VIDEO_SUPPORT
+                void registerWindow(Gtk::Window& win);
+                #endif
         };
     }
 }

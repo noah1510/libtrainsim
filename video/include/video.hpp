@@ -74,7 +74,6 @@ namespace libtrainsim {
 
                 simulatorWindowGLArea* mainGLArea = nullptr;
                 Gtk::AspectFrame* areaFrame = nullptr;
-                Glib::RefPtr<Gtk::EventControllerKey> keyboardController = nullptr;
 
             public:
                 /**
@@ -113,6 +112,8 @@ namespace libtrainsim {
                 
                 //the the rendertimes of the video
                 std::optional< std::vector<sakurajin::unit_system::time_si> > getNewRendertimes();
+
+                bool handleEvents(std::string eventName);
                 
         };
     }

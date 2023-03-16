@@ -10,25 +10,54 @@ libtrainsim::control::input_handler::input_handler(const std::filesystem::path& 
     }
     
     keys = libtrainsim::control::keymap();
+
     #ifdef HAS_VIDEO_SUPPORT
-    auto keyList = keys.getAllKeys();
-    for(auto key:keyList){
-        keys.remove(key.first);
-    }
-    
-    keys.add(ImGuiKey_Escape ,"CLOSE");
-    keys.add(ImGuiKey_W ,"ACCELERATE");
-    keys.add(ImGuiKey_S ,"BREAK");
-    keys.add(ImGuiKey_P ,"EMERGENCY_BREAK");
-    
-    keys.add(ImGuiKey_GamepadBack, "CLOSE");
-    keys.add(ImGuiKey_GamepadFaceUp ,"EMERGENCY_BREAK");
+
+    keyboardController = Gtk::EventControllerKey::create();
+    keyboardController->signal_key_pressed().connect([this](guint keyval, guint, Gdk::ModifierType){
+        auto keysToCheck = keys.getAllKeys();
+        for (auto key:keysToCheck){
+            if(key.first == keyval){
+                //call all callbacks and exit once the event is handled
+                for(auto call:eventCallbacks){
+                    if(std::get<0>(call)(key.second)){
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    },false);
+
+    //keys.add(ImGuiKey_GamepadBack, "CLOSE");
+    //keys.add(ImGuiKey_GamepadFaceUp ,"EMERGENCY_BREAK");
     #endif
 }
+
+void libtrainsim::control::input_handler::addEventCallback(std::function<bool (std::string)> callback, int priority){
+
+    for(auto i = eventCallbacks.begin(); i < eventCallbacks.end();i++){
+        auto [_, prio] = *i;
+        if(prio > priority){
+            eventCallbacks.insert(i, {callback, priority});
+            return;
+        }
+    }
+    eventCallbacks.emplace_back(std::tuple<std::function<bool (std::string)>, int>{callback, priority});
+}
+
 
 libtrainsim::control::input_handler::~input_handler() {
     serial.reset();
 }
+
+#ifdef HAS_VIDEO_SUPPORT
+void libtrainsim::control::input_handler::registerWindow(Gtk::Window& win){
+    win.add_controller(keyboardController);
+}
+
+#endif
 
 
 libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap() noexcept {
@@ -40,17 +69,20 @@ std::vector<std::string> libtrainsim::control::input_handler::getKeyFunctions() 
     
     #ifdef HAS_VIDEO_SUPPORT
 
+        /*
         if(SimpleGFX::SimpleGL::imguiHandler::shouldTerminate()){
             functions.emplace_back("TERMINATE");
         }
-    
+        */
+
+        /*
         auto keysToCheck = keys.getAllKeys();
         for(size_t i = 0; i < keysToCheck.size();i++){
             ImGuiKey key = static_cast<ImGuiKey>(keysToCheck[i].first);
             if(ImGui::IsKeyPressed(key)){
                 functions.emplace_back(keysToCheck[i].second);
             }
-        }
+        }*/
         
     #endif
     
@@ -79,14 +111,6 @@ bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
 }
 
 void libtrainsim::control::input_handler::update() {
-    #ifdef HAS_VIDEO_SUPPORT
-    try{
-        SimpleGFX::SimpleGL::imguiHandler::errorOffThread();
-    }catch(...){
-        std::throw_with_nested(std::runtime_error("make sure to update the controls on the main render thread"));
-    }
-    #endif
-    
     auto function = getKeyFunctions();
     
     if(libtrainsim::core::Helper::contains<std::string>(function,"TERMINATE")){
@@ -110,11 +134,11 @@ void libtrainsim::control::input_handler::update() {
         }
 
         #ifdef HAS_VIDEO_SUPPORT
-        if((ImGui::GetIO().BackendFlags & ImGuiBackendFlags_HasGamepad) > 0){
-            auto acc = ImGui::GetIO().KeysData[ImGui::GetKeyIndex(ImGuiKey_GamepadR2)].AnalogValue;
-            auto dcc = ImGui::GetIO().KeysData[ImGui::GetKeyIndex(ImGuiKey_GamepadL2)].AnalogValue;
-            currentInputAxis = acc - dcc;
-        }else{
+        //if((ImGui::GetIO().BackendFlags & ImGuiBackendFlags_HasGamepad) > 0){
+        //    auto acc = ImGui::GetIO().KeysData[ImGui::GetKeyIndex(ImGuiKey_GamepadR2)].AnalogValue;
+        //    auto dcc = ImGui::GetIO().KeysData[ImGui::GetKeyIndex(ImGuiKey_GamepadL2)].AnalogValue;
+        //    currentInputAxis = acc - dcc;
+        //}else{
         #endif
         if (libtrainsim::core::Helper::contains<std::string>(function,"ACCELERATE")){
             currentInputAxis += 0.1;
@@ -129,7 +153,7 @@ void libtrainsim::control::input_handler::update() {
             }
         }
         #ifdef HAS_VIDEO_SUPPORT
-        }
+        //}
         #endif
     }  
 

@@ -254,33 +254,32 @@ libtrainsim::Video::videoManager::videoManager(
 
     areaFrame->set_child(*mainGLArea);
 
-    keyboardController = Gtk::EventControllerKey::create();
-    keyboardController->signal_key_pressed().connect([this](guint keyval, guint, Gdk::ModifierType){
-        if(keyval == GDK_KEY_Escape){
+}
+
+bool libtrainsim::Video::videoManager::handleEvents(std::string eventName){
+
+    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(eventName, {"CLOSE", "MAXIMIZE", "ACCELERATE"}) ){
+        case(0):
             close();
             return true;
-        }
-        if(keyval == GDK_KEY_F10){
+        case(1):
             if(is_fullscreen()){
-                unfullscreen();
+            unfullscreen();
             }else{
                 fullscreen();
             }
             return true;
-        }
-
         //temporary solution to play the video
-        static uint64_t framnum = 0;
-        if(keyval == GDK_KEY_w){
-            mainGLArea->gotoFrame(++framnum);
+        case(2):
+            static uint64_t framnum = 0;
+            gotoFrame(++framnum);
             return true;
-        }
-
-        return false;
-    },false);
-    add_controller(keyboardController);
+        default:
+            return false;
+    }
 
 }
+
 
 libtrainsim::Video::videoManager::~videoManager(){
     std::cout << "locking video manager to prevent draw calls while destroying" << std::endl;
