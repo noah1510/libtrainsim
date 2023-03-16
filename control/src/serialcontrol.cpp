@@ -43,7 +43,7 @@ serialcontrol::serialcontrol(const std::filesystem::path& filename){
             set_serial(port, value, !isDigital);
         }while(IsConnected());
     });
-    
+    rs232_obj.reset();
 }
 
 libtrainsim::control::serialcontrol::~serialcontrol() {

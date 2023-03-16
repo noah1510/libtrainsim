@@ -8,6 +8,7 @@
 #include "input_axis.hpp"
 #include "keymap.hpp"
 #include "libtrainsim_config.hpp"
+#include "simulator_config.hpp"
 #include "serialcontrol.hpp"
 #include "types.hpp"
 
@@ -31,10 +32,8 @@ namespace libtrainsim {
         * @brief this class provides an interface to control the train easily independent of the used windowsing system.
         * The following Key functions are defined:
         *
-        *   * NONE -> Does nothing
         *   * CLOSE -> indicates that the windows should close
-        *   * TERMINATE -> indicates that all windows shoudl be closed and the program ends
-        *   * OTHER -> some other random event
+        *   * TERMINATE -> indicates that all windows should be closed and the program ends
         *   * BREAK -> indicates the train should break
         *   * ACCELERATE -> indicates the train should accelerate
         *   * EMERGENCY_BREAK -> indicated the emergency break should be activated
@@ -75,6 +74,11 @@ namespace libtrainsim {
                 bool shouldEmergencyBreak = false;
 
                 /**
+                 * @brief a bool to set if the simulator is running
+                 */
+                bool running = false;
+
+                /**
                  * @brief the serial interface to the connected hardware input
                  * 
                  */
@@ -89,6 +93,8 @@ namespace libtrainsim {
                     int
                 > > eventCallbacks;
 
+                bool updateKeybord(std::string eventName);
+                std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf = nullptr;
             public:
 
                /**
@@ -98,19 +104,12 @@ namespace libtrainsim {
                 * 
                 * @param URI The location of the serial configuration file (should be given by the settings)
                 */
-                input_handler(const std::filesystem::path& URI) noexcept(false);
+                input_handler(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _conf) noexcept(false);
                 
                 /**
                  * @brief destory the input handler
                  */
                 ~input_handler();
-
-                /**
-                 * @brief Get the function of the currently pressed keys.
-                 * 
-                 * @return std::string the function that should be performed.
-                 */
-                std::vector<std::string> getKeyFunctions() noexcept;
                 
                 /**
                  * @brief access the internal keymap to change the input configuration.
@@ -146,7 +145,17 @@ namespace libtrainsim {
                  */
                 void update();
 
-                void addEventCallback(std::function<bool(std::string)> callback, int priority = 0);
+                void addEventCallback(std::function<bool(std::string)> callback, int priority = 1);
+
+                /**
+                 * @brief closes the serial connection and resets the axis
+                 */
+                void resetFlags();
+
+                /**
+                 * @brief starts the serial connection and starts reading the keyboard
+                 */
+                void startSimulation();
 
                 #ifdef HAS_VIDEO_SUPPORT
                 void registerWindow(Gtk::Window& win);

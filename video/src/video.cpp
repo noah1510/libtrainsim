@@ -261,7 +261,7 @@ bool libtrainsim::Video::videoManager::handleEvents(std::string eventName){
     switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(eventName, {"CLOSE", "MAXIMIZE", "ACCELERATE"}) ){
         case(0):
             close();
-            return true;
+            return false;
         case(1):
             if(is_fullscreen()){
             unfullscreen();
