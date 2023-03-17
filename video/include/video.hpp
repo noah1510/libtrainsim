@@ -34,7 +34,7 @@ namespace libtrainsim {
 
         public:
             simulatorWindowGLArea(std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings);
-            const videoReader& getDecoder() const;
+            videoReader& getDecoder();
 
             void on_realize() override;
             void on_unrealize() override;
@@ -91,7 +91,7 @@ namespace libtrainsim {
                 */
                 ~videoManager();
 
-                const videoReader& getDecoder() const;
+                videoReader& getDecoder();
 
                 /**
                 * @brief jumps to a given frame in the video and display it
@@ -114,6 +114,8 @@ namespace libtrainsim {
                 std::optional< std::vector<sakurajin::unit_system::time_si> > getNewRendertimes();
 
                 bool handleEvents(std::string eventName);
+
+                bool on_close_request() override;
                 
         };
     }

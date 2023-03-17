@@ -231,7 +231,7 @@ void libtrainsim::Video::simulatorWindowGLArea::gotoFrame ( uint64_t frame_num )
     decode.requestFrame(frame_num);
 }
 
-const libtrainsim::Video::videoReader & libtrainsim::Video::simulatorWindowGLArea::getDecoder() const{
+libtrainsim::Video::videoReader & libtrainsim::Video::simulatorWindowGLArea::getDecoder(){
     return decode;
 }
 
@@ -258,7 +258,7 @@ libtrainsim::Video::videoManager::videoManager(
 
 bool libtrainsim::Video::videoManager::handleEvents(std::string eventName){
 
-    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(eventName, {"CLOSE", "MAXIMIZE", "ACCELERATE"}) ){
+    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(eventName, {"CLOSE", "MAXIMIZE"}) ){
         case(0):
             close();
             return false;
@@ -269,17 +269,25 @@ bool libtrainsim::Video::videoManager::handleEvents(std::string eventName){
                 fullscreen();
             }
             return true;
-        //temporary solution to play the video
-        case(2):
-            static uint64_t framnum = 0;
-            gotoFrame(++framnum);
-            return true;
         default:
             return false;
     }
 
 }
 
+bool libtrainsim::Video::videoManager::on_close_request() {
+    auto ret = Gtk::Window::on_close_request();
+
+    if(has_group()){
+        auto group = get_group();
+        group->remove_window(*this);
+        for(auto win: group->list_windows()){
+            win->close();
+        }
+    }
+
+    return ret;
+}
 
 libtrainsim::Video::videoManager::~videoManager(){
     std::cout << "locking video manager to prevent draw calls while destroying" << std::endl;
@@ -311,6 +319,6 @@ std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::
     return mainGLArea->getNewRendertimes();
 }
 
-const libtrainsim::Video::videoReader & libtrainsim::Video::videoManager::getDecoder() const{
+libtrainsim::Video::videoReader & libtrainsim::Video::videoManager::getDecoder(){
     return mainGLArea->getDecoder();
 }

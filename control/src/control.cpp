@@ -33,17 +33,33 @@ libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::
     #endif
 }
 
-void libtrainsim::control::input_handler::addEventCallback(std::function<bool (std::string)> callback, int priority){
+uint64_t libtrainsim::control::input_handler::addEventCallback(std::function<bool (std::string)> callback, int priority){
 
     for(auto i = eventCallbacks.begin(); i < eventCallbacks.end();i++){
-        auto [_, prio] = *i;
+        auto [_, prio, __] = *i;
         if(prio > priority){
-            eventCallbacks.insert(i, {callback, priority});
+            eventCallbacks.insert(i, {callback, priority, nextID});
+            return nextID++;
+        }
+    }
+    eventCallbacks.emplace_back(std::tuple<std::function<bool (std::string)>, int, uint64_t>{callback, priority, nextID});
+    return nextID++;
+}
+
+void libtrainsim::control::input_handler::removeEventCallback(uint64_t id){
+    if(id == 0){
+        throw std::invalid_argument("Cannot remove the main callback (id == 0)");
+    }
+
+    for(auto i = eventCallbacks.begin(); i < eventCallbacks.end();i++){
+        auto [_, __, ID] = *i;
+        if(ID == id){
+            eventCallbacks.erase(i);
             return;
         }
     }
-    eventCallbacks.emplace_back(std::tuple<std::function<bool (std::string)>, int>{callback, priority});
 }
+
 
 
 libtrainsim::control::input_handler::~input_handler() {
@@ -63,6 +79,8 @@ void libtrainsim::control::input_handler::resetFlags(){
 
 void libtrainsim::control::input_handler::startSimulation(){
 
+    std::scoped_lock lock{dataMutex};
+
     try{
         //create a serial controller and if it cannot connect destroy it
         serial = std::make_unique<serialcontrol>(conf->getSerialConfigLocation());
@@ -72,7 +90,6 @@ void libtrainsim::control::input_handler::startSimulation(){
     }catch(...){
         std::throw_with_nested(std::runtime_error("Error initializing the serial control"));
     }
-
 
     running = true;
 }
@@ -92,11 +109,13 @@ libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap() noex
 }
 
 
-libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis() const noexcept {
+libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis() noexcept {
+    std::shared_lock lock{dataMutex};
     return currentInputAxis;
 }
 
 bool libtrainsim::control::input_handler::closingFlag() noexcept {
+    std::shared_lock lock{dataMutex};
     if(shouldClose || shouldTeminate){
         shouldClose = false;
         return true;
@@ -106,6 +125,7 @@ bool libtrainsim::control::input_handler::closingFlag() noexcept {
 }
 
 bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
+    std::shared_lock lock{dataMutex};
     if(shouldEmergencyBreak){
         shouldEmergencyBreak = false;
         return true;
@@ -114,6 +134,8 @@ bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
 }
 
 bool libtrainsim::control::input_handler::updateKeybord(std::string eventName){
+
+    std::scoped_lock lock{dataMutex};
 
     switch(libtrainsim::core::Helper::stringSwitch(eventName, {
         "TERMINATE",
@@ -155,6 +177,10 @@ bool libtrainsim::control::input_handler::updateKeybord(std::string eventName){
 
 void libtrainsim::control::input_handler::update() {
     //if there is harware input update most flags from there
+    if(!running || serial == nullptr){
+        return;
+    }
+
     if(serial->IsConnected()){
         shouldEmergencyBreak = serial->get_emergencyflag();
         currentInputAxis = serial->get_slvl();

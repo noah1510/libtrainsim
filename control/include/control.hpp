@@ -52,6 +52,11 @@ namespace libtrainsim {
                  * 
                  */
                 control::keymap keys;
+
+                /**
+                 * @brief a mutex to control the data access across threads
+                 */
+                std::shared_mutex dataMutex;
             
                 /**
                  * @brief the current speed level for keyboard controls
@@ -90,8 +95,11 @@ namespace libtrainsim {
 
                 std::vector < std::tuple<
                     std::function<bool(std::string)>,
-                    int
+                    int,
+                    uint64_t
                 > > eventCallbacks;
+
+                uint64_t nextID = 0;
 
                 bool updateKeybord(std::string eventName);
                 std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf = nullptr;
@@ -137,7 +145,7 @@ namespace libtrainsim {
                  * 
                  * @return core::input_axis The input axis which desribes how much the train should accelerate/break.
                  */
-                core::input_axis getSpeedAxis() const noexcept;
+                core::input_axis getSpeedAxis() noexcept;
 
                 /**
                  * @brief update all of the flags and the speed axis value
@@ -145,7 +153,8 @@ namespace libtrainsim {
                  */
                 void update();
 
-                void addEventCallback(std::function<bool(std::string)> callback, int priority = 1);
+                uint64_t addEventCallback(std::function<bool(std::string)> callback, int priority = 1);
+                void removeEventCallback(uint64_t id);
 
                 /**
                  * @brief closes the serial connection and resets the axis

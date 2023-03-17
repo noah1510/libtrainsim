@@ -409,7 +409,6 @@ const std::filesystem::path& libtrainsim::Video::videoReader::getLoadedFile() co
 }
 
 bool libtrainsim::Video::videoReader::reachedEndOfFile() {
-    std::shared_lock lock{EOF_Mutex};
     return reachedEOF;
 }
 
