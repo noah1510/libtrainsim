@@ -90,7 +90,7 @@ namespace libtrainsim {
                 std::unique_ptr<serialcontrol> serial;
 
                 #ifdef HAS_VIDEO_SUPPORT
-                Glib::RefPtr<Gtk::EventControllerKey> keyboardController = nullptr;
+                //Glib::RefPtr<Gtk::EventControllerKey> keyboardController = nullptr;
                 #endif
 
                 std::vector < std::tuple<
@@ -168,6 +168,8 @@ namespace libtrainsim {
 
                 #ifdef HAS_VIDEO_SUPPORT
                 void registerWindow(Gtk::Window& win);
+
+                bool handleKeyboardEvents(guint keyval, guint, Gdk::ModifierType);
                 #endif
         };
     }

@@ -7,26 +7,6 @@ libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::
 
     #ifdef HAS_VIDEO_SUPPORT
 
-    keyboardController = Gtk::EventControllerKey::create();
-    keyboardController->signal_key_pressed().connect([this](guint keyval, guint, Gdk::ModifierType){
-        auto keysToCheck = keys.getAllKeys();
-        for (auto key:keysToCheck){
-            if(key.first == keyval){
-                //call all callbacks and exit once the event is handled
-                for(auto call:eventCallbacks){
-                    if(std::get<0>(call)(key.second)){
-                        return true;
-                    }
-                }
-                if(key.second == "CLOSE" || key.second == "TERMINATE"){
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    },false);
-
     addEventCallback(sigc::mem_fun(*this, &input_handler::updateKeybord),0);
     //keys.add(ImGuiKey_GamepadBack, "CLOSE");
     //keys.add(ImGuiKey_GamepadFaceUp ,"EMERGENCY_BREAK");
@@ -98,8 +78,33 @@ void libtrainsim::control::input_handler::startSimulation(){
 
 #ifdef HAS_VIDEO_SUPPORT
 void libtrainsim::control::input_handler::registerWindow(Gtk::Window& win){
+
+    auto keyboardController = Gtk::EventControllerKey::create();
+
+    keyboardController->signal_key_pressed().connect(sigc::mem_fun(*this, &input_handler::handleKeyboardEvents),false);
+
     win.add_controller(keyboardController);
 }
+
+bool libtrainsim::control::input_handler::handleKeyboardEvents(guint keyval, guint, Gdk::ModifierType){
+    auto keysToCheck = keys.getAllKeys();
+    for (auto key:keysToCheck){
+        if(key.first == keyval){
+            //call all callbacks and exit once the event is handled
+            for(auto call:eventCallbacks){
+                if(std::get<0>(call)(key.second)){
+                    return true;
+                }
+            }
+            if(key.second == "CLOSE" || key.second == "TERMINATE"){
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 
 #endif
 
