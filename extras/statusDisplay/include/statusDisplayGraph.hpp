@@ -1,6 +1,6 @@
 #pragma once
 
-#include "imguiHandler.hpp"
+#include "simplegl.hpp"
 #include "helper.hpp"
 
 namespace libtrainsim{
@@ -13,12 +13,12 @@ namespace libtrainsim{
          * @tparam VALUE_COUNT The number of samples this graph should have
          */
         template<size_t VALUE_COUNT>
-        class LIBTRAINSIM_EXPORT_MACRO statusDisplayGraph{
+        class LIBTRAINSIM_EXPORT_MACRO statusDisplayGraph : public Gtk::DrawingArea{
         private:
             /**
              * @brief the internal array to store the data values that are displayed
              */
-            std::array<float, VALUE_COUNT> values;
+            std::array<double, VALUE_COUNT> values;
             
             /**
              * @brief the name of the graph 
@@ -28,7 +28,19 @@ namespace libtrainsim{
             /**
              * @brief the tooltip that should be shown when the graph is hovered
              */
-            std::string tooltip;
+            std::string tooltip_txt;
+
+            double minVal;
+            double maxVal;
+            bool fixedRange = false;
+
+            std::shared_mutex dataMutex;
+
+            bool showLatest = true;
+            bool showGraph = true;
+
+            const double margin = 0.1;
+            double scaleValue(double val);
         public:
             /**
              * @brief create a new graph with a name and tooltip
@@ -40,12 +52,15 @@ namespace libtrainsim{
              * 
              * @param showLatest if true next to the name of the graph there will be the latest value
              */
-            void display(bool showLatest = true, bool showGraph = true);
+            void display();
+            void on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
             
             /**
              * @brief append a value to the graph to be the latest value to be displayed
              */
-            void appendValue(float newValue);
+            void appendValue(double newValue, bool redraw = true);
+
+            void setRange(double _minVal, double _maxVal);
             
             /**
              * @brief get the name of the graph
@@ -55,59 +70,134 @@ namespace libtrainsim{
             /**
              * @brief get the latest value of the graph
              */
-            float getLatest();
+            double getLatest();
+
+            void on_unrealize() override;
         };
     }
 }
 
 template<size_t VALUE_COUNT>
 libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::statusDisplayGraph ( std::string graphName, std::string tooltipMessage ) {
+    std::scoped_lock lock{dataMutex};
     name = graphName;
-    tooltip = tooltipMessage;
+    tooltip_txt = tooltipMessage;
     
     for(auto& val:values){
-        val = 0.0f;
+        val = 0.0;
+    }
+
+    set_draw_func(sigc::mem_fun(*this, &libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_draw));
+    set_content_width(1280);
+    set_content_height(150);
+
+    set_tooltip_text(tooltip_txt);
+}
+
+
+template<size_t VALUE_COUNT>
+void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_unrealize(){
+    std::scoped_lock lock{dataMutex};
+
+    return Gtk::DrawingArea::on_unrealize();
+}
+
+template<size_t VALUE_COUNT>
+void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue ( double newValue, bool redraw ) {
+    std::scoped_lock lock{dataMutex};
+    libtrainsim::core::Helper::appendValue<double,VALUE_COUNT>(values, newValue);
+    if(!fixedRange){
+        if(newValue > maxVal){
+            maxVal = newValue;
+        }else if(newValue < minVal){
+            minVal = newValue;
+        }
+    }
+
+    if(redraw){
+        queue_draw();
     }
 }
 
 template<size_t VALUE_COUNT>
-void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue ( float newValue ) {
-    libtrainsim::core::Helper::appendValue<float,VALUE_COUNT>(values, newValue);
+inline double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::scaleValue(double val){
+
+    const double range = maxVal-minVal;
+
+    auto scaledY = 1 - (val - minVal)/range;
+    scaledY = std::clamp(scaledY, 0.0, 1.0);
+
+    return scaledY * (1.0 - 2.0*margin) + margin;
 }
 
 template<size_t VALUE_COUNT>
-void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::display(bool showLatest, bool showGraph) {
-    ImGui::BeginGroup();
+void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height) {
+    std::shared_lock lock{dataMutex};
     
-        std::stringstream ss;
-        ss << name;
-        if(showLatest){
-            ss << ": " << getLatest();
+    auto styleContext = get_style_context();
+    styleContext->render_background(cr, 0, 0, width, height);
+
+    std::stringstream ss;
+    ss << name;
+    if(showLatest){
+        ss << ": " << getLatest();
+    }
+
+    double widthScale = 1.0;
+    if(showLatest){
+        widthScale = 0.7;
+    }
+
+    cr->set_dash(std::vector<double>{4,2}, 4);
+    cr->set_line_width(1.0);
+    cr->move_to(0.25 * margin * width, scaleValue(0) * height);
+    cr->line_to((widthScale + 0.5 * margin) * width, scaleValue(0) * height);
+    cr->stroke();
+
+    cr->unset_dash();
+    cr->set_line_width(2.0);
+
+    if(showGraph){
+        for(size_t i = 0; i < VALUE_COUNT; i++){
+            auto val = values[i];
+            double dx = static_cast<double>(i) / static_cast<double>(VALUE_COUNT-1) * widthScale;
+            dx += 0.25 * margin;
+            cr->line_to(dx * width, scaleValue(val) * height);
         }
-        if(showGraph){
-            ImGui::PlotLines(ss.str().c_str(), values.data(), static_cast<int>(VALUE_COUNT) );
-        }else{
-            if(showLatest){
-                ImGui::Text("%s", ss.str().c_str());
-            }
-        }
-        
-        if(ImGui::IsItemHovered()){
-            ImGui::BeginTooltip();
-            ImGui::Text("%s", tooltip.c_str());
-            ImGui::EndTooltip();
-        }
-        
-    ImGui::EndGroup();
+        cr->stroke();
+    }
+
+    if(showLatest){
+        cr->move_to((widthScale + margin) * width, 0.5 * height);
+
+        cr->set_font_size(17.5);
+        cr->select_font_face("Noto", Cairo::ToyFontFace::Slant::OBLIQUE, Cairo::ToyFontFace::Weight::NORMAL);
+
+        cr->text_path(ss.str());
+        cr->stroke();
+    }
+}
+
+template<size_t VALUE_COUNT>
+void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::setRange(double _minVal, double _maxVal) {
+    std::scoped_lock lock{dataMutex};
+
+    minVal = _minVal;
+    maxVal = _maxVal;
+    fixedRange = true;
+
+    return;
 }
 
 template<size_t VALUE_COUNT>
 const std::string & libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getName() {
+    std::shared_lock lock{dataMutex};
     return name;
 }
 
 template<size_t VALUE_COUNT>
-float libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getLatest() {
-    return values[VALUE_COUNT-1];
+double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getLatest() {
+    std::shared_lock lock{dataMutex};
+    return values.back();
 }
 

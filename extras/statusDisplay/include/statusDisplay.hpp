@@ -1,14 +1,14 @@
 #pragma once
 
-#include "imguiHandler.hpp"
+#include "statusDisplayGraph.hpp"
+
 #include "unit_system.hpp"
 #include "input_axis.hpp"
 #include "helper.hpp"
-#include "statusDisplayGraph.hpp"
-#include "window.hpp"
 
 namespace libtrainsim{
     namespace extras{
+        /*
         class statusDisplay;
       
         //a class to change the settings of the status display
@@ -19,12 +19,13 @@ namespace libtrainsim{
           public:
             statusDisplaySettings(statusDisplay& disp);
         };
+        */
         
         /**
          * @brief a window to display real time stats for the simulator
          * 
          */
-        class LIBTRAINSIM_EXPORT_MACRO statusDisplay : public SimpleGFX::SimpleGL::window{
+        class LIBTRAINSIM_EXPORT_MACRO statusDisplay : public Gtk::Window{
           friend class statusDisplaySettings;
           private:
             
@@ -43,7 +44,7 @@ namespace libtrainsim{
             /**
              * @brief a vector with all of graphs that are displayed and if they should be displayed
              */
-            std::vector<std::pair<statusDisplayGraph<100>, bool>> graphs;
+            std::vector<std::pair<statusDisplayGraph<100>*, bool>> graphs;
             
             /**
              * @brief the names of all of the graphs that have to exist and cannot be deleted
@@ -58,15 +59,8 @@ namespace libtrainsim{
             
             //the position where the track ends
             sakurajin::unit_system::length endPosition;
-            
-            /**
-             * @brief draws the content of the window
-             * 
-             * This updates the contents of the statusDisplay window.
-             * To actually display the window call the draw() function which
-             * is inherited from the window class.
-             */
-            void content() override;
+
+            Gtk::ListBox* graphsList;
             
           public:
             /**
@@ -143,7 +137,18 @@ namespace libtrainsim{
              * 
              * @warning this throws an exception if the graph does not exist
              */
-            void appendToGraph(std::string graphName, float value);
+            void appendToGraph(std::string graphName, double value);
+            /**
+             * change the data range for a given graph
+             *
+             * @warning this throws an exception if the graph does not exist
+             */
+            void changeGraphRange(std::string graphName, double minVal, double maxVal);
+
+            /**
+             * redraw all graphs
+             */
+            void redraw();
         };
     }
 }
