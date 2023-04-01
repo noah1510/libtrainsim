@@ -1,2 +1,7 @@
-[wrap-redirect]
-filename = simplegl/subprojects/simplegfx.wrap
+[wrap-git]
+url = https://git.thm.de/singlegfx/core.git
+revision = main
+directory = simplegfx-core
+
+[provides]
+dependency_names = ['simplegfx']
