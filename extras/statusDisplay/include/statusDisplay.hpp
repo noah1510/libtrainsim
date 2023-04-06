@@ -148,7 +148,11 @@ namespace libtrainsim{
             /**
              * redraw all graphs
              */
-            void redraw();
+            void redrawGraphs();
+
+            bool handleEvents(std::string eventName);
+
+            void on_unrealize() override;
         };
     }
 }

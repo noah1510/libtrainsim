@@ -52,7 +52,7 @@ namespace libtrainsim{
              * 
              * @param showLatest if true next to the name of the graph there will be the latest value
              */
-            void display();
+            void setShowLatest(bool latest = true);
             void on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
             
             /**
@@ -103,6 +103,12 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_unrealize(){
 }
 
 template<size_t VALUE_COUNT>
+void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::setShowLatest(bool latest){
+    std::scoped_lock lock{dataMutex};
+    showLatest = latest;
+}
+
+template<size_t VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue ( double newValue, bool redraw ) {
     std::scoped_lock lock{dataMutex};
     libtrainsim::core::Helper::appendValue<double,VALUE_COUNT>(values, newValue);
@@ -132,10 +138,13 @@ inline double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::scaleValue(d
 
 template<size_t VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height) {
+    if(!get_realized()){
+        return;
+    }
+
     std::shared_lock lock{dataMutex};
-    
-    auto styleContext = get_style_context();
-    styleContext->render_background(cr, 0, 0, width, height);
+
+    get_style_context()->render_background(cr, 0, 0, width, height);
 
     std::stringstream ss;
     ss << name;

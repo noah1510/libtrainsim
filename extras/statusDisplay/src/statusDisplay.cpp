@@ -54,6 +54,8 @@ libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings):Gtk::Win
     changeGraphRange("velocity", 0.0, 60.0);
     changeGraphRange("speedLevel", -1.0, 1.0);
     
+    set_hide_on_close();
+
     if(manageSettings){
         //SimpleGFX::SimpleGL::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
     }
@@ -66,6 +68,12 @@ libtrainsim::extras::statusDisplay::~statusDisplay() {
         //SimpleGFX::SimpleGL::imguiHandler::removeSettingsTab("statusDisplay");
     }
 }
+
+void libtrainsim::extras::statusDisplay::on_unrealize(){
+    Gtk::Window::on_unrealize();
+    graphs.clear();
+}
+
 
 void libtrainsim::extras::statusDisplay::appendFrametime ( sakurajin::unit_system::time_si frametime ) {
     frametime = sakurajin::unit_system::unit_cast(frametime, multiplier(std::milli::type{}));
@@ -114,9 +122,6 @@ void libtrainsim::extras::statusDisplay::createCustomGraph ( std::string graphNa
     auto newGraph = Gtk::make_managed<statusDisplayGraph<100>>(graphName,tooltipMessage);
     graphsList->append(*newGraph);
     graphs.emplace_back(std::pair{newGraph, true});
-
-    auto separator = Gtk::make_managed<Gtk::Separator>();
-    graphsList->append(*separator);
 }
 
 void libtrainsim::extras::statusDisplay::removeGraph ( std::string graphName ) {
@@ -157,9 +162,35 @@ void libtrainsim::extras::statusDisplay::changeGraphRange(std::string graphName,
     throw std::invalid_argument("no graph with this name exists");
 }
 
-void libtrainsim::extras::statusDisplay::redraw(){
-    for(auto& graph: graphs){
-        graph.first->queue_draw();
+void libtrainsim::extras::statusDisplay::redrawGraphs(){
+    if(is_visible()){
+        for(auto& graph: graphs){
+            graph.first->queue_draw();
+        }
     }
 }
+
+bool libtrainsim::extras::statusDisplay::handleEvents(std::string eventName){
+    static auto app = get_application();
+    static bool showLatest = true;
+    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(eventName, {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"}) ){
+        case(0):
+            if(is_visible()){
+                hide();
+            }else{
+                app->add_window(*this);
+                set_visible(true);
+            }
+            return true;
+        case(1):
+            showLatest = !showLatest;
+            for(auto [graph, _]:graphs){
+                graph->setShowLatest(showLatest);
+            }
+            return true;
+        default:
+            return false;
+    }
+}
+
 
