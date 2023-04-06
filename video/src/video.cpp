@@ -48,6 +48,7 @@ void libtrainsim::Video::simulatorWindowGLArea::on_unrealize() {
         return;
     }
 
+    std::scoped_lock lock{dataMutex};
     remove_tick_callback(tickID);
 
     make_current();
@@ -153,11 +154,14 @@ bool libtrainsim::Video::simulatorWindowGLArea::on_tick ( const Glib::RefPtr<Gdk
     return true;
 }
 
-
 bool libtrainsim::Video::simulatorWindowGLArea::on_render ( const Glib::RefPtr<Gdk::GLContext>& context ) {
-    Gtk::GLArea::on_render(context);
+    if(!realized){
+        return FALSE;
+    }
 
     std::scoped_lock lock{dataMutex};
+
+    Gtk::GLArea::on_render(context);
 
     displayTextures[0]->updateImage(decode.getUsableFramebufferBuffer(), decode.getDimensions());
 
@@ -224,7 +228,7 @@ void libtrainsim::Video::simulatorWindowGLArea::removeTexture ( const std::strin
 }
 
 std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::simulatorWindowGLArea::getNewRendertimes() {
-    return  decode.getNewRendertimes();
+    return decode.getNewRendertimes();
 }
 
 void libtrainsim::Video::simulatorWindowGLArea::gotoFrame ( uint64_t frame_num ) {
@@ -243,15 +247,15 @@ libtrainsim::Video::videoManager::videoManager(
 
     set_title(simSettings->getCurrentTrack().getName());
     set_default_size(1280, 720);
+    set_cursor("none");
 
     mainGLArea = Gtk::make_managed<simulatorWindowGLArea>(simSettings);
 
     areaFrame = Gtk::make_managed<Gtk::AspectFrame>();
     set_child(*areaFrame);
+
     auto [w,h] = mainGLArea->getDecoder().getDimensions();
     areaFrame->set_ratio(w/h);
-
-
     areaFrame->set_child(*mainGLArea);
 
 }
@@ -282,6 +286,9 @@ bool libtrainsim::Video::videoManager::on_close_request() {
         auto group = get_group();
         group->remove_window(*this);
         for(auto win: group->list_windows()){
+            if(win->get_hide_on_close()){
+                win->set_hide_on_close(false);
+            }
             win->close();
         }
     }

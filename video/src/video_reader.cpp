@@ -282,7 +282,7 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
                 EOF_Mutex.unlock(); 
                 
             }catch(const std::exception& e){
-                libtrainsim::core::Helper::print_exception(e);
+                libtrainsim::core::Helper::printException(e);
                 std::scoped_lock lock{EOF_Mutex};
                 reachedEOF = true;
                 return false;
