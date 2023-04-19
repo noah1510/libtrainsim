@@ -261,6 +261,9 @@ libtrainsim::Video::videoManager::videoManager(
 }
 
 bool libtrainsim::Video::videoManager::onEvent(const SimpleGFX::inputEvent& event){
+    if(event.inputType != SimpleGFX::inputAction::press){
+        return false;
+    }
 
     switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"CLOSE", "MAXIMIZE"}) ){
         case(0):
@@ -299,7 +302,6 @@ bool libtrainsim::Video::videoManager::on_close_request() {
 libtrainsim::Video::videoManager::~videoManager(){
     std::cout << "locking video manager to prevent draw calls while destroying" << std::endl;
     std::scoped_lock<std::shared_mutex> lock{videoMutex};
-
 }
 
 void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {

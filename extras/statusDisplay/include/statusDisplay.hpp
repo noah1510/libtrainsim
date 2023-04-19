@@ -25,7 +25,7 @@ namespace libtrainsim{
          * @brief a window to display real time stats for the simulator
          * 
          */
-        class LIBTRAINSIM_EXPORT_MACRO statusDisplay : public Gtk::Window{
+        class LIBTRAINSIM_EXPORT_MACRO statusDisplay : public Gtk::Window, public SimpleGFX::eventHandle{
           friend class statusDisplaySettings;
           private:
             
@@ -150,7 +150,7 @@ namespace libtrainsim{
              */
             void redrawGraphs();
 
-            bool handleEvents(std::string eventName);
+            bool onEvent(const SimpleGFX::inputEvent& event) override;
 
             void on_unrealize() override;
         };

@@ -170,10 +170,15 @@ void libtrainsim::extras::statusDisplay::redrawGraphs(){
     }
 }
 
-bool libtrainsim::extras::statusDisplay::handleEvents(std::string eventName){
+bool libtrainsim::extras::statusDisplay::onEvent(const SimpleGFX::inputEvent& event){
     static auto app = get_application();
     static bool showLatest = true;
-    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(eventName, {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"}) ){
+
+    if(event.inputType != SimpleGFX::inputAction::press){
+        return false;
+    }
+
+    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"}) ){
         case(0):
             if(is_visible()){
                 hide();
