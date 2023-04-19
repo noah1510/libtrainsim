@@ -1,6 +1,6 @@
 #pragma once
 
-#include "simplegfx_helper.hpp"
+#include "simplegfx.hpp"
 
 #ifndef LIBTRAINSIM_EXPORT_MACRO
 #define LIBTRAINSIM_EXPORT_MACRO

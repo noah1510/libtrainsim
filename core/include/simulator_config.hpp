@@ -1,5 +1,6 @@
 #pragma once
 
+#include "helper.hpp"
 #include "track_configuration.hpp"
 #include "train_properties.hpp"
 
@@ -75,6 +76,31 @@ namespace libtrainsim{
              * @brief indicates if the settings are allowed to write changes back into the file
              */
             bool readOnly = false;
+
+            /**
+             * @brief the main logger provided by the simulatorConfiguration
+             *
+             * This logger exists to provide a core logging interface across all parts of the simulator.
+             * The default logging level is set by the configuration file.
+             *
+             * If the logging file specifies additional loggers to be used, their type and output location
+             * will automatically be added to the logger. This usually results in the creation of log files
+             * in addition to the command line output.
+             *
+             * If additional logging interfaces should be used, they can be attached to the coreLogger using
+             * the addExtraLogger function of the logger class.
+             */
+            std::shared_ptr<SimpleGFX::logger> coreLogger = nullptr;
+
+            /**
+             * @brief the input manager provided by the simulatorConfiguration
+             *
+             * This input manager exists to provide a core input interface across all parts of the simulator.
+             * The default input manager is set by the configuration file.
+             *
+             * All eventHandles and eventPoller should be attached to this input manager.
+             */
+            std::shared_ptr<SimpleGFX::eventManager> inputManager = nullptr;
             
         public:
             
@@ -85,7 +111,7 @@ namespace libtrainsim{
              * @param URI The location of the File
              * @param lazyLoad set to true if you only want to load tracks on demand
              */
-            simulatorConfiguration(const std::filesystem::path& URI, bool lazyLoad = false) noexcept(false);
+            simulatorConfiguration(const std::filesystem::path& URI, bool lazyLoad = true) noexcept(false);
             
             /**
              * @brief Get the location of the serial config settings file
@@ -177,6 +203,18 @@ namespace libtrainsim{
              * @return const std::filesystem::path& the folder that contains all of the extras
              */
             const std::filesystem::path& getExtrasLocation() const noexcept;
+
+            /**
+             * @brief returns the common logging interface for the simulator
+             * @return std::shared_ptr<SimpleGFX::logger> the logger
+             */
+            std::shared_ptr<SimpleGFX::logger> getLogger() noexcept;
+
+            /**
+             * @brief returns the common input manager for the simulator
+             * @return std::shared_ptr<SimpleGFX::eventManager> the input manager
+             */
+            std::shared_ptr<SimpleGFX::eventManager> getInputManager() noexcept;
         };
     }
 }

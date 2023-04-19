@@ -3,50 +3,32 @@
 using namespace std::literals;
 
 libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _conf) noexcept(false): conf{_conf}{
-    keys = libtrainsim::control::keymap();
 
     #ifdef HAS_VIDEO_SUPPORT
+    keyboardPoller = std::make_shared<SimpleGFX::SimpleGL::eventPollerGtkKeyboard>();
 
-    addEventCallback(sigc::mem_fun(*this, &input_handler::updateKeybord),0);
-    //keys.add(ImGuiKey_GamepadBack, "CLOSE");
-    //keys.add(ImGuiKey_GamepadFaceUp ,"EMERGENCY_BREAK");
+    keyboardPoller->addKey(GDK_KEY_Escape, "CLOSE");
+
+    keyboardPoller->addKey(GDK_KEY_F10, "MAXIMIZE");
+    keyboardPoller->addKey(GDK_KEY_F11, "STATUS_WINDOW_TOGGLE_VISIBILITY");
+    keyboardPoller->addKey(GDK_KEY_F12, "STATUS_WINDOW_SHOW_LATEST");
+
+    keyboardPoller->addKey(GDK_KEY_w, "ACCELERATE");
+    keyboardPoller->addKey(GDK_KEY_s, "BREAK");
+    keyboardPoller->addKey(GDK_KEY_p, "EMERGENCY_BREAK");
+
+    keyboardPoller->addKey(GDK_KEY_W, "ACCELERATE");
+    keyboardPoller->addKey(GDK_KEY_S, "BREAK");
+    keyboardPoller->addKey(GDK_KEY_P, "EMERGENCY_BREAK");
     #endif
 }
-
-uint64_t libtrainsim::control::input_handler::addEventCallback(std::function<bool (std::string)> callback, int priority){
-
-    for(auto i = eventCallbacks.begin(); i < eventCallbacks.end();i++){
-        auto [_, prio, __] = *i;
-        if(prio > priority){
-            eventCallbacks.insert(i, {callback, priority, nextID});
-            return nextID++;
-        }
-    }
-    eventCallbacks.emplace_back(std::tuple<std::function<bool (std::string)>, int, uint64_t>{callback, priority, nextID});
-    return nextID++;
-}
-
-void libtrainsim::control::input_handler::removeEventCallback(uint64_t id){
-    if(id == 0){
-        throw std::invalid_argument("Cannot remove the main callback (id == 0)");
-    }
-
-    for(auto i = eventCallbacks.begin(); i < eventCallbacks.end();i++){
-        auto [_, __, ID] = *i;
-        if(ID == id){
-            eventCallbacks.erase(i);
-            return;
-        }
-    }
-}
-
-
 
 libtrainsim::control::input_handler::~input_handler() {
     resetFlags();
 }
 
 void libtrainsim::control::input_handler::resetFlags(){
+    std::scoped_lock lock{dataMutex};
     serial.reset();
 
     currentInputAxis = 0.0;
@@ -66,6 +48,10 @@ void libtrainsim::control::input_handler::startSimulation(){
         serial = std::make_unique<serialcontrol>(conf->getSerialConfigLocation());
         if(!serial->IsConnected()){
             serial.reset();
+        }else{
+            if(registered) {
+                serial->registerWithEventManager(manager);
+            }
         }
     }catch(...){
         std::throw_with_nested(std::runtime_error("Error initializing the serial control"));
@@ -75,44 +61,11 @@ void libtrainsim::control::input_handler::startSimulation(){
 }
 
 
-
 #ifdef HAS_VIDEO_SUPPORT
-void libtrainsim::control::input_handler::registerWindow(Gtk::Window& win){
-
-    auto keyboardController = Gtk::EventControllerKey::create();
-
-    keyboardController->signal_key_pressed().connect(sigc::mem_fun(*this, &input_handler::handleKeyboardEvents),false);
-
-    win.add_controller(keyboardController);
+std::shared_ptr<SimpleGFX::SimpleGL::eventPollerGtkKeyboard> libtrainsim::control::input_handler::getKeyboardPoller(){
+    return keyboardPoller;
 }
-
-bool libtrainsim::control::input_handler::handleKeyboardEvents(guint keyval, guint, Gdk::ModifierType){
-    auto keysToCheck = keys.getAllKeys();
-    for (auto key:keysToCheck){
-        if(key.first == keyval){
-            //call all callbacks and exit once the event is handled
-            for(auto call:eventCallbacks){
-                if(std::get<0>(call)(key.second)){
-                    return true;
-                }
-            }
-            if(key.second == "CLOSE" || key.second == "TERMINATE"){
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-
 #endif
-
-
-libtrainsim::control::keymap& libtrainsim::control::input_handler::Keymap() noexcept {
-    return keys;
-}
-
 
 libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis() noexcept {
     std::shared_lock lock{dataMutex};
@@ -138,9 +91,55 @@ bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
     return false;
 }
 
-bool libtrainsim::control::input_handler::updateKeybord(std::string eventName){
+uint64_t libtrainsim::control::input_handler::registerWithEventManager(SimpleGFX::eventManager* manager, int priority){
+    #ifdef HAS_VIDEO_SUPPORT
+    keyboardPoller->registerWithEventManager(manager, priority);
+    #endif
+
+    if(serial){
+        serial->registerWithEventManager(manager, priority);
+    }
+
+    return SimpleGFX::eventHandle::registerWithEventManager(manager, priority);
+}
+
+void libtrainsim::control::input_handler::unregister(){
+    #ifdef HAS_VIDEO_SUPPORT
+    keyboardPoller->unregister();
+    #endif
+
+    if(serial){
+        serial->unregister();
+    }
+
+    SimpleGFX::eventHandle::unregister();
+}
+
+bool libtrainsim::control::input_handler::onEvent(const SimpleGFX::inputEvent& event){
 
     std::scoped_lock lock{dataMutex};
+    auto eventName = event.name;
+
+    if(serial){
+        static double accelVal = 0;
+        static double brakeVal = 0;
+
+        switch(libtrainsim::core::Helper::stringSwitch(eventName, {
+                "ACCELERATE_ANALOG",
+                "BREAK_ANALOG"
+        })){
+            case(0):
+                accelVal = event.amount/255;
+                currentInputAxis = accelVal - brakeVal;
+                return true;
+            case(1):
+                brakeVal = event.amount/255;
+                currentInputAxis = accelVal - brakeVal;
+                return true;
+            default:
+                break;
+        }
+    }
 
     switch(libtrainsim::core::Helper::stringSwitch(eventName, {
         "TERMINATE",
@@ -160,46 +159,21 @@ bool libtrainsim::control::input_handler::updateKeybord(std::string eventName){
             shouldEmergencyBreak = true;
             return true;
         case(3):
-            if(!running){return false;};
+            if(!running || serial){return false;};
             currentInputAxis += 0.1;
             if(abs(currentInputAxis.get()) < 0.07){
                 currentInputAxis = 0.0;
             }
             return true;
         case(4):
-            if(!running){return false;};
+            if(!running || serial){return false;};
             currentInputAxis -= 0.1;
             if(abs(currentInputAxis.get()) < 0.07){
                 currentInputAxis = 0.0;
             }
             return true;
         default:
-            return false;
+            return SimpleGFX::eventHandle::onEvent(event);
 
     }
 }
-
-
-void libtrainsim::control::input_handler::update() {
-    //if there is harware input update most flags from there
-    if(!running || serial == nullptr){
-        return;
-    }
-
-    if(serial->IsConnected()){
-        shouldEmergencyBreak = serial->get_emergencyflag();
-        currentInputAxis = serial->get_slvl();
-    }
-    /*else{
-        #ifdef HAS_VIDEO_SUPPORT
-        if((ImGui::GetIO().BackendFlags & ImGuiBackendFlags_HasGamepad) > 0){
-            auto acc = ImGui::GetIO().KeysData[ImGui::GetKeyIndex(ImGuiKey_GamepadR2)].AnalogValue;
-            auto dcc = ImGui::GetIO().KeysData[ImGui::GetKeyIndex(ImGuiKey_GamepadL2)].AnalogValue;
-            currentInputAxis = acc - dcc;
-        }
-        #endif
-    } */
-
-}
-
-

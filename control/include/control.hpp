@@ -9,7 +9,6 @@
 #include "keymap.hpp"
 #include "libtrainsim_config.hpp"
 #include "simulator_config.hpp"
-#include "serialcontrol.hpp"
 #include "types.hpp"
 
 #ifdef HAS_VIDEO_SUPPORT
@@ -19,6 +18,13 @@
         #undef HAS_VIDEO_SUPPORT
     #endif
 #endif
+
+#include "eventSystem.hpp"
+
+//This has to be included after video.hpp to work properly on windows
+//Seems to be a problem with the was rs232 includes windows.h which causes
+//a conflict with GTK
+#include "serialcontrol.hpp"
 
 namespace libtrainsim {
     
@@ -45,18 +51,15 @@ namespace libtrainsim {
         * it is not possible to retrieve the currently pressed keys. If libtrainsim::video is not available the serialcontrol
         * part still works, its just that this can no longer detect window events and the closing flag is always false.
         */
-        class LIBTRAINSIM_EXPORT_MACRO input_handler{
+        class LIBTRAINSIM_EXPORT_MACRO input_handler: public SimpleGFX::eventHandle{
             private:
-                /**
-                 * @brief the keymap used for the input_handler module
-                 * 
-                 */
-                control::keymap keys;
 
                 /**
                  * @brief a mutex to control the data access across threads
                  */
                 std::shared_mutex dataMutex;
+
+                std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf;
             
                 /**
                  * @brief the current speed level for keyboard controls
@@ -90,19 +93,9 @@ namespace libtrainsim {
                 std::unique_ptr<serialcontrol> serial;
 
                 #ifdef HAS_VIDEO_SUPPORT
-                //Glib::RefPtr<Gtk::EventControllerKey> keyboardController = nullptr;
+                std::shared_ptr<SimpleGFX::SimpleGL::eventPollerGtkKeyboard> keyboardPoller = nullptr;
                 #endif
 
-                std::vector < std::tuple<
-                    std::function<bool(std::string)>,
-                    int,
-                    uint64_t
-                > > eventCallbacks;
-
-                uint64_t nextID = 0;
-
-                bool updateKeybord(std::string eventName);
-                std::shared_ptr<libtrainsim::core::simulatorConfiguration> conf = nullptr;
             public:
 
                /**
@@ -118,14 +111,6 @@ namespace libtrainsim {
                  * @brief destory the input handler
                  */
                 ~input_handler();
-                
-                /**
-                 * @brief access the internal keymap to change the input configuration.
-                 * @note the keymap is only useful for keyboard input
-                 * 
-                 * @return keymap& a reference to the internal keymap
-                 */
-                keymap& Keymap() noexcept;
                 
                 /**
                  * @brief return true if getSpeedAxis came across a close command
@@ -148,15 +133,6 @@ namespace libtrainsim {
                 core::input_axis getSpeedAxis() noexcept;
 
                 /**
-                 * @brief update all of the flags and the speed axis value
-                 * @warning This needs to be called on the render thread. Otherwise this function throws an error.
-                 */
-                void update();
-
-                uint64_t addEventCallback(std::function<bool(std::string)> callback, int priority = 1);
-                void removeEventCallback(uint64_t id);
-
-                /**
                  * @brief closes the serial connection and resets the axis
                  */
                 void resetFlags();
@@ -166,11 +142,15 @@ namespace libtrainsim {
                  */
                 void startSimulation();
 
-                #ifdef HAS_VIDEO_SUPPORT
-                void registerWindow(Gtk::Window& win);
+                uint64_t registerWithEventManager(SimpleGFX::eventManager* _manager, int priority = 1) override;
+                void unregister() override;
+                bool onEvent(const SimpleGFX::inputEvent& event) override;
 
-                bool handleKeyboardEvents(guint keyval, guint, Gdk::ModifierType);
+
+                #ifdef HAS_VIDEO_SUPPORT
+                std::shared_ptr<SimpleGFX::SimpleGL::eventPollerGtkKeyboard> getKeyboardPoller();
                 #endif
+
         };
     }
 }

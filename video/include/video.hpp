@@ -5,7 +5,7 @@
 namespace libtrainsim {
     namespace Video{
 
-        class simulatorWindowGLArea : public Gtk::GLArea{
+    class simulatorWindowGLArea : public Gtk::GLArea{
         private:
             unsigned int tickID = 0;
             bool realized = false;
@@ -66,7 +66,7 @@ namespace libtrainsim {
         * @brief This class is resposiblie for managing all the video material.
         * 
         */
-        class LIBTRAINSIM_EXPORT_MACRO videoManager : public Gtk::Window{
+        class LIBTRAINSIM_EXPORT_MACRO videoManager : public Gtk::Window, public SimpleGFX::eventHandle{
             private:
                 
                 //a mutex to secure this class for multithreading
@@ -113,7 +113,7 @@ namespace libtrainsim {
                 //the the rendertimes of the video
                 std::optional< std::vector<sakurajin::unit_system::time_si> > getNewRendertimes();
 
-                bool handleEvents(std::string eventName);
+                bool onEvent(const SimpleGFX::inputEvent& event) override;
 
                 bool on_close_request() override;
                 

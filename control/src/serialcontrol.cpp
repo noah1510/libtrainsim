@@ -25,7 +25,6 @@ serialcontrol::serialcontrol(const std::filesystem::path& filename){
     }
     
     isConnected = true;
-    emergency_flag = false;
     std::cout << "beende startup..." << std::endl;
     
     updateLoop = std::async(std::launch::async,[&](){
@@ -34,13 +33,33 @@ serialcontrol::serialcontrol(const std::filesystem::path& filename){
             if(serialError < 0){
                 continue;
             }
-            
-            auto [port, value, isDigital, decodeError] = decodeTelegram(message);
-            if(decodeError < 0){
+
+            serial_channel channel;
+            try{
+                channel = decodeTelegram(message);
+            }catch(const std::exception& e){
+                std::cerr << "could not decode telegram: " << e.what() << std::endl;
                 continue;
             }
-            
-            set_serial(port, value, !isDigital);
+
+            if(registered){
+                SimpleGFX::inputEvent e;
+                e.name = channel.name;
+                e.originName = "serialcontrol";
+                e.amount = static_cast<double>(channel.value);
+
+                if(channel.isAnalog){
+                    e.inputType = SimpleGFX::inputAction::update;
+                }else{
+                    if(channel.value == 0) {
+                        e.inputType = SimpleGFX::inputAction::release;
+                    }else{
+                        e.inputType = SimpleGFX::inputAction::press;
+                    }
+                }
+
+                raiseEvent(e);
+            }
         }while(IsConnected());
     });
     rs232_obj.reset();
@@ -69,21 +88,21 @@ int serialcontrol::hex2int(char hex) const{
     return -1;
 }
 
-std::tuple<uint8_t, uint8_t, bool, int> serialcontrol::decodeTelegram(const std::string& telegram) const{
+serial_channel serialcontrol::decodeTelegram(const std::string& telegram) const{
     
     //8 digits and \0 at the end
     if(telegram.length() != 9){
-        return {0,0,false,-1};
+        throw std::invalid_argument("invalid length of telegram");
     }
     
     //invalid begin of message
     if(telegram.at(0) != 'X'){
-        return {0,0,false,-2};
+        throw std::invalid_argument("invalid begin of telegram");
     }
     
     //invalid end of message
     if(telegram.at(8) != 'Y'){
-        return {0,0,false,-3};
+        throw std::invalid_argument("invalid end of telegram");
     }
     
     //decode the type of the telegram
@@ -94,7 +113,7 @@ std::tuple<uint8_t, uint8_t, bool, int> serialcontrol::decodeTelegram(const std:
     }else if(type == 'U'){
         isDigital = true;
     }else{
-        return {0,0,false,-4};
+        throw std::invalid_argument("invalid type of telegram");
     }
     
     //decode the port number of the telegram
@@ -110,79 +129,25 @@ std::tuple<uint8_t, uint8_t, bool, int> serialcontrol::decodeTelegram(const std:
         auto v2 = hex2int(telegram.at(7));
         
         if(v1 < 0 || v2 < 0){
-            return {0,0,false,-5};
+            throw std::invalid_argument("invalid value of telegram");
         }
         
         value = v1*16 + v2;
     }
-    
-    return {port, value, isDigital, 0};
-}
 
-int serialcontrol::get_serial(std::string name){
-    std::shared_lock lock{accessMutex};
-    for (size_t i = 0; i < serial_channels.size(); i++){
-        if (serial_channels[i].name == name){
-            return serial_channels[i].value;
+    for(auto channel : serial_channels){
+        if(channel.channel == port && channel.isAnalog == !isDigital){
+            channel.value = value;
+            return channel;
         }
     }
-    return -1;
-}
 
-void serialcontrol::set_serial(int i, int value, bool isAnalog){
-    std::scoped_lock lock{accessMutex};
-    
-    size_t index = 0;
-    while(index < serial_channels.size()){
-        if(serial_channels[index].channel == i){
-            if(serial_channels[index].type == (isAnalog ? "analog" : "digital")){break;}
-        }
-        index++;
-    }
-    
-    if(index == serial_channels.size()){
-        std::cerr << "somehow got an unidentified channel" << std::endl;
-        return;
-    }
-
-    serial_channels[index].value = value;
-    
-    //handle special cases for some channels
-    switch(core::Helper::stringSwitch(serial_channels[index].name,{"emergency_brake","analog_drive"})){
-        case(0):
-            emergency_flag = true;
-            break;
-        case(1):
-            if(emergency_flag && value < 2){
-                emergency_flag = false;
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-libtrainsim::core::input_axis serialcontrol::get_slvl(){
-    
-    double acc = get_serial("analog_drive");
-    double dec = get_serial("analog_brake");
-
-    acc = acc / 255;
-    dec = dec / 255;
-
-    libtrainsim::core::input_axis slvl = acc - dec;
-
-    return slvl;
+    throw std::invalid_argument("somehow got an unidentified channel");
 }
 
 bool serialcontrol::IsConnected(){
     std::shared_lock lock{accessMutex};
     return isConnected;
-}
-
-bool serialcontrol::get_emergencyflag(){
-    std::shared_lock lock{accessMutex};
-    return emergency_flag;
 }
 
 void serialcontrol::read_config(const std::filesystem::path& filename){
@@ -254,13 +219,13 @@ void serialcontrol::read_config(const std::filesystem::path& filename){
             throw std::runtime_error("channels is not an array");
         }
         serial_channels.reserve(dat.size());
-        for(auto _dat:dat){
+        for(const auto& _dat:dat){
             auto name = core::Helper::getJsonField<std::string>(_dat, "name");
             auto channel = core::Helper::getJsonField<int>(_dat, "channel");
             auto type = core::Helper::getJsonField<std::string>(_dat, "type");
             auto dir = core::Helper::getJsonField<std::string>(_dat, "direction");
 
-            serial_channel channel_obj{name, channel, type, dir};
+            serial_channel channel_obj{name, channel, type == "analog", dir == "input"};
             serial_channels.emplace_back(channel_obj);
         }
         
@@ -273,4 +238,4 @@ void serialcontrol::read_config(const std::filesystem::path& filename){
 
 //*********************serial_channel*****************************************
 
-serial_channel::serial_channel(const std::string& n, int ch, const std::string& t, const std::string& dir): name{n},channel{ch},type{t},value{0},direction{dir} {}
+serial_channel::serial_channel(const std::string& n, int ch, bool t, bool dir): name{n},channel{ch},isAnalog{t},value{0},directionInput{dir} {}

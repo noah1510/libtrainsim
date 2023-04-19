@@ -243,7 +243,7 @@ libtrainsim::Video::videoReader & libtrainsim::Video::simulatorWindowGLArea::get
 
 libtrainsim::Video::videoManager::videoManager(
     std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings
-):Gtk::Window{}{
+):Gtk::Window{}, SimpleGFX::eventHandle(){
 
     set_title(simSettings->getCurrentTrack().getName());
     set_default_size(1280, 720);
@@ -260,15 +260,15 @@ libtrainsim::Video::videoManager::videoManager(
 
 }
 
-bool libtrainsim::Video::videoManager::handleEvents(std::string eventName){
+bool libtrainsim::Video::videoManager::onEvent(const SimpleGFX::inputEvent& event){
 
-    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(eventName, {"CLOSE", "MAXIMIZE"}) ){
+    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"CLOSE", "MAXIMIZE"}) ){
         case(0):
             close();
             return false;
         case(1):
             if(is_fullscreen()){
-            unfullscreen();
+                unfullscreen();
             }else{
                 fullscreen();
             }

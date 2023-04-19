@@ -3,6 +3,10 @@
 #include "helper.hpp"
 #include "input_axis.hpp"
 #include "unit_system.hpp"
+#include "eventSystem.hpp"
+
+#include <nlohmann/json.hpp>
+#include <rs232.hpp>
 
 #include <chrono>
 #include <fstream>
@@ -10,8 +14,6 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <nlohmann/json.hpp>
-#include <rs232.hpp>
 #include <shared_mutex>
 #include <string>
 #include <thread>
@@ -23,45 +25,48 @@ namespace libtrainsim{
         * @brief This class contains all parameter the serial telegram sends.
         */
         class LIBTRAINSIM_EXPORT_MACRO serial_channel{
-            private :
-
             public :
 
                 /**
-                * @brief constructor asigns given variables to class-members.
+                * @brief constructor assigns given variables to class-members.
                 */
-                serial_channel(const std::string& n, int ch, const std::string& t, const std::string& dir);
+                serial_channel(const std::string& n, int ch, bool tAnalog, bool dirIn);
+                serial_channel() = default;
 
                 /**
                 * @brief channel-function.
                 */
-                std::string name;
+                std::string name = "empty";
 
                 /**
                 * @brief channel-number.
                 */
-                int channel;
+                int channel = 0;
 
                 /**
                 * @brief channel-type (analog/digital).
+                * 0 = digital
+                * 1 = analog
                 */
-                std::string type;
+                bool isAnalog = false;
 
                 /**
                 * @brief The channel value 0/1 digital; 0-255 analog.
                 */
-                int value;  
+                int value = 0;
                 
                 /**
                  * @brief the direction of the data transfer (input or output)
+                 * true = input
+                 * false = output
                  */
-                std::string direction;
+                bool directionInput = true;
         };
 
         /**
         * @brief This class contains all variables and functions to handle hardware input.
         */
-        class LIBTRAINSIM_EXPORT_MACRO serialcontrol{
+        class LIBTRAINSIM_EXPORT_MACRO serialcontrol : public SimpleGFX::eventPoller{
             private:
                 
                 /**
@@ -90,11 +95,6 @@ namespace libtrainsim{
                 std::shared_mutex connectedMutex;
 
                 /**
-                * @brief flag, true if emergency-brake-button was pressed until train has stopped.
-                */
-                bool emergency_flag = false;
-
-                /**
                 * @brief object which handels the communication with the COM-Port.
                 */
                 std::unique_ptr<sakurajin::RS232> rs232_obj;
@@ -111,14 +111,9 @@ namespace libtrainsim{
                 
                 /**
                  * @brief returns the decoded telegram:
-                 * @return std::tuple<uint8_t, uint8_t, bool, int> {port, value, isDigital, error code}
+                 * @return serial_channel with the decoded data
                 */
-                std::tuple<uint8_t, uint8_t, bool, int> decodeTelegram(const std::string& telegram) const;
-
-                /**
-                * @brief This function sets the value for searched channelnumber i.
-                */
-                void set_serial(int i, int value, bool isAnalog);
+                serial_channel decodeTelegram(const std::string& telegram) const;
 
                 /**
                 * @brief This function filles the variables with the data of the config-file.
@@ -144,24 +139,9 @@ namespace libtrainsim{
                 ~serialcontrol();
 
                 /**
-                * @brief This function returns the value of searched channel by name / funciton. Return value is the current value of searched channel. Can be used to get the last known value of different functions the hardware input has.
-                */
-                int get_serial(std::string name);
-
-                /**
                 * @brief This function returns the value of isConnected.
                 */
                 bool IsConnected();
-
-                /**
-                * @brief This function returns the value of emergency_flag.
-                */
-                bool get_emergencyflag();
-
-                /**
-                * @brief This function gets the speedlevel calculated as difference between acceleration and brake. 
-                */
-                libtrainsim::core::input_axis get_slvl();
         };
     }
 }
