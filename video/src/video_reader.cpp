@@ -116,7 +116,7 @@ void libtrainsim::Video::videoDecodeSettings::content() {
 }
 */
 
-libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings, uint64_t threadCount){
+libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount):simSettings{_simSettings}{
     /*
     //find all of the hardware devices
     std::vector<AVHWDeviceType> deviceTypes;
@@ -163,7 +163,7 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
             renderSize.y() = av_codec_params->height;
             auto framerate_tmp = av_format_ctx->streams[i]->avg_frame_rate;
             framerate = static_cast<double>(framerate_tmp.num)/static_cast<double>(framerate_tmp.den);
-            std::cout << "video average framerate:" << framerate << " fps" << std::endl;
+            *simSettings->getLogger() << SimpleGFX::loggingLevel::normal << "video average framerate:" << framerate << " fps";
             break;
         }
     }
@@ -194,7 +194,7 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
     threadCount = std::clamp<int>(threadCount, 1, 16);
     av_codec_ctx->thread_count = threadCount;
     av_codec_ctx->thread_type = FF_THREAD_SLICE;
-    std::cout << "video decode on " << threadCount << " threads." << std::endl;
+    *simSettings->getLogger() << SimpleGFX::loggingLevel::normal << "video decode on " << threadCount << " threads.";
     
     if (avcodec_open2(av_codec_ctx, av_codec, NULL) < 0) {
         throw std::runtime_error("Couldn't open codec");
@@ -307,7 +307,7 @@ libtrainsim::Video::videoReader::~videoReader() {
     }
     
     if(renderThread.valid()){
-        std::cout << "waiting for render to finish" << std::endl;
+        *simSettings->getLogger() << SimpleGFX::loggingLevel::debug << "waiting for render to finish";
         renderThread.wait();
         renderThread.get();
     }

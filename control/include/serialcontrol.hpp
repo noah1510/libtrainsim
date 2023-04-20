@@ -4,6 +4,7 @@
 #include "input_axis.hpp"
 #include "unit_system.hpp"
 #include "eventSystem.hpp"
+#include "simulator_config.hpp"
 
 #include <nlohmann/json.hpp>
 #include <rs232.hpp>
@@ -124,6 +125,11 @@ namespace libtrainsim{
                  * @brief this stores the job to update the serial interface on a different thread
                  */
                 std::future<void> updateLoop;
+
+                /**
+                 * @brief this stores a pointer to the simulator configuration
+                 */
+                std::shared_ptr<libtrainsim::core::simulatorConfiguration> config;
                 
             public:
 
@@ -131,7 +137,7 @@ namespace libtrainsim{
                 * @brief constructor creates an object with all needed parts to handle hardware input.
                 * @note as soon as it is contructed it automatically updates the values from a second thread until the object should be destroyed.
                 */
-                serialcontrol(const std::filesystem::path& filename);
+                serialcontrol(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _config);
                 
                 /**
                  * @brief destroy the serial control object

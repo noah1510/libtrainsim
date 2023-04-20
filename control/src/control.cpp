@@ -45,7 +45,7 @@ void libtrainsim::control::input_handler::startSimulation(){
 
     try{
         //create a serial controller and if it cannot connect destroy it
-        serial = std::make_unique<serialcontrol>(conf->getSerialConfigLocation());
+        serial = std::make_unique<serialcontrol>(conf);
         if(!serial->IsConnected()){
             serial.reset();
         }else{

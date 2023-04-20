@@ -4,7 +4,7 @@ using namespace std::literals;
 using namespace SimpleGFX::SimpleGL;
 namespace fs = std::filesystem;
 
-libtrainsim::Video::simulatorWindowGLArea::simulatorWindowGLArea(std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings): Gtk::GLArea{},decode{simSettings}{
+libtrainsim::Video::simulatorWindowGLArea::simulatorWindowGLArea(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings): Gtk::GLArea{},simSettings{_simSettings},decode{_simSettings}{
     set_required_version(3,3);
     set_auto_render(false);
 }
@@ -242,8 +242,8 @@ libtrainsim::Video::videoReader & libtrainsim::Video::simulatorWindowGLArea::get
 
 
 libtrainsim::Video::videoManager::videoManager(
-    std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings
-):Gtk::Window{}, SimpleGFX::eventHandle(){
+    std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings
+):Gtk::Window{}, SimpleGFX::eventHandle(), simSettings{_simSettings}{
 
     set_title(simSettings->getCurrentTrack().getName());
     set_default_size(1280, 720);
@@ -300,7 +300,7 @@ bool libtrainsim::Video::videoManager::on_close_request() {
 }
 
 libtrainsim::Video::videoManager::~videoManager(){
-    std::cout << "locking video manager to prevent draw calls while destroying" << std::endl;
+    *simSettings->getLogger() << SimpleGFX::loggingLevel::debug << "locking video manager to prevent draw calls while destroying" << std::endl;
     std::scoped_lock<std::shared_mutex> lock{videoMutex};
 }
 

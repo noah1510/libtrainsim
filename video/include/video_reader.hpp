@@ -198,6 +198,11 @@ namespace libtrainsim{
              * 
              */
             uint64_t seekCutoff = 200;
+
+            /**
+             * @brief A pointer to the simulator settings
+             */
+            std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings;
         public:
             /**
              * @brief create a new video decoder for a given video file
@@ -205,7 +210,7 @@ namespace libtrainsim{
              * @param filename the path to the file that should be played back by this object
              * @param threadCount the number of threads that should be used for video decode, 0 for autodetect
              */
-            videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings, uint64_t threadCount = 0);
+            videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount = 0);
             
             /**
              * @brief destroys the video decoder

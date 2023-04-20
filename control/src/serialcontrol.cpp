@@ -8,24 +8,23 @@ using namespace std::literals;
 
 //*********************serialcontrol*****************************************
 
-serialcontrol::serialcontrol(const std::filesystem::path& filename){
+serialcontrol::serialcontrol(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _config):config(_config){
     std::scoped_lock lock{accessMutex};
-    
-    std::cout << "starte startup..." << std::endl;
+
+    *config->getLogger() << SimpleGFX::loggingLevel::debug << "starting serialcontrol";
     try{
-        read_config(filename);
+        read_config(config->getSerialConfigLocation());
     }catch(...){
         std::throw_with_nested(std::runtime_error("could not read serial config"));
     }
     
     rs232_obj = std::make_unique<sakurajin::RS232>(comport, baudrate);    
     if(!rs232_obj->IsAvailable()){
-        std::cerr << "serialPort" << rs232_obj->GetDeviceName() << " is not available!" << std::endl;
+        *config->getLogger() << SimpleGFX::loggingLevel::warning << "serialPort" << rs232_obj->GetDeviceName() << " is not available! Check the config and if the device is connected to " << comport;
         return;
     }
     
     isConnected = true;
-    std::cout << "beende startup..." << std::endl;
     
     updateLoop = std::async(std::launch::async,[&](){
         do{
@@ -38,7 +37,7 @@ serialcontrol::serialcontrol(const std::filesystem::path& filename){
             try{
                 channel = decodeTelegram(message);
             }catch(const std::exception& e){
-                std::cerr << "could not decode telegram: " << e.what() << std::endl;
+                config->getLogger()->logException(e, false);
                 continue;
             }
 
@@ -63,6 +62,8 @@ serialcontrol::serialcontrol(const std::filesystem::path& filename){
         }while(IsConnected());
     });
     rs232_obj.reset();
+
+    *config->getLogger() << SimpleGFX::loggingLevel::normal << "serialcontrol fully started";
 }
 
 libtrainsim::control::serialcontrol::~serialcontrol() {

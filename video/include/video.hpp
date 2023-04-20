@@ -24,8 +24,10 @@ namespace libtrainsim {
             */
             std::shared_ptr<SimpleGFX::SimpleGL::shader> displayShader = nullptr;
 
-            //all of the textures that are displayed on the output texture
+            //all the textures that are displayed on the output texture
             std::vector< std::shared_ptr<SimpleGFX::SimpleGL::texture> > displayTextures;
+
+            std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings;
 
             /**
             * @brief the decoder used to decode the video file into frames
@@ -33,7 +35,7 @@ namespace libtrainsim {
             videoReader decode;
 
         public:
-            simulatorWindowGLArea(std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings);
+            simulatorWindowGLArea(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
             videoReader& getDecoder();
 
             void on_realize() override;
@@ -75,6 +77,8 @@ namespace libtrainsim {
                 simulatorWindowGLArea* mainGLArea = nullptr;
                 Gtk::AspectFrame* areaFrame = nullptr;
 
+                std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings;
+
             public:
                 /**
                 * @brief Construct a new videoManager
@@ -83,7 +87,7 @@ namespace libtrainsim {
                 * To construct it a window name
                 * 
                 */
-                videoManager(std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings);
+                videoManager(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
 
                 /**
                 * @brief Destroy the video object, on destruction everything will be reset.
