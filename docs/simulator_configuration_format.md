@@ -20,6 +20,7 @@ The json file is an object with the following fields:
 * shaderLocation (string) (since 0.8.0, optional since 0.9.0)
 * textureLocation (string) (since 0.9.0)
 * extrasLocation (string) (since 0.9.0)
+* loggerConfig (loggerConfig object) (since 0.10.0)
 
 ### Detailed descriptions
 
@@ -77,3 +78,41 @@ The folder were all of the assets for the extras modules are stored.
 By default this is "extras".
 This folder is supposed to have a folder in it for every module.
 How the files inside of each of those are structured is dependend on each module.
+
+#### loggerConfig
+
+Each loggerConfig object has the following fields:
+
+* logLevel (string) (since 0.10.0) (required)
+* extraLoggers (array of extraLogger objects) (since 0.10.0) (optional)
+
+The logLevel field specifies the log level of the main logger which logs to cout/cerr.
+The following log levels are supported:
+
+* "debug" (since 0.10.0)
+* "detail" (since 0.10.0)
+* "warning" (since 0.10.0)
+* "normal" (since 0.10.0)
+* "error" (since 0.10.0)
+* "fatal" (since 0.10.0)
+
+The extraLoggers field is an array of extraLogger objects which define optional extra logger that may be used.
+Each extraLogger object has the following fields:
+
+* type (string) (since 0.10.0) (required)
+* logLevel (string) (since 0.10.0) (required)
+* file (string) (since 0.10.0) (optional)
+* appendDate (bool) (since 0.10.0) (optional)
+* cleanFile (bool) (since 0.10.0) (optional)
+
+The following types are supported:
+
+* "json" (since 0.10.0)
+* "txt" (since 0.10.0)
+
+The file field specifies the file name to log to including its file extension.
+This field is required by the json and txt logger.
+The appendDate field specifies if the current date should be appended to the file name but before the file extension.
+This field is optional and defaults to false.
+The cleanFile field specifies if the file should be cleaned before logging.
+This field is optional and defaults to false.

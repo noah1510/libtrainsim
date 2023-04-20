@@ -26,6 +26,19 @@ namespace libtrainsim{
              * This may be used to write changes back into the file
              */
             std::filesystem::path fileLocation;
+
+            /**
+             * @brief the location of the application directory
+             */
+            std::filesystem::path appDir;
+
+            /**
+             * @brief lazy load the track data
+             * If this is true the track data will be loaded on demand. Calling the ensureTrack function
+             * will load the track data if it is not already loaded. If this is false the track data will
+             * be loaded on construction of the simulatorConfiguration object.
+             */
+            bool lazyLoad = true;
             
             /**
              * @brief An array containing all of the loaded tracks
@@ -71,11 +84,21 @@ namespace libtrainsim{
              * @brief the folder that contains all of the extras assets
              */
             std::filesystem::path extrasLocation;
+
+            /**
+             * @brief The name of the application for the simulator application creating this object
+             */
+            std::string appID;
             
             /**
              * @brief indicates if the settings are allowed to write changes back into the file
              */
             bool readOnly = false;
+
+            /**
+             * @brief automatically save the state of the simulator on changes
+             */
+            std::atomic<bool> autosave = true;
 
             /**
              * @brief the main logger provided by the simulatorConfiguration
@@ -111,7 +134,7 @@ namespace libtrainsim{
              * @param URI The location of the File
              * @param lazyLoad set to true if you only want to load tracks on demand
              */
-            simulatorConfiguration(const std::filesystem::path& URI, bool lazyLoad = true) noexcept(false);
+            simulatorConfiguration(const std::filesystem::path& URI, bool lazyLoad = true, const std::string& _appID = "thm.libtrainsim") noexcept(false);
             
             /**
              * @brief Get the location of the serial config settings file
@@ -205,6 +228,13 @@ namespace libtrainsim{
             const std::filesystem::path& getExtrasLocation() const noexcept;
 
             /**
+             * @brief returns the name of the application that created this configuration
+             *
+             * @return const std::string& the name of the application
+             */
+            const std::string& getAppID() const noexcept;
+
+            /**
              * @brief returns the common logging interface for the simulator
              * @return std::shared_ptr<SimpleGFX::logger> the logger
              */
@@ -215,6 +245,51 @@ namespace libtrainsim{
              * @return std::shared_ptr<SimpleGFX::eventManager> the input manager
              */
             std::shared_ptr<SimpleGFX::eventManager> getInputManager() noexcept;
+
+            /**
+             * @brief save the state of this object into the lastLaunch file
+             * @note this function will only save the configuration not underlying objects like the logger and tracks
+             * @note if autosave is enabled, this function will be called automatically when a value is changed
+             */
+            void save();
+
+            /**
+             * @brief create a simulator configuration by reloading the last used configuration
+             * @details this function will try to load the last used configuration from the lastLaunch.json file
+             * That file is created when the constructor of the simulatorConfiguration is finished successfully.
+             * It stores the path to the configuration file and the lazyLoad setting.
+             *
+             * @param appName the name of the application
+             * @return std::shared_ptr<simulatorConfiguration> the configuration
+             */
+            static std::shared_ptr<simulatorConfiguration> loadLast(const std::string& appName){
+                auto appDir = Helper::getApplicationDirectory(appName);
+                auto lastLaunchFile = appDir / "lastLaunch.json";
+                if (std::filesystem::exists(lastLaunchFile)) {
+                    try {
+                        std::ifstream file(lastLaunchFile);
+                        nlohmann::json j;
+                        file >> j;
+
+                        auto filePath = std::filesystem::path{Helper::getJsonField<std::string>(j, "lastConfigFile")};
+                        auto lazyLoad = Helper::getJsonField<bool>(j, "lazyLoad");
+
+                        auto conf = std::make_shared<simulatorConfiguration>(filePath, lazyLoad, appName);
+
+                        *conf->getLogger() << SimpleGFX::loggingLevel::detail << "Loaded last configuration from " << filePath << " with lazyLoad = " << lazyLoad << ".";
+
+                        auto loadedTrack = Helper::getJsonField<uint64_t>(j, "loadedTrack");
+                        *conf->getLogger() << SimpleGFX::loggingLevel::detail << "restoring last loaded track: " << loadedTrack << ", name: " << conf->getTrack(loadedTrack).getName() << ".";
+                        conf->selectTrack(loadedTrack);
+
+                        return conf;
+                    }catch(const std::exception& e){
+                        Helper::printException(e);
+                        return nullptr;
+                    }
+                }
+                return nullptr;
+            }
         };
     }
 }

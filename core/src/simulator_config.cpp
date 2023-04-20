@@ -2,13 +2,19 @@
 
 #include <fstream>
 
-libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::filesystem::path& URI, bool lazyLoad){
+libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::filesystem::path& URI, bool _lazyLoad, const std::string& _appID): lazyLoad{_lazyLoad}, appID{_appID}{
     if(!std::filesystem::exists(URI)){
         throw std::invalid_argument("The simulator config file location is empty:" + URI.string());
     }
 
     if (URI.extension() != ".json" ){
         throw std::invalid_argument("the file has no json extention");
+    }
+
+    try{
+        appDir = Helper::getApplicationDirectory(appID);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("cannot get the application directory"));
     }
 
     auto in = std::ifstream(URI);
@@ -33,18 +39,85 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
 
     auto p = URI.parent_path();
 
+    auto logsFolder = appDir / "logs";
+    auto debugLogsFolder = logsFolder / "debug";
+
     try{
-        auto level = Helper::getOptionalJsonField<SimpleGFX::loggingLevel>(data_json,"logLevel",SimpleGFX::loggingLevel::debug);
-        coreLogger = std::make_shared<SimpleGFX::logger>(level);
+        auto loggerConf = Helper::getOptionalJsonField(data_json,"loggerConfig");
+
+        SimpleGFX::loggingLevel coreLogLevel = SimpleGFX::loggingLevel::debug;
+        if(loggerConf.has_value()){
+            auto logeLevelStr = Helper::getJsonField<std::string>(loggerConf.value(), "logLevel");
+            coreLogLevel = SimpleGFX::levelFromString(logeLevelStr);
+        }
+        coreLogger = std::make_shared<SimpleGFX::logger>(coreLogLevel);
+
+        *coreLogger << SimpleGFX::loggingLevel::debug << "initialized core logger";
+
+        if(loggerConf.has_value()){
+            auto extraLogger = Helper::getOptionalJsonField(loggerConf.value(), "extraLoggers");
+            if(extraLogger.has_value()){
+                *coreLogger << SimpleGFX::loggingLevel::debug << "loading " << extraLogger.value().size() << " extra loggers";
+
+                for(auto& logger: extraLogger.value()){
+                    //load all fields from the json object
+                    auto logLevelStr = Helper::getJsonField<std::string>(logger, "logLevel");
+                    auto logLevel = SimpleGFX::levelFromString(logLevelStr);
+                    auto logFile = std::filesystem::path{Helper::getJsonField<std::string>(logger, "file")};
+                    auto appendDate = Helper::getOptionalJsonField<bool>(logger, "appendDate", false);
+                    auto cleanFile = Helper::getOptionalJsonField<bool>(logger, "cleanFile", false);
+
+                    //add the date to the logFile if needed
+                    if(appendDate){
+                        logFile = logFile.stem().string() + "_" + SimpleGFX::logger::getCurrentTimestamp() + logFile.extension().string();
+                    }
+
+                    //set the log file to the correct location
+                    std::filesystem::path logFileLocation = logsFolder / logFile;
+                    if(logLevel == SimpleGFX::loggingLevel::debug && appendDate){
+                        logFileLocation = debugLogsFolder / logFile;
+                    }
+
+                    //create the folder if it does not exist
+                    auto logFileFolder = logFileLocation.parent_path();
+                    if(!std::filesystem::exists(logFileFolder)){
+                        std::filesystem::create_directories(logFileFolder);
+                    }
+
+                    //create the logger object for the correct type
+                    auto loggerType = Helper::getJsonField<std::string>(logger, "type");
+                    if(loggerType == "txt"){
+                        SimpleGFX::loggerTxtProperties props{logLevel, logFileLocation};
+                        props.cleanFile = cleanFile;
+
+                        auto loggerTxt = std::make_shared<SimpleGFX::loggerTxt>(props);
+                        coreLogger->addExtraLogger(loggerTxt);
+                        *coreLogger << SimpleGFX::loggingLevel::debug << "added loggerTxt for file: " << logFileLocation;
+                    }else if(loggerType == "json"){
+                        auto loggerJson = std::make_shared<SimpleGFX::loggerJson>(logLevel, logFileLocation);
+                        coreLogger->addExtraLogger(loggerJson);
+                        *coreLogger << SimpleGFX::loggingLevel::debug << "added loggerJson for file: " << logFileLocation;
+                    }else{
+                        *coreLogger << SimpleGFX::loggingLevel::error << "unknown logger type: " << loggerType;
+                        throw std::runtime_error("unknown logger type: " + loggerType);
+                    }
+                }
+            }else{
+                *coreLogger << SimpleGFX::loggingLevel::debug << "no extra loggers found";
+            }
+        }
+
     }catch(...){
-        std::throw_with_nested(std::runtime_error("error reading the logLevel option"));
+        std::throw_with_nested(std::runtime_error("error creating the logger interface"));
     }
 
-    //@todo add code and documentation for additional loggers. Available options: loggerTxt, loggerJson
+    *coreLogger << SimpleGFX::loggingLevel::detail << "loading config file: " << URI;
+    *coreLogger << SimpleGFX::loggingLevel::debug << "application ID: " << appID;
+    *coreLogger << SimpleGFX::loggingLevel::debug << "application directory: " << appDir.string();
 
     try{
         serialConfigLocation = p / Helper::getJsonField<std::string>(data_json,"serialConfig");
-        coreLogger->logMessage("serial config location: " + serialConfigLocation.string(),SimpleGFX::loggingLevel::detail);
+        *coreLogger << SimpleGFX::loggingLevel::detail << "serial config location: " << serialConfigLocation;
     }catch(...){
         coreLogger->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("error getting serial config location"));
@@ -52,7 +125,7 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
 
     try{
         shaderFolderLocation = p / Helper::getOptionalJsonField<std::string>(data_json,"shaderLocation", "shaders");
-        coreLogger->logMessage("shader location: " + shaderFolderLocation.string(),SimpleGFX::loggingLevel::detail);
+        *coreLogger << SimpleGFX::loggingLevel::detail << "shader location: " << shaderFolderLocation;
     }catch(...){
         coreLogger->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("Could not load shader location"));
@@ -60,7 +133,7 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
 
     try{
         textureFolderLocation = p / Helper::getOptionalJsonField<std::string>(data_json,"textureLocation", "textures");
-        coreLogger->logMessage("texture location: " + textureFolderLocation.string(),SimpleGFX::loggingLevel::detail);
+        *coreLogger << SimpleGFX::loggingLevel::detail << "texture location: " << textureFolderLocation;
     }catch(...){
         coreLogger->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("Could not load texture location"));
@@ -68,7 +141,7 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
 
     try{
         extrasLocation = p / Helper::getOptionalJsonField<std::string>(data_json,"extrasLocation", "extras");
-        coreLogger->logMessage("extras location: " + extrasLocation.string(),SimpleGFX::loggingLevel::detail);
+        *coreLogger << SimpleGFX::loggingLevel::detail << "extras location: " << extrasLocation;
     }catch(...){
         coreLogger->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("Error reading the extras location"));
@@ -83,12 +156,12 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
 
         tracks.reserve(dat.size());
 
-        for(size_t i = 0;i < dat.size();i++){
-            if(dat[i].is_string()){
-                std::filesystem::path loc{dat[i].get<std::string>()};
+        for(const auto& _dat : dat){
+            if(_dat.is_string()){
+                std::filesystem::path loc{_dat.get<std::string>()};
                 tracks.emplace_back(libtrainsim::core::Track(p/loc, lazyLoad));
-            }else if(dat[i].is_object()){
-                tracks.emplace_back(libtrainsim::core::Track(dat[i], p, lazyLoad));
+            }else if(_dat.is_object()){
+                tracks.emplace_back(libtrainsim::core::Track(_dat, p, lazyLoad));
             }else{
                 coreLogger->logCurrrentException(true);
                 throw std::runtime_error("not a valid track format");
@@ -108,7 +181,8 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
         }
 
         extraTrains.reserve(dat.size());
-        for(auto _dat : dat){
+        *coreLogger << SimpleGFX::loggingLevel::detail << "loading " << dat.size() << " extra trains";
+        for(const auto& _dat : dat){
             if(_dat.is_string()){
                 std::filesystem::path loc{_dat.get<std::string>()};
                 extraTrains.emplace_back( libtrainsim::core::train_properties(p/loc) );
@@ -130,9 +204,9 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     }
 
     try{
-        auto val = Helper::getOptionalJsonField<int>(data_json, "defaultTrack",0);
+        auto val = Helper::getOptionalJsonField<int>(data_json, "defaultTrack", 0);
         selectTrack(val);
-        coreLogger->logMessage("default track: " + tracks[val].getName(), SimpleGFX::loggingLevel::detail);
+        *coreLogger << SimpleGFX::loggingLevel::detail << "default track: " << tracks[val].getName() << "index: " << val;
     }catch(...){
         coreLogger->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("error setting the default track"));
@@ -140,7 +214,7 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
 
     try{
         readOnly = Helper::getOptionalJsonField<bool>(data_json,"settingFileReadOnly",false);
-        coreLogger->logMessage("setting config files read only: " + std::to_string(readOnly),SimpleGFX::loggingLevel::detail);
+        *coreLogger << SimpleGFX::loggingLevel::detail << "setting config files read only: " << readOnly;
     }catch(...){
         coreLogger->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("error reading the readOnly option"));
@@ -148,15 +222,44 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
 
     try{
         inputManager = std::make_shared<SimpleGFX::eventManager>();
-        coreLogger->logMessage("input manager created",SimpleGFX::loggingLevel::detail);
+        *coreLogger << SimpleGFX::loggingLevel::detail << "input manager created";
     }catch(...){
         coreLogger->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("error creating the input manager"));
     }
 
-    coreLogger->logMessage("simulator configuration fully loaded",SimpleGFX::loggingLevel::normal);
-    fileLocation = URI;
+    *coreLogger << SimpleGFX::loggingLevel::normal << "simulator configuration fully loaded";
+    fileLocation = std::filesystem::absolute(URI);
 
+    save();
+}
+
+void libtrainsim::core::simulatorConfiguration::save(){
+    static std::mutex saveMutex;
+    std::scoped_lock lock{saveMutex};
+
+    auto launchFile = appDir / "lastLaunch.json";
+    *coreLogger << SimpleGFX::loggingLevel::detail << "saving last launch file to: " << launchFile;
+
+    auto lastLaunchObject = nlohmann::json::object();
+
+    if(std::filesystem::exists(launchFile)) {
+        *coreLogger << SimpleGFX::loggingLevel::detail << "loading last state of the file";
+        std::ifstream fileLoad(launchFile);
+        fileLoad >> lastLaunchObject;
+    }
+
+    lastLaunchObject["lastConfigFile"] = fileLocation.string();
+    lastLaunchObject["lazyLoad"] = lazyLoad;
+    lastLaunchObject["loadedTrack"] = currentTrack;
+
+    try{
+        std::ofstream file{launchFile};
+        file << lastLaunchObject.dump(4);
+    }catch(...){
+        *coreLogger << SimpleGFX::loggingLevel::warning << "could not save last launch file";
+        coreLogger->logCurrrentException(false);
+    }
 }
 
 const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getSerialConfigLocation() const noexcept{
@@ -177,12 +280,17 @@ uint64_t libtrainsim::core::simulatorConfiguration::getTrackCount() const noexce
 
 void libtrainsim::core::simulatorConfiguration::selectTrack ( uint64_t index ) {
     try{
+        *coreLogger << SimpleGFX::loggingLevel::debug << "selecting track id: " << index << " name: " << getTrack(index).getName();
         ensureTrack(index);
     }catch(...){
+        coreLogger->logCurrrentException(false);
         std::throw_with_nested("could not ensure availability of the given track");
     }
 
     currentTrack = index;
+    if(autosave){
+        save();
+    }
 }
 
 const libtrainsim::core::Track & libtrainsim::core::simulatorConfiguration::getTrack ( uint64_t index ) const noexcept(false) {
@@ -224,6 +332,10 @@ const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getShad
 
 const std::filesystem::path & libtrainsim::core::simulatorConfiguration::getExtrasLocation() const noexcept {
     return extrasLocation;
+}
+
+const std::string& libtrainsim::core::simulatorConfiguration::getAppID() const noexcept {
+    return appID;
 }
 
 std::shared_ptr<SimpleGFX::logger> libtrainsim::core::simulatorConfiguration::getLogger() noexcept {
