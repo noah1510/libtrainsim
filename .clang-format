@@ -22,4 +22,6 @@ RequiresExpressionIndentation: OuterScope
 PPIndentWidth: 4
 IndentPPDirectives: BeforeHash
 IndentCaseLabels: true
+AlignArrayOfStructures: Right
+BreakArrays: false
 Standard: c++17

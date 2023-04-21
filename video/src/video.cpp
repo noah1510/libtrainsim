@@ -4,8 +4,11 @@ using namespace std::literals;
 using namespace SimpleGFX::SimpleGL;
 namespace fs = std::filesystem;
 
-libtrainsim::Video::simulatorWindowGLArea::simulatorWindowGLArea(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings): Gtk::GLArea{},simSettings{_simSettings},decode{_simSettings}{
-    set_required_version(3,3);
+libtrainsim::Video::simulatorWindowGLArea::simulatorWindowGLArea(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings)
+    : Gtk::GLArea{},
+      simSettings{std::move(_simSettings)},
+      decode{simSettings} {
+    set_required_version(3, 3);
     set_auto_render(false);
 }
 
@@ -22,21 +25,21 @@ void libtrainsim::Video::simulatorWindowGLArea::on_realize() {
     texUnits = SimpleGFX::SimpleGL::GLHelper::getMaxTextureUnits();
 
     textureProperties bgProps{};
-    bgProps.name = "background";
+    bgProps.name   = "background";
     auto bgTexture = std::make_shared<texture>(bgProps);
     bgTexture->finish(ctx);
     addTexture(bgTexture);
 
-    try{
+    try {
         loadBuffers();
-    }catch(...){
+    } catch (...) {
         std::throw_with_nested(std::runtime_error("error creating data buffers"));
     }
 
-    //load the display shader and set the default values
-    try{
+    // load the display shader and set the default values
+    try {
         generateDisplayShader();
-    }catch(const std::exception& e){
+    } catch (const std::exception& e) {
         std::throw_with_nested(std::runtime_error("cannot init display shader"));
     }
 
@@ -44,7 +47,7 @@ void libtrainsim::Video::simulatorWindowGLArea::on_realize() {
 }
 
 void libtrainsim::Video::simulatorWindowGLArea::on_unrealize() {
-    if(!realized){
+    if (!realized) {
         return;
     }
 
@@ -52,11 +55,11 @@ void libtrainsim::Video::simulatorWindowGLArea::on_unrealize() {
     remove_tick_callback(tickID);
 
     make_current();
-    if(has_error()){
+    if (has_error()) {
         return;
     }
 
-    //unrealize all opengl stuff while the context still exists
+    // unrealize all opengl stuff while the context still exists
 
     displayTextures[0]->freeGL();
     displayTextures.clear();
@@ -67,25 +70,16 @@ void libtrainsim::Video::simulatorWindowGLArea::on_unrealize() {
 }
 
 void libtrainsim::Video::simulatorWindowGLArea::loadBuffers() {
-    if(VAO != 0 || VBO != 0 || EBO != 0){
+    if (VAO != 0 || VBO != 0 || EBO != 0) {
         return;
     }
     std::scoped_lock lock{dataMutex};
 
     //---------------init vertex buffers---------------
-    float vertices[] = {
-        // position           // texture coords
-        1.0f,  1.0f,   1.0f, 0.0f, // top right
-        1.0f, -1.0f,   1.0f, 1.0f, // bottom right
-        -1.0f, -1.0f,   0.0f, 1.0f, // bottom left
-        -1.0f,  1.0f,   0.0f, 0.0f  // top left
-    };
-    unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
+    float        vertices[] = {1.0f, 1.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f};
+    unsigned int indices[]  = {0, 1, 3, 1, 2, 3};
 
-    //create all of the blit buffers
+    // create all the blit buffers
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -106,9 +100,9 @@ void libtrainsim::Video::simulatorWindowGLArea::loadBuffers() {
     glEnableVertexAttribArray(1);
 }
 
-void libtrainsim::Video::simulatorWindowGLArea::generateDisplayShader(){
+void libtrainsim::Video::simulatorWindowGLArea::generateDisplayShader() {
 
-    auto maxTextureUnits = SimpleGFX::SimpleGL::GLHelper::getMaxTextureUnits();
+    auto              maxTextureUnits = SimpleGFX::SimpleGL::GLHelper::getMaxTextureUnits();
     std::stringstream fragmentSource;
     fragmentSource << R""""(
         #version 330 core
@@ -127,7 +121,7 @@ void libtrainsim::Video::simulatorWindowGLArea::generateDisplayShader(){
 
     std::vector<int> units{};
     units.reserve(maxTextureUnits);
-    for(unsigned int i = 0; i < maxTextureUnits; i++){
+    for (unsigned int i = 0; i < maxTextureUnits; i++) {
         units.emplace_back(i);
         fragmentSource << "if(enabledUnits > " << i << "u){";
         fragmentSource << "    outColor = texture(tex[" << i << "], TexCoord);";
@@ -137,25 +131,21 @@ void libtrainsim::Video::simulatorWindowGLArea::generateDisplayShader(){
 
     fragmentSource << "}" << std::endl;
 
-    shaderConfiguration disp_conf{
-        defaultShaderSources::getBasicVertexSource(),
-        fragmentSource.str()
-    };
+    shaderConfiguration disp_conf{defaultShaderSources::getBasicVertexSource(), fragmentSource.str()};
 
     displayShader = std::make_shared<shader>(disp_conf);
 
     displayShader->use();
     displayShader->setUniform("tex", units);
-
 }
 
-bool libtrainsim::Video::simulatorWindowGLArea::on_tick ( const Glib::RefPtr<Gdk::FrameClock>& frame_clock ) {
+bool libtrainsim::Video::simulatorWindowGLArea::on_tick(const Glib::RefPtr<Gdk::FrameClock>&) {
     queue_render();
     return true;
 }
 
-bool libtrainsim::Video::simulatorWindowGLArea::on_render ( const Glib::RefPtr<Gdk::GLContext>& context ) {
-    if(!realized){
+bool libtrainsim::Video::simulatorWindowGLArea::on_render(const Glib::RefPtr<Gdk::GLContext>& context) {
+    if (!realized) {
         return FALSE;
     }
 
@@ -165,22 +155,15 @@ bool libtrainsim::Video::simulatorWindowGLArea::on_render ( const Glib::RefPtr<G
 
     displayTextures[0]->updateImage(decode.getUsableFramebufferBuffer(), decode.getDimensions());
 
-    glClearColor (0, 0, 0, 1);
-    glClear (GL_COLOR_BUFFER_BIT);
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     displayShader->use();
-    auto orth = glm::ortho(
-        -1.0f,
-        1.0f,
-        -1.0f,
-        1.0f,
-        -10.0f,
-        10.0f
-    );
+    auto orth = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -10.0f, 10.0f);
     displayShader->setUniform("transform", orth);
     displayShader->setUniform("enabledUnits", displayTextures.size());
 
-    for(unsigned int i = 0; i < displayTextures.size(); i++){
+    for (unsigned int i = 0; i < displayTextures.size(); i++) {
         displayTextures[i]->bind(i);
     }
 
@@ -192,8 +175,8 @@ bool libtrainsim::Video::simulatorWindowGLArea::on_render ( const Glib::RefPtr<G
     return TRUE;
 }
 
-void libtrainsim::Video::simulatorWindowGLArea::addTexture ( std::shared_ptr<texture> newTexture ) {
-    if(displayTextures.size() == texUnits){
+void libtrainsim::Video::simulatorWindowGLArea::addTexture(std::shared_ptr<texture> newTexture) {
+    if (displayTextures.size() == texUnits) {
         std::stringstream ss;
         ss << "For now only ";
         ss << texUnits;
@@ -203,8 +186,8 @@ void libtrainsim::Video::simulatorWindowGLArea::addTexture ( std::shared_ptr<tex
 
     auto texName = newTexture->getName();
 
-    for(auto x:displayTextures){
-        if(x->getName() == texName){
+    for (const auto& x : displayTextures) {
+        if (x->getName() == texName) {
             throw std::invalid_argument("a texture with this name already exists");
         }
     }
@@ -212,13 +195,13 @@ void libtrainsim::Video::simulatorWindowGLArea::addTexture ( std::shared_ptr<tex
     displayTextures.emplace_back(newTexture);
 }
 
-void libtrainsim::Video::simulatorWindowGLArea::removeTexture ( const std::string& textureName ) {
-    if(textureName == "background"){
+void libtrainsim::Video::simulatorWindowGLArea::removeTexture(const std::string& textureName) {
+    if (textureName == "background") {
         throw std::invalid_argument("the background texture cannot be removed");
     }
 
-    for(auto i = displayTextures.begin(); i < displayTextures.end(); i++){
-        if((*i)->getName() == textureName){
+    for (auto i = displayTextures.begin(); i < displayTextures.end(); i++) {
+        if ((*i)->getName() == textureName) {
             displayTextures.erase(i);
             return;
         }
@@ -231,19 +214,19 @@ std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::
     return decode.getNewRendertimes();
 }
 
-void libtrainsim::Video::simulatorWindowGLArea::gotoFrame ( uint64_t frame_num ) {
+void libtrainsim::Video::simulatorWindowGLArea::gotoFrame(uint64_t frame_num) {
     decode.requestFrame(frame_num);
 }
 
-libtrainsim::Video::videoReader & libtrainsim::Video::simulatorWindowGLArea::getDecoder(){
+libtrainsim::Video::videoReader& libtrainsim::Video::simulatorWindowGLArea::getDecoder() {
     return decode;
 }
 
 
-
-libtrainsim::Video::videoManager::videoManager(
-    std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings
-):Gtk::Window{}, SimpleGFX::eventHandle(), simSettings{_simSettings}{
+libtrainsim::Video::videoManager::videoManager(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings)
+    : Gtk::Window{},
+      SimpleGFX::eventHandle(),
+      simSettings{std::move(_simSettings)} {
 
     set_title(simSettings->getCurrentTrack().getName());
     set_default_size(1280, 720);
@@ -254,42 +237,40 @@ libtrainsim::Video::videoManager::videoManager(
     areaFrame = Gtk::make_managed<Gtk::AspectFrame>();
     set_child(*areaFrame);
 
-    auto [w,h] = mainGLArea->getDecoder().getDimensions();
-    areaFrame->set_ratio(w/h);
+    auto [w, h] = mainGLArea->getDecoder().getDimensions();
+    areaFrame->set_ratio(w / h);
     areaFrame->set_child(*mainGLArea);
-
 }
 
-bool libtrainsim::Video::videoManager::onEvent(const SimpleGFX::inputEvent& event){
-    if(event.inputType != SimpleGFX::inputAction::press){
+bool libtrainsim::Video::videoManager::onEvent(const SimpleGFX::inputEvent& event) {
+    if (event.inputType != SimpleGFX::inputAction::press) {
         return false;
     }
 
-    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"CLOSE", "MAXIMIZE"}) ){
-        case(0):
+    switch (SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"CLOSE", "MAXIMIZE"})) {
+        case (0):
             close();
             return false;
-        case(1):
-            if(is_fullscreen()){
+        case (1):
+            if (is_fullscreen()) {
                 unfullscreen();
-            }else{
+            } else {
                 fullscreen();
             }
             return true;
         default:
             return false;
     }
-
 }
 
 bool libtrainsim::Video::videoManager::on_close_request() {
     auto ret = Gtk::Window::on_close_request();
 
-    if(has_group()){
+    if (has_group()) {
         auto group = get_group();
         group->remove_window(*this);
-        for(auto win: group->list_windows()){
-            if(win->get_hide_on_close()){
+        for (auto win : group->list_windows()) {
+            if (win->get_hide_on_close()) {
                 win->set_hide_on_close(false);
             }
             win->close();
@@ -299,27 +280,28 @@ bool libtrainsim::Video::videoManager::on_close_request() {
     return ret;
 }
 
-libtrainsim::Video::videoManager::~videoManager(){
-    *simSettings->getLogger() << SimpleGFX::loggingLevel::debug << "locking video manager to prevent draw calls while destroying" << std::endl;
+libtrainsim::Video::videoManager::~videoManager() {
+    *simSettings->getLogger() << SimpleGFX::loggingLevel::debug << "locking video manager to prevent draw calls while destroying"
+                              << std::endl;
     std::scoped_lock<std::shared_mutex> lock{videoMutex};
 }
 
-void libtrainsim::Video::videoManager::gotoFrame ( uint64_t frame_num ) {
+void libtrainsim::Video::videoManager::gotoFrame(uint64_t frame_num) {
     mainGLArea->gotoFrame(frame_num);
 }
 
-void libtrainsim::Video::videoManager::addTexture ( std::shared_ptr<texture> newTexture ) {
-        try{
-        mainGLArea->addTexture(newTexture);
-    }catch(...){
+void libtrainsim::Video::videoManager::addTexture(std::shared_ptr<texture> newTexture) {
+    try {
+        mainGLArea->addTexture(std::move(newTexture));
+    } catch (...) {
         std::throw_with_nested(std::runtime_error("error adding texture"));
     }
 }
 
-void libtrainsim::Video::videoManager::removeTexture ( const std::string& textureName ) {
-    try{
+void libtrainsim::Video::videoManager::removeTexture(const std::string& textureName) {
+    try {
         mainGLArea->removeTexture(textureName);
-    }catch(...){
+    } catch (...) {
         std::throw_with_nested(std::runtime_error("error removing texture"));
     }
 }
@@ -328,6 +310,6 @@ std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::
     return mainGLArea->getNewRendertimes();
 }
 
-libtrainsim::Video::videoReader & libtrainsim::Video::videoManager::getDecoder(){
+libtrainsim::Video::videoReader& libtrainsim::Video::videoManager::getDecoder() {
     return mainGLArea->getDecoder();
 }

@@ -4,33 +4,39 @@ using namespace sakurajin::unit_system;
 using namespace SimpleGFX::SimpleGL;
 using namespace std::literals;
 
-//create a full error message from an av error id
-static inline std::string makeAVError ( int errnum ) {
+// create a full error message from an av error id
+static inline std::string makeAVError(int errnum) {
     std::string errMsg;
     errMsg.resize(AV_ERROR_MAX_STRING_SIZE);
     av_make_error_string(errMsg.data(), AV_ERROR_MAX_STRING_SIZE, errnum);
-    
+
     return errMsg;
 }
 
-//correct pixel format to longer give swscale warnings
+// correct pixel format to longer give swscale warnings
 static inline AVPixelFormat correctForDeprecatedPixelFormat(AVPixelFormat pix_fmt) {
     // (YUVJ has been deprecated, change pixel format to regular YUV)
     switch (pix_fmt) {
-        case AV_PIX_FMT_YUVJ420P: return AV_PIX_FMT_YUV420P;
-        case AV_PIX_FMT_YUVJ422P: return AV_PIX_FMT_YUV422P;
-        case AV_PIX_FMT_YUVJ444P: return AV_PIX_FMT_YUV444P;
-        case AV_PIX_FMT_YUVJ440P: return AV_PIX_FMT_YUV440P;
-        default:                  return pix_fmt;
+        case AV_PIX_FMT_YUVJ420P:
+            return AV_PIX_FMT_YUV420P;
+        case AV_PIX_FMT_YUVJ422P:
+            return AV_PIX_FMT_YUV422P;
+        case AV_PIX_FMT_YUVJ444P:
+            return AV_PIX_FMT_YUV444P;
+        case AV_PIX_FMT_YUVJ440P:
+            return AV_PIX_FMT_YUV440P;
+        default:
+            return pix_fmt;
     }
 }
 
-inline void libtrainsim::Video::videoReader::incrementFramebuffer(uint8_t& currentBuffer) const{
+inline void libtrainsim::Video::videoReader::incrementFramebuffer(uint8_t& currentBuffer) const {
     currentBuffer++;
-    currentBuffer%=FRAME_BUFFER_COUNT;
+    currentBuffer %= FRAME_BUFFER_COUNT;
 }
 /*
-libtrainsim::Video::videoDecodeSettings::videoDecodeSettings ( libtrainsim::Video::videoReader& VR ) : tabPage{"decodeSettings"}, decoder{VR}, AlgorithmOptions{{
+libtrainsim::Video::videoDecodeSettings::videoDecodeSettings ( libtrainsim::Video::videoReader& VR ) : tabPage{"decodeSettings"},
+decoder{VR}, AlgorithmOptions{{
     {"fast bilinear", SWS_FAST_BILINEAR},
     {"bilinear", SWS_BILINEAR},
     {"bicubic", SWS_BICUBIC},
@@ -57,11 +63,11 @@ void libtrainsim::Video::videoDecodeSettings::content() {
     decoder.contextMutex.lock_shared();
     auto currentFlags = decoder.scalingContextParams;
     decoder.contextMutex.unlock_shared();
-    
+
     decoder.frameNumberMutex.lock_shared();
     auto currentCutoff = decoder.seekCutoff;
     decoder.frameNumberMutex.unlock_shared();
-    
+
     //selection for the scaling algorithm
     static size_t comboAlgorithmIndex = 9;
     if(ImGui::BeginCombo("Select the scaling algorithm", AlgorithmOptions.at(comboAlgorithmIndex).first.c_str() )){
@@ -70,7 +76,7 @@ void libtrainsim::Video::videoDecodeSettings::content() {
                 comboAlgorithmIndex = i;
             }
         }
-        
+
         ImGui::EndCombo();
     }
 
@@ -82,32 +88,32 @@ void libtrainsim::Video::videoDecodeSettings::content() {
         }
         ImGui::EndCombo();
     }
-    
+
     //a slider for the seek cutoff
     int cutoff = static_cast<int>(currentCutoff);
     ImGui::SliderInt("Change the Cutoff for when to seek frames", &cutoff, 2*decoder.framerate, 20*decoder.framerate);
-    
+
     //display detailed video stats
     ImGui::Text("Detailed Video Information: ");
     ImGui::Text("    average framerate: %f", decoder.framerate);
     ImGui::Text("    frame number: %d", decoder.av_codec_ctx->frame_number);
-    
+
     //apply the selected flags
     int newFlags = 0;
-    
+
     newFlags |= AlgorithmOptions[comboAlgorithmIndex].second;
     for(size_t i = 0; i < AlgorithmDetailsOptions.size();i++){
         if(algorithmDetailSelections[i]){
             newFlags |= std::get<1>(AlgorithmDetailsOptions[i]);
         }
     }
-    
+
     //update the scaling flags if they are different
     if(newFlags != currentFlags){
         std::scoped_lock<std::shared_mutex> lock{decoder.contextMutex};
         decoder.scalingContextParams = newFlags;
     }
-    
+
     //update the cutoff if it is changed
     if(cutoff != static_cast<int>(currentCutoff)){
         std::scoped_lock<std::shared_mutex> lock{decoder.frameNumberMutex};
@@ -116,7 +122,8 @@ void libtrainsim::Video::videoDecodeSettings::content() {
 }
 */
 
-libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount):simSettings{_simSettings}{
+libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount)
+    : simSettings{std::move(_simSettings)} {
     /*
     //find all of the hardware devices
     std::vector<AVHWDeviceType> deviceTypes;
@@ -124,12 +131,12 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
     while ((lastType = av_hwdevice_iterate_types(lastType)) != AV_HWDEVICE_TYPE_NONE){
         deviceTypes.emplace_back(lastType);
     }
-    
+
     for(size_t i = 0; i < deviceTypes.size(); i++){
         std::cout << "Supported HWDevice: " << av_hwdevice_get_type_name(deviceTypes[i]) << std::endl;
     }
     */
-    
+
     // Open the file using libavformat
     av_format_ctx = avformat_alloc_context();
     if (!av_format_ctx) {
@@ -137,12 +144,12 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
     }
 
     auto filename = simSettings->getCurrentTrack().getVideoFilePath();
-    
-    if(!std::filesystem::exists(filename) || filename.empty()){
+
+    if (!std::filesystem::exists(filename) || filename.empty()) {
         throw std::invalid_argument("video file does not exist or is empty");
     }
 
-    if (avformat_open_input(&av_format_ctx, filename.string().c_str(), NULL, NULL) != 0) {
+    if (avformat_open_input(&av_format_ctx, filename.string().c_str(), nullptr, nullptr) != 0) {
         throw std::invalid_argument("Couldn't open video file");
     }
     uri = filename;
@@ -150,19 +157,19 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
     // Find the first valid video stream inside the file
     video_stream_index = -1;
     AVCodecParameters* av_codec_params;
-    AVCodec* av_codec;
+    AVCodec*           av_codec;
+
     for (unsigned int i = 0; i < av_format_ctx->nb_streams; ++i) {
         av_codec_params = av_format_ctx->streams[i]->codecpar;
-        av_codec = const_cast<AVCodec*>( avcodec_find_decoder(av_codec_params->codec_id) );
+        av_codec        = const_cast<AVCodec*>(avcodec_find_decoder(av_codec_params->codec_id));
         if (!av_codec) {
             continue;
         }
         if (av_codec_params->codec_type == AVMEDIA_TYPE_VIDEO) {
-            video_stream_index = i;
-            renderSize.x() = av_codec_params->width;
-            renderSize.y() = av_codec_params->height;
+            video_stream_index = static_cast<int>(i);
+            renderSize         = dimensions{av_codec_params->width, av_codec_params->height};
             auto framerate_tmp = av_format_ctx->streams[i]->avg_frame_rate;
-            framerate = static_cast<double>(framerate_tmp.num)/static_cast<double>(framerate_tmp.den);
+            framerate          = static_cast<double>(framerate_tmp.num) / static_cast<double>(framerate_tmp.den);
             *simSettings->getLogger() << SimpleGFX::loggingLevel::normal << "video average framerate:" << framerate << " fps";
             break;
         }
@@ -179,24 +186,25 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
     if (avcodec_parameters_to_context(av_codec_ctx, av_codec_params) < 0) {
         throw std::runtime_error("Couldn't initialize AVCodecContext");
     }
-    if(threadCount == 0){
-        //get the number of total threads from ffmpeg
-        //if there are less that 4 threads available only use 1
-        //otherwise use as many as possible (minus 2) and  up to 16 since more
-        //than that seems might cause problems (according to the mpv devs)
+    if (threadCount == 0) {
+        // get the number of total threads from ffmpeg
+        // if there are less that 4 threads available only use 1
+        // otherwise use as many as possible (minus 2) and  up to 16 since more
+        // than that seems might cause problems (according to the mpv devs)
         threadCount = av_cpu_count();
-        if(threadCount < 4){
+        if (threadCount < 4) {
             threadCount = 1;
-        }else{
+        } else {
             threadCount -= 2;
         }
     }
-    threadCount = std::clamp<int>(threadCount, 1, 16);
-    av_codec_ctx->thread_count = threadCount;
-    av_codec_ctx->thread_type = FF_THREAD_SLICE;
+
+    threadCount                = std::clamp<uint64_t>(threadCount, 1, 16);
+    av_codec_ctx->thread_count = static_cast<int>(threadCount);
+    av_codec_ctx->thread_type  = FF_THREAD_SLICE;
     *simSettings->getLogger() << SimpleGFX::loggingLevel::normal << "video decode on " << threadCount << " threads.";
-    
-    if (avcodec_open2(av_codec_ctx, av_codec, NULL) < 0) {
+
+    if (avcodec_open2(av_codec_ctx, av_codec, nullptr) < 0) {
         throw std::runtime_error("Couldn't open codec");
     }
 
@@ -208,110 +216,110 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
     if (!av_packet) {
         throw std::runtime_error("Couldn't allocate AVPacket");
     }
-    
-    for(auto& buf:frame_data){
-        if(buf.size() < static_cast<size_t>( renderSize.x()*renderSize.y()*4)){
-            buf.resize(renderSize.x()*renderSize.y()*4);
+
+    for (auto& buf : frame_data) {
+        if (buf.size() < static_cast<size_t>(renderSize.x() * renderSize.y() * 4)) {
+            buf.resize(static_cast<int>(renderSize.x() * renderSize.y()) * 4);
         }
     }
-    
-    try{
+
+    try {
         readNextFrame();
         std::scoped_lock lock{frameBuffer_mutex};
         copyToBuffer(frame_data[activeBuffer]);
-    }catch(...){
+    } catch (...) {
         std::throw_with_nested(std::runtime_error("Could not read initial frame"));
     }
 
-    renderThread = std::async(std::launch::async, [&](){
-        do{
+    renderThread = std::async(std::launch::async, [&]() {
+        do {
             auto begin = libtrainsim::core::Helper::now();
-            
+
             frameNumberMutex.lock_shared();
-            uint64_t nextF = nextFrameToGet;
-            uint64_t currF = currentFrameNumber;
+            uint64_t nextF       = nextFrameToGet;
+            uint64_t currF       = currentFrameNumber;
             uint64_t _seekCutoff = seekCutoff;
             frameNumberMutex.unlock_shared();
-            
+
             frameBuffer_mutex.lock_shared();
             auto backBuffer = activeBuffer;
             frameBuffer_mutex.unlock_shared();
-            
-            //select the next buffer from the active buffer as back buffer
+
+            // select the next buffer from the active buffer as back buffer
             incrementFramebuffer(backBuffer);
-            
+
             uint64_t diff = nextF - currF;
-            
-            try{
-                if(diff == 0){
-                    //no new frame to render so just wait and check again
+
+            try {
+                if (diff == 0) {
+                    // no new frame to render so just wait and check again
                     std::this_thread::sleep_for(1ms);
                     continue;
-                }else if(diff < _seekCutoff){
-                    //for these small skips it is faster to simply decode frame by frame
-                    while(currF < nextF){
+                } else if (diff < _seekCutoff) {
+                    // for these small skips it is faster to simply decode frame by frame
+                    while (currF < nextF) {
                         readNextFrame();
                         currF++;
                     }
-                }else{
-                    //the next frame is more than 4 seconds in the future
-                    //in this case av_seek is used to jump to that frame
+                } else {
+                    // the next frame is more than 4 seconds in the future
+                    // in this case av_seek is used to jump to that frame
                     seekFrame(nextF);
                 }
-                
-                //update the back buffer
+
+                // update the back buffer
                 copyToBuffer(frame_data[backBuffer]);
-                
-                //switch to the next framebuffer
+
+                // switch to the next framebuffer
                 frameBuffer_mutex.lock();
-                if(bufferExported){
+                if (bufferExported) {
                     incrementFramebuffer(activeBuffer);
                     bufferExported = false;
                 }
                 frameBuffer_mutex.unlock();
-                
-                //update the number of the current frame
+
+                // update the number of the current frame
                 frameNumberMutex.lock();
                 currentFrameNumber = nextF;
                 frameNumberMutex.unlock();
 
-                //append the new rendertime
+                // append the new rendertime
                 EOF_Mutex.lock();
-                auto dt = libtrainsim::core::Helper::now()-begin;
+                auto dt = libtrainsim::core::Helper::now() - begin;
                 renderTimes.emplace_back(unit_cast(dt, multiplier(std::milli::type{})));
-                EOF_Mutex.unlock(); 
-                
-            }catch(const std::exception& e){
+                EOF_Mutex.unlock();
+
+            } catch (const std::exception& e) {
                 libtrainsim::core::Helper::printException(e);
                 std::scoped_lock lock{EOF_Mutex};
                 reachedEOF = true;
                 return false;
             }
-            
-        }while(!reachedEndOfFile());
-        
+
+        } while (!reachedEndOfFile());
+
         return true;
     });
-    
-    //auto settingsTab = std::make_shared<videoDecodeSettings>(*this);
-    //imguiHandler::addSettingsTab(settingsTab);
+
+    // auto settingsTab = std::make_shared<videoDecodeSettings>(*this);
+    // imguiHandler::addSettingsTab(settingsTab);
 }
 
 libtrainsim::Video::videoReader::~videoReader() {
-    //imguiHandler::removeSettingsTab("decodeSettings");
-    
-    if(!reachedEndOfFile()){
+    // imguiHandler::removeSettingsTab("decodeSettings");
+
+    if (!reachedEndOfFile()) {
         EOF_Mutex.lock();
         reachedEOF = true;
         EOF_Mutex.unlock();
     }
-    
-    if(renderThread.valid()){
+
+    if (renderThread.valid()) {
         *simSettings->getLogger() << SimpleGFX::loggingLevel::debug << "waiting for render to finish";
         renderThread.wait();
         renderThread.get();
     }
-    
+
     sws_freeContext(sws_scaler_ctx);
     avformat_close_input(&av_format_ctx);
     avformat_free_context(av_format_ctx);
@@ -322,8 +330,8 @@ libtrainsim::Video::videoReader::~videoReader() {
 
 
 void libtrainsim::Video::videoReader::readNextFrame() {
-    
-    
+
+
     // Decode one frame
     int response;
     while (av_read_frame(av_format_ctx, av_packet) >= 0) {
@@ -341,74 +349,73 @@ void libtrainsim::Video::videoReader::readNextFrame() {
         if (response == AVERROR(EAGAIN)) {
             av_packet_unref(av_packet);
             continue;
-        } else if(response == AVERROR_EOF){
+        } else if (response == AVERROR_EOF) {
             av_packet_unref(av_packet);
             reachedEOF = true;
             throw std::runtime_error("reached EOF");
-        }else if (response < 0) {
+        } else if (response < 0) {
             throw std::runtime_error("Failed to decode packet" + makeAVError(response));
         }
 
         av_packet_unref(av_packet);
         break;
     }
-    
 }
 
-void libtrainsim::Video::videoReader::seekFrame ( uint64_t framenumber ) {
+void libtrainsim::Video::videoReader::seekFrame(uint64_t framenumber) {
     auto* stream = av_format_ctx->streams[video_stream_index];
-    auto ts = (int64_t(framenumber) * stream->r_frame_rate.den *  stream->time_base.den) / (int64_t(stream->r_frame_rate.num) * stream->time_base.num);
-    //if(av_seek_frame(av_format_ctx, video_stream_index, framenumber, AVSEEK_FLAG_FRAME) < 0){
-    if(av_seek_frame(av_format_ctx, video_stream_index, ts, AVSEEK_FLAG_ANY) < 0){
+    auto  ts     = (int64_t(framenumber) * stream->r_frame_rate.den * stream->time_base.den) /
+              (int64_t(stream->r_frame_rate.num) * stream->time_base.num);
+    // if(av_seek_frame(av_format_ctx, video_stream_index, framenumber, AVSEEK_FLAG_FRAME) < 0){
+    if (av_seek_frame(av_format_ctx, video_stream_index, ts, AVSEEK_FLAG_ANY) < 0) {
         throw std::runtime_error("Problem seeking a future frame");
     }
 
-    try{
+    try {
         readNextFrame();
-    }catch(...){
+    } catch (...) {
         std::throw_with_nested(std::runtime_error("Could not retreive the seeked frame"));
     }
-
 }
 
-void libtrainsim::Video::videoReader::copyToBuffer ( std::vector<uint8_t>& frame_buffer ) {
+void libtrainsim::Video::videoReader::copyToBuffer(std::vector<uint8_t>& frame_buffer) {
 
     std::shared_lock<std::shared_mutex> lock{contextMutex};
-    
-    auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
-    sws_scaler_ctx = sws_getCachedContext(
-        sws_scaler_ctx,
-        renderSize.x(), 
-        renderSize.y(), 
-        source_pix_fmt,
-        av_frame->width, 
-        av_frame->height, 
-        AV_PIX_FMT_RGB0,
-        scalingContextParams, 
-        NULL, 
-        NULL, 
-        NULL
-    );
 
-    uint8_t* dest[4] = { frame_buffer.data(), NULL, NULL, NULL };
-    int dest_linesize[4] = { static_cast<int>(renderSize.x()) * 4, 0, 0, 0 };
-    auto hnew = sws_scale(sws_scaler_ctx, av_frame->data, av_frame->linesize, 0, av_frame->height, dest, dest_linesize);
-    if(hnew != av_frame->height) {throw std::runtime_error("Got a wrong size after scaling.");};
+    auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
+    sws_scaler_ctx      = sws_getCachedContext(sws_scaler_ctx,
+                                          renderSize.x(),
+                                          renderSize.y(),
+                                          source_pix_fmt,
+                                          av_frame->width,
+                                          av_frame->height,
+                                          AV_PIX_FMT_RGB0,
+                                          scalingContextParams,
+                                          nullptr,
+                                          nullptr,
+                                          nullptr);
+
+    uint8_t* dest[4]          = {frame_buffer.data(), nullptr, nullptr, nullptr};
+    int      dest_linesize[4] = {static_cast<int>(renderSize.x()) * 4, 0, 0, 0};
+    auto     hnew             = sws_scale(sws_scaler_ctx, av_frame->data, av_frame->linesize, 0, av_frame->height, dest, dest_linesize);
+    if (hnew != av_frame->height) {
+        throw std::runtime_error("Got a wrong size after scaling.");
+    }
 }
 
-const std::vector<uint8_t> & libtrainsim::Video::videoReader::getUsableFramebufferBuffer() {
+const std::vector<uint8_t>& libtrainsim::Video::videoReader::getUsableFramebufferBuffer() {
     std::scoped_lock lock{frameBuffer_mutex};
-    
+
     bufferExported = true;
     return frame_data[activeBuffer];
 }
 
 
-const std::filesystem::path& libtrainsim::Video::videoReader::getLoadedFile() const{
+const std::filesystem::path& libtrainsim::Video::videoReader::getLoadedFile() const {
     return uri;
 }
 
-bool libtrainsim::Video::videoReader::reachedEndOfFile() {
+bool libtrainsim::Video::videoReader::reachedEndOfFile() const {
     return reachedEOF;
 }
 
@@ -423,7 +430,7 @@ uint64_t libtrainsim::Video::videoReader::getFrameNumber() {
 
 void libtrainsim::Video::videoReader::requestFrame(uint64_t frame_num) {
     std::scoped_lock lock{frameNumberMutex};
-    if(frame_num > nextFrameToGet){
+    if (frame_num > nextFrameToGet) {
         nextFrameToGet = frame_num;
     }
 }
@@ -433,10 +440,10 @@ std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::
     auto times = renderTimes;
     renderTimes.clear();
     EOF_Mutex.unlock();
-    
-    if(times.size() > 0){
+
+    if (times.empty()) {
+        return std::nullopt;
+    } else {
         return std::make_optional(times);
-    }else{
-        return {};
     }
 }

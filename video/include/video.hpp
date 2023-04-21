@@ -3,12 +3,12 @@
 #include "video_reader.hpp"
 
 namespace libtrainsim {
-    namespace Video{
+    namespace Video {
 
-    class simulatorWindowGLArea : public Gtk::GLArea{
-        private:
-            unsigned int tickID = 0;
-            bool realized = false;
+        class simulatorWindowGLArea : public Gtk::GLArea {
+          private:
+            unsigned int tickID   = 0;
+            bool         realized = false;
             unsigned int VBO = 0, VAO = 0, EBO = 0;
             unsigned int texUnits = 0;
 
@@ -16,26 +16,26 @@ namespace libtrainsim {
 
             void loadBuffers();
 
-            //generate the source of the display shader and compile it
+            // generate the source of the display shader and compile it
             void generateDisplayShader();
 
             /**
-            * @brief the shader used to render the video into a texture
-            */
+             * @brief the shader used to render the video into a texture
+             */
             std::shared_ptr<SimpleGFX::SimpleGL::shader> displayShader = nullptr;
 
-            //all the textures that are displayed on the output texture
-            std::vector< std::shared_ptr<SimpleGFX::SimpleGL::texture> > displayTextures;
+            // all the textures that are displayed on the output texture
+            std::vector<std::shared_ptr<SimpleGFX::SimpleGL::texture>> displayTextures;
 
             std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings;
 
             /**
-            * @brief the decoder used to decode the video file into frames
-            */
+             * @brief the decoder used to decode the video file into frames
+             */
             videoReader decode;
 
-        public:
-            simulatorWindowGLArea(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
+          public:
+            explicit simulatorWindowGLArea(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
             videoReader& getDecoder();
 
             void on_realize() override;
@@ -43,85 +43,88 @@ namespace libtrainsim {
             bool on_render(const Glib::RefPtr<Gdk::GLContext>& context) override;
 
             bool on_tick(const Glib::RefPtr<Gdk::FrameClock>& frame_clock);
+
             /**
-                * @brief adds a texture to be rendered on top of the video
-                */
+             * @brief adds a texture to be rendered on top of the video
+             */
             void addTexture(std::shared_ptr<SimpleGFX::SimpleGL::texture> newTexture);
 
             /**
-                * @brief remove a texture from being rendered
-                */
+             * @brief remove a texture from being rendered
+             */
             void removeTexture(const std::string& textureName);
 
             /**
-            * @brief jumps to a given frame in the video and display it
-            *
-            * @param frame_num the number of the frame that should be displayed next
-            */
+             * @brief jumps to a given frame in the video and display it
+             *
+             * @param frame_num the number of the frame that should be displayed next
+             */
             void gotoFrame(uint64_t frame_num);
 
-            //the the rendertimes of the video
-            std::optional< std::vector<sakurajin::unit_system::time_si> > getNewRendertimes();
+            // the rendertimes of the video
+            std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes();
         };
 
         /**
-        * @brief This class is resposiblie for managing all the video material.
-        * 
-        */
-        class LIBTRAINSIM_EXPORT_MACRO videoManager : public Gtk::Window, public SimpleGFX::eventHandle{
-            private:
-                
-                //a mutex to secure this class for multithreading
-                std::shared_mutex videoMutex;
+         * @brief This class is resposible for managing all the video material.
+         *
+         */
+        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] videoManager : public Gtk::Window, public SimpleGFX::eventHandle {
+          private:
+            // a mutex to secure this class for multithreading
+            std::shared_mutex videoMutex;
 
-                simulatorWindowGLArea* mainGLArea = nullptr;
-                Gtk::AspectFrame* areaFrame = nullptr;
+            simulatorWindowGLArea* mainGLArea = nullptr;
+            Gtk::AspectFrame*      areaFrame  = nullptr;
 
-                std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings;
+            std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings;
 
-            public:
-                /**
-                * @brief Construct a new videoManager
-                *
-                * This is the main render window for the simulator.
-                * To construct it a window name
-                * 
-                */
-                videoManager(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
+          public:
+            /**
+             * @brief Construct a new videoManager
+             *
+             * This is the main render window for the simulator.
+             * To construct it a window name
+             *
+             */
+            [[maybe_unused]] explicit videoManager(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
 
-                /**
-                * @brief Destroy the video object, on destruction everything will be reset.
-                * 
-                */
-                ~videoManager();
+            /**
+             * @brief Destroy the video object, on destruction everything will be reset.
+             *
+             */
+            ~videoManager() override;
 
-                videoReader& getDecoder();
+            [[maybe_unused]] [[nodiscard]]
+            videoReader& getDecoder();
 
-                /**
-                * @brief jumps to a given frame in the video and display it
-                * 
-                * @param frame_num the number of the frame that should be displayed next
-                */
-                void gotoFrame(uint64_t frame_num);
-                
-                /**
-                 * @brief adds a texture to be rendered on top of the video
-                 */
-                void addTexture(std::shared_ptr<SimpleGFX::SimpleGL::texture> newTexture);
-                
-                /**
-                 * @brief remove a texture from being rendered
-                 */
-                void removeTexture(const std::string& textureName);
-                
-                //the the rendertimes of the video
-                std::optional< std::vector<sakurajin::unit_system::time_si> > getNewRendertimes();
+            /**
+             * @brief jumps to a given frame in the video and display it
+             *
+             * @param frame_num the number of the frame that should be displayed next
+             */
+            [[maybe_unused]]
+            void gotoFrame(uint64_t frame_num);
 
-                bool onEvent(const SimpleGFX::inputEvent& event) override;
+            /**
+             * @brief adds a texture to be rendered on top of the video
+             */
+            [[maybe_unused]]
+            void addTexture(std::shared_ptr<SimpleGFX::SimpleGL::texture> newTexture);
 
-                bool on_close_request() override;
-                
+            /**
+             * @brief remove a texture from being rendered
+             */
+            [[maybe_unused]]
+            void removeTexture(const std::string& textureName);
+
+            // the rendertimes of the video
+            [[maybe_unused]] [[nodiscard]]
+            std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes();
+
+            bool onEvent(const SimpleGFX::inputEvent& event) override;
+
+            bool on_close_request() override;
         };
-    }
-}
-
+    } // namespace Video
+} // namespace libtrainsim
