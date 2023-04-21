@@ -75,17 +75,18 @@ void train_properties::loadJsonData(const nlohmann::json& data_json) {
         auto unit = Helper::getOptionalJsonField<std::string>(data_json, "powerUnit");
         if (unit.has_value()) {
             switch (Helper::stringSwitch(unit.value(), {"W", "kW"})) {
-            case (0):
-                powerUnit = 1.0;
-                break;
-            case (1):
-                powerUnit = 1000.0;
-                break;
-            default:
-                powerUnit = 1.0;
-                std::cerr << "Unknown power unit given, please update config to a valid one! Falling back to W as specified in the docs."
-                          << std::endl;
-                break;
+                case (0):
+                    powerUnit = 1.0;
+                    break;
+                case (1):
+                    powerUnit = 1000.0;
+                    break;
+                default:
+                    powerUnit = 1.0;
+                    std::cerr
+                        << "Unknown power unit given, please update config to a valid one! Falling back to W as specified in the docs."
+                        << std::endl;
+                    break;
             }
         }
     } catch (...) {
@@ -126,18 +127,18 @@ void train_properties::loadJsonData(const nlohmann::json& data_json) {
         auto _type = Helper::getOptionalJsonField<std::string>(data_json, "trainType");
         if (_type.has_value()) {
             switch (Helper::stringSwitch(_type.value(), {"passenger", "cargo"})) {
-            case (0):
-                type = trainType::passenger;
-                break;
-            case (1):
-                type = trainType::cargo;
-                break;
-            default:
-                type = trainType::passenger;
-                std::cerr
-                    << "Unknown train type given, please update config to a valid one! Falling back to passenger as specified in the docs."
-                    << std::endl;
-                break;
+                case (0):
+                    type = trainType::passenger;
+                    break;
+                case (1):
+                    type = trainType::cargo;
+                    break;
+                default:
+                    type = trainType::passenger;
+                    std::cerr << "Unknown train type given, please update config to a valid one! Falling back to passenger as specified in "
+                                 "the docs."
+                              << std::endl;
+                    break;
             }
         }
     } catch (...) {

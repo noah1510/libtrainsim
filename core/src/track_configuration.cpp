@@ -247,7 +247,11 @@ void Track::parseJsonData() {
         if (!excludeTrackBounds || stopsData.size() < 2) {
             stopsData.reserve(stopsData.size() + 2);
             stopsData.insert(stopsData.begin(), {"begin", 0_m, station});
-            stopsData.insert(stopsData.end(), {"end", {std::numeric_limits<long double>::infinity(), 1}, station});
+            stopsData.insert(stopsData.end(),
+                             {
+                                 "end", {std::numeric_limits<long double>::infinity(), 1},
+                                  station
+            });
         }
 
         stationsData.reserve(stopsData.size());

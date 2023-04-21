@@ -8,11 +8,11 @@ using namespace std::literals;
 libtrainsim::extras::statusDisplaySettings::statusDisplaySettings(statusDisplay& disp):tabPage{"statusDisplay"}, display{disp}{}
 
 void libtrainsim::extras::statusDisplaySettings::content() {
-    
+
     ImGui::Checkbox("Display Latest Values", &display.displayLatestValue);
     ImGui::Checkbox("Display Graphs", &display.displayGraphs);
     ImGui::Checkbox("Display progress bar", &display.displayProgress);
-    
+
     ImGui::Text("Graph visibility:");
     for(auto& graph:display.graphs){
         std::stringstream ss;
@@ -26,24 +26,20 @@ void libtrainsim::extras::statusDisplaySettings::content() {
 
 */
 
-libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings):Gtk::Window{}, manageSettings{_manageSettings}{
+libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings)
+    : Gtk::Window{},
+      manageSettings{_manageSettings} {
     set_title("Status Window");
 
     graphsList = Gtk::make_managed<Gtk::ListBox>();
     set_child(*graphsList);
-    
-    defaultGraphNames = {
-        "frametimes",
-        "rendertimes",
-        "acceleration",
-        "velocity",
-        "speedLevel"
-    };
-    
-    beginPosition = 0_m;
+
+    defaultGraphNames = {"frametimes", "rendertimes", "acceleration", "velocity", "speedLevel"};
+
+    beginPosition   = 0_m;
     currentPosition = 0_m;
-    endPosition = 0_m;
-    
+    endPosition     = 0_m;
+
     createCustomGraph("frametimes", "frametimes in ms");
     createCustomGraph("rendertimes", "rendertimes in ms");
     createCustomGraph("acceleration", "Acceleration in m/s²");
@@ -53,107 +49,106 @@ libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings):Gtk::Win
     changeGraphRange("acceleration", -2.0, 2.0);
     changeGraphRange("velocity", 0.0, 60.0);
     changeGraphRange("speedLevel", -1.0, 1.0);
-    
+
     set_hide_on_close();
 
-    if(manageSettings){
-        //SimpleGFX::SimpleGL::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
+    if (manageSettings) {
+        // SimpleGFX::SimpleGL::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
     }
-    
 }
 
 
 libtrainsim::extras::statusDisplay::~statusDisplay() {
-    if(manageSettings){
-        //SimpleGFX::SimpleGL::imguiHandler::removeSettingsTab("statusDisplay");
+    if (manageSettings) {
+        // SimpleGFX::SimpleGL::imguiHandler::removeSettingsTab("statusDisplay");
     }
 }
 
-void libtrainsim::extras::statusDisplay::on_unrealize(){
+void libtrainsim::extras::statusDisplay::on_unrealize() {
     Gtk::Window::on_unrealize();
     graphs.clear();
 }
 
 
-void libtrainsim::extras::statusDisplay::appendFrametime ( sakurajin::unit_system::time_si frametime ) {
+void libtrainsim::extras::statusDisplay::appendFrametime(sakurajin::unit_system::time_si frametime) {
     frametime = sakurajin::unit_system::unit_cast(frametime, multiplier(std::milli::type{}));
-    appendToGraph("frametimes", frametime.value);
+    appendToGraph("frametimes", static_cast<double>(frametime.value));
 }
 
-void libtrainsim::extras::statusDisplay::appendRendertime ( sakurajin::unit_system::time_si rendertime ) {
+void libtrainsim::extras::statusDisplay::appendRendertime(sakurajin::unit_system::time_si rendertime) {
     rendertime = sakurajin::unit_system::unit_cast(rendertime, multiplier(std::milli::type{}));
-    appendToGraph("rendertimes", rendertime.value);
+    appendToGraph("rendertimes", static_cast<double>(rendertime.value));
 }
 
 
-void libtrainsim::extras::statusDisplay::changeBeginPosition ( sakurajin::unit_system::length newBeginPosition ) {
+void libtrainsim::extras::statusDisplay::changeBeginPosition(sakurajin::unit_system::length newBeginPosition) {
     beginPosition = sakurajin::unit_system::unit_cast(newBeginPosition, 1);
 }
 
-void libtrainsim::extras::statusDisplay::changePosition ( sakurajin::unit_system::length newPosition ) {
+void libtrainsim::extras::statusDisplay::changePosition(sakurajin::unit_system::length newPosition) {
     currentPosition = sakurajin::unit_system::unit_cast(newPosition, 1);
 }
 
-void libtrainsim::extras::statusDisplay::changeEndPosition ( sakurajin::unit_system::length newEndPosition ) {
+void libtrainsim::extras::statusDisplay::changeEndPosition(sakurajin::unit_system::length newEndPosition) {
     endPosition = sakurajin::unit_system::unit_cast(newEndPosition, 1);
 }
 
-void libtrainsim::extras::statusDisplay::setAcceleration ( sakurajin::unit_system::acceleration newAcceleration ) {
+void libtrainsim::extras::statusDisplay::setAcceleration(sakurajin::unit_system::acceleration newAcceleration) {
     auto acc = sakurajin::unit_system::unit_cast(newAcceleration, 1);
-    appendToGraph("acceleration", acc.value);
+    appendToGraph("acceleration", static_cast<double>(acc.value));
 }
 
-void libtrainsim::extras::statusDisplay::setVelocity ( sakurajin::unit_system::speed newVelocity ) {
+void libtrainsim::extras::statusDisplay::setVelocity(sakurajin::unit_system::speed newVelocity) {
     auto vel = sakurajin::unit_system::unit_cast(newVelocity, 1);
-    appendToGraph("velocity", vel.value);
+    appendToGraph("velocity", static_cast<double>(vel.value));
 }
 
-void libtrainsim::extras::statusDisplay::setSpeedLevel ( core::input_axis newSpeedLevel ) {
-    appendToGraph("speedLevel", newSpeedLevel.get());
+void libtrainsim::extras::statusDisplay::setSpeedLevel(const core::input_axis& newSpeedLevel) {
+    appendToGraph("speedLevel", static_cast<double>(newSpeedLevel.get()));
 }
 
-void libtrainsim::extras::statusDisplay::createCustomGraph ( std::string graphName, std::string tooltipMessage ) {
-    for(auto& graph: graphs){
-        if(graph.first->getName() == graphName){
+void libtrainsim::extras::statusDisplay::createCustomGraph(const std::string& graphName, const std::string& tooltipMessage) {
+    for (auto& graph : graphs) {
+        if (graph.first->getName() == graphName) {
             throw std::invalid_argument("A graph with the given name already exists!");
         }
     }
-    
-    auto newGraph = Gtk::make_managed<statusDisplayGraph<100>>(graphName,tooltipMessage);
+
+    auto newGraph = Gtk::make_managed<statusDisplayGraph<100>>(graphName, tooltipMessage);
     graphsList->append(*newGraph);
     graphs.emplace_back(std::pair{newGraph, true});
 }
 
-void libtrainsim::extras::statusDisplay::removeGraph ( std::string graphName ) {
-    if(libtrainsim::core::Helper::contains(defaultGraphNames,graphName)){
+void libtrainsim::extras::statusDisplay::removeGraph(const std::string& graphName) {
+    if (libtrainsim::core::Helper::contains(defaultGraphNames, graphName)) {
         throw std::invalid_argument("render and frame times may not be removed!");
     }
-    
-    for(auto i = graphs.begin(); i < graphs.end(); i++){
-        if(i->first->getName() == graphName){
+
+    for (auto i = graphs.begin(); i < graphs.end(); i++) {
+        if (i->first->getName() == graphName) {
             graphsList->remove(*(i->first));
             graphs.erase(i);
             return;
         }
     }
-    
+
     throw std::invalid_argument("no graph with this name exists");
 }
 
-void libtrainsim::extras::statusDisplay::appendToGraph ( std::string graphName, double value ) {
-    for(auto& graph: graphs){
-        if(graph.first->getName() == graphName){
+void libtrainsim::extras::statusDisplay::appendToGraph(const std::string& graphName, double value) {
+    for (auto& graph : graphs) {
+        if (graph.first->getName() == graphName) {
             graph.first->appendValue(value, false);
             return;
         }
     }
-    
+
     throw std::invalid_argument("no graph with this name exists");
 }
 
-void libtrainsim::extras::statusDisplay::changeGraphRange(std::string graphName, double minVal, double maxVal){
-    for(auto& graph: graphs){
-        if(graph.first->getName() == graphName){
+void libtrainsim::extras::statusDisplay::changeGraphRange(const std::string& graphName, double minVal, double maxVal) {
+    for (auto& graph : graphs) {
+        if (graph.first->getName() == graphName) {
             graph.first->setRange(minVal, maxVal);
             return;
         }
@@ -162,34 +157,34 @@ void libtrainsim::extras::statusDisplay::changeGraphRange(std::string graphName,
     throw std::invalid_argument("no graph with this name exists");
 }
 
-void libtrainsim::extras::statusDisplay::redrawGraphs(){
-    if(is_visible()){
-        for(auto& graph: graphs){
+void libtrainsim::extras::statusDisplay::redrawGraphs() {
+    if (is_visible()) {
+        for (auto& graph : graphs) {
             graph.first->queue_draw();
         }
     }
 }
 
-bool libtrainsim::extras::statusDisplay::onEvent(const SimpleGFX::inputEvent& event){
-    static auto app = get_application();
+bool libtrainsim::extras::statusDisplay::onEvent(const SimpleGFX::inputEvent& event) {
+    static auto app        = get_application();
     static bool showLatest = true;
 
-    if(event.inputType != SimpleGFX::inputAction::press){
+    if (event.inputType != SimpleGFX::inputAction::press) {
         return false;
     }
 
-    switch( SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"}) ){
-        case(0):
-            if(is_visible()){
+    switch (SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"})) {
+        case (0):
+            if (is_visible()) {
                 hide();
-            }else{
+            } else {
                 app->add_window(*this);
                 set_visible(true);
             }
             return true;
-        case(1):
+        case (1):
             showLatest = !showLatest;
-            for(auto [graph, _]:graphs){
+            for (auto [graph, _] : graphs) {
                 graph->setShowLatest(showLatest);
             }
             return true;
@@ -197,5 +192,3 @@ bool libtrainsim::extras::statusDisplay::onEvent(const SimpleGFX::inputEvent& ev
             return false;
     }
 }
-
-

@@ -84,6 +84,7 @@ namespace libtrainsim {
          * @brief Calls the tick function if autoTick is enabled.
          */
         void doAutoTick();
+
       public:
         [[maybe_unused]] explicit physics(const libtrainsim::core::Track& conf, bool _autoTick = false);
 
