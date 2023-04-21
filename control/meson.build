@@ -2,7 +2,6 @@ cc = meson.get_compiler('cpp')
 
 sources = [
     'src/control.cpp',
-    'src/keymap.cpp',
     'src/serialcontrol.cpp'
 ]
 
