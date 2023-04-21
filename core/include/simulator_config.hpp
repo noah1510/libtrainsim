@@ -163,8 +163,8 @@ namespace libtrainsim {
              * @param lazyLoad set to true if you only want to load tracks on demand
              */
             explicit simulatorConfiguration(const std::filesystem::path& URI,
-                                            bool                         lazyLoad = true,
-                                            const std::string&           _appID = "thm.libtrainsim",
+                                            bool                         lazyLoad    = true,
+                                            const std::string&           _appID      = "thm.libtrainsim",
                                             bool                         tryLastFile = false) noexcept(false);
 
             /**
@@ -184,16 +184,15 @@ namespace libtrainsim {
              * @param lazyLoad set to true if you only want to load tracks on demand
              * @param tryLastFile if true, the last file that was loaded will be loaded
              */
-            void loadFile(const std::filesystem::path& URI,
-                          bool                         lazyLoad = true,
-                          bool                         tryLastFile = false) noexcept(false);
+            void loadFile(const std::filesystem::path& URI, bool lazyLoad = true, bool tryLastFile = false) noexcept(false);
 
             /**
              * @brief Get the location of the serial config settings file
              *
              * @return const std::filesystem::path& the path to serial config file
              */
-            [[nodiscard]] const std::filesystem::path& getSerialConfigLocation() const noexcept;
+            [[nodiscard]]
+            const std::filesystem::path& getSerialConfigLocation() const noexcept;
 
             /**
              * @brief change which track is used as default track
@@ -210,7 +209,8 @@ namespace libtrainsim {
              *
              * @return uint64_t the number of available tracks
              */
-            [[nodiscard]] uint64_t getTrackCount() const noexcept;
+            [[nodiscard]]
+            uint64_t getTrackCount() const noexcept;
 
             /**
              * @brief Get a track with a given index
@@ -221,7 +221,8 @@ namespace libtrainsim {
              * @param index the index of the requested track
              * @return const libtrainsim::core::Track& the track at the given index
              */
-            [[nodiscard]] const libtrainsim::core::Track& getTrack(uint64_t index) const noexcept(false);
+            [[nodiscard]]
+            const libtrainsim::core::Track& getTrack(uint64_t index) const noexcept(false);
 
             /**
              * @brief Get a track with a given index
@@ -244,13 +245,15 @@ namespace libtrainsim {
              *
              * @return const libtrainsim::core::Track& the currently selected track
              */
-            [[nodiscard]] const libtrainsim::core::Track& getCurrentTrack() const noexcept;
+            [[nodiscard]]
+            const libtrainsim::core::Track& getCurrentTrack() const noexcept;
 
             /**
              * @brief return the id of the currently selected Track
              *
              */
-            [[nodiscard]] uint64_t getCurrentTrackID() const noexcept;
+            [[nodiscard]]
+            uint64_t getCurrentTrackID() const noexcept;
 
             /**
              * @brief ensures that the track with the given index is fully loaded
@@ -263,28 +266,32 @@ namespace libtrainsim {
              *
              * @return const std::filesystem::path& the shader folder location
              */
-            [[nodiscard]] const std::filesystem::path& getShaderLocation() const noexcept;
+            [[nodiscard]]
+            const std::filesystem::path& getShaderLocation() const noexcept;
 
             /**
              * @brief returns the location of the texture folder
              *
              * @return const std::filesystem::path& the texture folder location
              */
-            [[nodiscard]] const std::filesystem::path& getTextureLocation() const noexcept;
+            [[nodiscard]]
+            const std::filesystem::path& getTextureLocation() const noexcept;
 
             /**
              * @brief get the location where the extras assets are stored
              *
              * @return const std::filesystem::path& the folder that contains all of the extras
              */
-            [[nodiscard]] const std::filesystem::path& getExtrasLocation() const noexcept;
+            [[nodiscard]]
+            const std::filesystem::path& getExtrasLocation() const noexcept;
 
             /**
              * @brief returns the name of the application that created this configuration
              *
              * @return const std::string& the name of the application
              */
-            [[nodiscard]] const std::string& getAppID() const noexcept;
+            [[nodiscard]]
+            const std::string& getAppID() const noexcept;
 
             /**
              * @brief returns the common logging interface for the simulator

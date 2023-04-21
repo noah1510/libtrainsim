@@ -16,5 +16,6 @@ PackConstructorInitializers: Never
 AllowShortFunctionsOnASingleLine: Inline
 AlignConsecutiveDeclarations: Consecutive
 AlignConsecutiveAssignments: Consecutive
+BreakAfterAttributes: Always
 ConstructorInitializerIndentWidth: 4
 Standard: c++17

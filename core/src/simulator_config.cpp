@@ -77,8 +77,7 @@ void libtrainsim::core::simulatorConfiguration::loadFile(const std::filesystem::
     }
 }
 
-void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::filesystem::path& URI,
-                                                                 bool                         lazyLoad) {
+void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::filesystem::path& URI, bool lazyLoad) {
 
     if (!std::filesystem::exists(URI)) {
         throw std::invalid_argument("The simulator config file location is empty:" + URI.string());
@@ -288,7 +287,7 @@ void libtrainsim::core::simulatorConfiguration::initLogging(std::optional<nlohma
 
     // if no config is given, create a basic logger if it does not exist yet
     if (!config.has_value()) {
-        if(coreLogger){
+        if (coreLogger) {
             *coreLogger << debug << "trying to initialize the basic logger again, skipping that to prevent problems!";
             return;
         }

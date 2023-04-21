@@ -5,96 +5,85 @@
  * @brief This file contains the definition of the Track class to manage tracks.
  * @version 0.4.0
  * @date 2020-10-20
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
 
 #include "track_data.hpp"
 #include "train_properties.hpp"
 
-#include "unit_system.hpp"
 #include "helper.hpp"
+#include "unit_system.hpp"
 
-#include <filesystem>
-#include <optional>
 #include <cmath>
-#include <tuple>
+#include <filesystem>
 #include <limits>
 #include <nlohmann/json.hpp>
+#include <optional>
+#include <tuple>
 
-namespace libtrainsim{
+namespace libtrainsim {
     namespace core {
-        //an underground data point as defined in the [track json documentation](@ref track_format)
-        class LIBTRAINSIM_EXPORT_MACRO undergorundDataPoint : public std::tuple<
-            sakurajin::unit_system::length,
-            sakurajin::unit_system::length,
-            sakurajin::unit_system::area
-        >{
-        public:
+        // an underground data point as defined in the [track json documentation](@ref track_format)
+        class LIBTRAINSIM_EXPORT_MACRO undergorundDataPoint
+            : public std::tuple<sakurajin::unit_system::length, sakurajin::unit_system::length, sakurajin::unit_system::area> {
+          public:
             /**
              * @brief construct an underground data point
              */
-            undergorundDataPoint(
-                sakurajin::unit_system::length _begin,
-                sakurajin::unit_system::length _end,
-                sakurajin::unit_system::area _area
-            );
-            
+            undergorundDataPoint(sakurajin::unit_system::length _begin,
+                                 sakurajin::unit_system::length _end,
+                                 sakurajin::unit_system::area   _area);
+
             /**
              * @brief the point where the line begins
              */
+            [[nodiscard]]
             const sakurajin::unit_system::length& begin() const;
-            
+
             /**
              * @brief the point where the line ends
              */
+            [[nodiscard]]
             const sakurajin::unit_system::length& end() const;
-            
+
             /**
              * @brief the point where the line ends
              */
+            [[nodiscard]]
             const sakurajin::unit_system::area& area() const;
         };
 
-        //All of the valid stop types which are defined in the [json format documentation](@ref stops_data_format).
-        enum stopTypes{
-            station = 0
-        };
-        
-        //A class to unpack a stop object specified in the [json format documentation](@ref stops_data_format).
-        class LIBTRAINSIM_EXPORT_MACRO stopDataPoint: public std::tuple<
-            std::string,
-            sakurajin::unit_system::length,
-            stopTypes
-        >{
-        public:
+        // All the valid stop types which are defined in the [json format documentation](@ref stops_data_format).
+        enum stopTypes { station = 0 };
+
+        // A class to unpack a stop object specified in the [json format documentation](@ref stops_data_format).
+        class LIBTRAINSIM_EXPORT_MACRO stopDataPoint : public std::tuple<std::string, sakurajin::unit_system::length, stopTypes> {
+          public:
             /**
              * @brief construct a new stop data point
              */
-            stopDataPoint(
-                std::string _name,
-                sakurajin::unit_system::length _position,
-                stopTypes _type
-            );
-            
-            //get the name of the stop
+            stopDataPoint(std::string _name, sakurajin::unit_system::length _position, stopTypes _type);
+
+            // get the name of the stop
+            [[nodiscard]]
             const std::string& name() const;
-            
-            //get the position of the stop
+
+            // get the position of the stop
+            [[nodiscard]]
             const sakurajin::unit_system::length& position() const;
-            
-            //get the type of this stop
+
+            // get the type of this stop
+            [[nodiscard]]
             const stopTypes& type() const;
-            
         };
-        
+
         /**
          * @brief This class is used to load a track json file containing the definition of the [track](@ref track_format).
          */
         class LIBTRAINSIM_EXPORT_MACRO Track {
-        private:
-
+          private:
             /**
              * @brief The data points of the track.
              * This maps locations to frames.
@@ -108,17 +97,17 @@ namespace libtrainsim{
              *
              */
             std::optional<train_properties> train_dat;
-            
-            //The fallback friction multiplier in case the Track data has not defined a value for that point.
+
+            // The fallback friction multiplier in case the Track data has not defined a value for that point.
             double defaultTrackFrictionMultiplier = 1.0;
-            
-            //The vector containing all of the underground data points
+
+            // The vector containing all the underground data points
             std::vector<undergorundDataPoint> undergroundData;
-            
-            //a vector containing all of the stops
+
+            // a vector containing all the stops
             std::vector<stopDataPoint> stopsData;
-            
-            //a vector containing all of the stations. This will be initialized when needed.
+
+            // a vector containing all the stations. This will be initialized when needed.
             std::vector<stopDataPoint> stationsData;
 
             /**
@@ -138,7 +127,7 @@ namespace libtrainsim{
              *
              */
             std::string name;
-            
+
             /**
              * @brief parse the given json data into all of the class variables
              */
@@ -150,20 +139,19 @@ namespace libtrainsim{
              */
             std::filesystem::path videoFile;
 
-            //this gets rid of a defauolt constructor
+            // this gets rid of a default constructor
             Track() = delete;
-            
-            //the parent Path to the json data
+
+            // the parent Path to the json data
             std::filesystem::path parentPath;
-            
-            //if it has a value it is the (partly) unparsed json data
+
+            // if it has a value it is the (partly) unparsed json data
             std::optional<nlohmann::json> data_json;
-            
-            //load the track data in case it was not loaded yet
+
+            // load the track data in case it was not loaded yet
             void parseTrack();
 
-        public:
-
+          public:
             /**
              * @brief Create a track from a given json file.
              * @note The json file need the correct [format](@ref track_format).
@@ -171,7 +159,7 @@ namespace libtrainsim{
              * @param URI The location of the File
              * @param lazyLoad true if you only want to load the data on the first
              */
-            Track(const std::filesystem::path& URI, bool lazyLoad = false);
+            explicit Track(const std::filesystem::path& URI, bool lazyLoad = false);
 
             /**
              * @brief Create a track from json data and a parent path.
@@ -182,12 +170,13 @@ namespace libtrainsim{
              * @param lazyLoad true if you only want to load the data on the first
              */
             Track(const nlohmann::json& data_json, const std::filesystem::path& parentPath, bool lazyLoad = false);
-            
+
             /**
              * @brief returning the Track_data of this track
              *
              * @return const Track_data& the track data
              */
+            [[nodiscard]]
             const Track_data& data() const;
 
             /**
@@ -195,6 +184,7 @@ namespace libtrainsim{
              *
              * @return const train_properties& the train data of this track
              */
+            [[nodiscard]]
             const train_properties& train() const;
 
             /**
@@ -202,6 +192,7 @@ namespace libtrainsim{
              *
              * @return double the last location
              */
+            [[nodiscard]]
             sakurajin::unit_system::length lastLocation() const;
 
             /**
@@ -209,6 +200,7 @@ namespace libtrainsim{
              *
              * @return double the first location
              */
+            [[nodiscard]]
             sakurajin::unit_system::length firstLocation() const;
 
             /**
@@ -216,57 +208,57 @@ namespace libtrainsim{
              *
              * @return std::filesystem::path the path to the video file
              */
+            [[nodiscard]]
             std::filesystem::path getVideoFilePath() const;
-            
-            //get the name of the track
+
+            // get the name of the track
+            [[nodiscard]]
             const std::string& getName() const;
-            
+
             /**
              * @brief get the underground data for a given position
-             * 
+             *
              * By default it is assumed that the train is not underground.
              * This function returns three values in a tuple:
-             * 
+             *
              *  * bool -> if that position is underground this is true
              *  * area -> the area of the tunnel
              *  * length -> the remaining length of the tunnel
              */
-            std::tuple<
-                bool, 
-                sakurajin::unit_system::area, 
-                sakurajin::unit_system::length
-            > getUndergroundInfo(sakurajin::unit_system::length position) const;
-            
+            [[nodiscard]]
+            std::tuple<bool, sakurajin::unit_system::area, sakurajin::unit_system::length>
+            getUndergroundInfo(sakurajin::unit_system::length position) const;
+
             /**
-             * @brief returns all of the stops this track has defined 
-             * 
+             * @brief returns all of the stops this track has defined
+             *
              * This will always have at least two values to indicate the begin and end
              * of the Track. If the underlying Track_data is not fully loaded this will
              * throw an error. To prevent this call enusure before calling this function.
              */
+            [[nodiscard]]
             const std::vector<stopDataPoint>& getStations() const;
-            
+
             /**
              * @brief this function ensures that the data is fully loaded.
              */
             void ensure();
-            
+
             /**
              * @brief set where this track should end
-             * 
+             *
              * @note this function is not needed for operation but can be used to
              * specify at which stop the simulator should close
              */
             void setLastLocation(sakurajin::unit_system::length);
-            
+
             /**
              * @brief set where this track should begin
-             * 
+             *
              * @note this function is not needed for operation but can be used to
              * specify at which stop the simulator should open
              */
             void setFirstLocation(sakurajin::unit_system::length);
-
         };
-    }
-}
+    } // namespace core
+} // namespace libtrainsim
