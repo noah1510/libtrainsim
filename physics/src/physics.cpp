@@ -121,7 +121,7 @@ void libtrainsim::physics::tick() {
     // Handling the different possibilities for Speedlevel
     // only calculating the current Force
     if (speedlevel > 0.007) {
-        if (abs(velocity) < 0.007_mps) {
+        if (std::abs(velocity) < 0.007_mps) {
             currTraction = MaxForce;
         } else {
             currTraction = currPower / velocity;

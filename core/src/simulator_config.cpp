@@ -339,7 +339,7 @@ void libtrainsim::core::simulatorConfiguration::initLogging(std::optional<nlohma
 
             // add the date to the logFile if needed
             if (appendDate) {
-                logFile = logFile.stem().string() + "_" + SimpleGFX::logger::getCurrentTimestamp() + logFile.extension().string();
+                logFile = logFile.stem().string() + "_" + SimpleGFX::logger::getCurrentTimestamp(true) + logFile.extension().string();
             }
 
             // set the log file to the correct location
