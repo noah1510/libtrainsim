@@ -8,6 +8,5 @@ option('build_extras', type: 'boolean', value: true, description: 'set to false 
 
 option('build_extras_statusDisplay', type : 'boolean', value : true, description: 'set to false if you do not want to compile the statusDisplay component.')
 option('build_extras_snowFx', type : 'boolean', value : true, description: 'set to false if you do not want to compile the snow effects component.')
-option('build_extras_statusDisplay', type: 'boolean', value: true, description: 'set to false if you do not want to compile the statusDisplay component.')
 
 option('build_full', type: 'boolean', value: false, description: 'set to true if you to build all components and create libtrainsim_full as dependency.')

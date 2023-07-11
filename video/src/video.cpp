@@ -8,7 +8,8 @@ libtrainsim::Video::simulatorWindowGLArea::simulatorWindowGLArea(std::shared_ptr
     : Gtk::GLArea{},
       simSettings{std::move(_simSettings)},
       decode{simSettings} {
-    set_required_version(3, 3);
+    set_use_es(true);
+    set_required_version(3, 2);
     set_auto_render(false);
 }
 
@@ -33,13 +34,15 @@ void libtrainsim::Video::simulatorWindowGLArea::on_realize() {
     try {
         loadBuffers();
     } catch (...) {
+        simSettings->getLogger()->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("error creating data buffers"));
     }
 
     // load the display shader and set the default values
     try {
         generateDisplayShader();
-    } catch (const std::exception& e) {
+    } catch (...) {
+        simSettings->getLogger()->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("cannot init display shader"));
     }
 
@@ -105,7 +108,8 @@ void libtrainsim::Video::simulatorWindowGLArea::generateDisplayShader() {
     auto              maxTextureUnits = SimpleGFX::SimpleGL::GLHelper::getMaxTextureUnits();
     std::stringstream fragmentSource;
     fragmentSource << R""""(
-        #version 330 core
+        #version 320 es
+        precision mediump float;
         layout(location = 0) out vec4 FragColor;
         in vec2 TexCoord;
         in vec2 Coord;
@@ -131,7 +135,7 @@ void libtrainsim::Video::simulatorWindowGLArea::generateDisplayShader() {
 
     fragmentSource << "}" << std::endl;
 
-    shaderConfiguration disp_conf{defaultShaderSources::getBasicVertexSource(), fragmentSource.str()};
+    shaderConfiguration disp_conf{defaultShaderSources::getBasicVertexSource(GL_320ES), fragmentSource.str()};
 
     displayShader = std::make_shared<shader>(disp_conf);
 
