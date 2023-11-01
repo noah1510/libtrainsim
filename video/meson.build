@@ -1,6 +1,7 @@
 sources = [
     'src/video.cpp',
     'src/video_reader.cpp',
+    'src/simulatorRenderWidget.cpp',
 ]
 
 video_deps = [

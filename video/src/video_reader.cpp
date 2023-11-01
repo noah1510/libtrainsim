@@ -30,9 +30,8 @@ static inline AVPixelFormat correctForDeprecatedPixelFormat(AVPixelFormat pix_fm
     }
 }
 
-inline void libtrainsim::Video::videoReader::incrementFramebuffer(uint8_t& currentBuffer) const {
-    currentBuffer++;
-    currentBuffer %= FRAME_BUFFER_COUNT;
+inline uint8_t libtrainsim::Video::videoReader::incrementFramebuffer(uint8_t currentBuffer) const {
+    return (currentBuffer + 1) % FRAME_BUFFER_COUNT;
 }
 /*
 libtrainsim::Video::videoDecodeSettings::videoDecodeSettings ( libtrainsim::Video::videoReader& VR ) : tabPage{"decodeSettings"},
@@ -225,8 +224,8 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
 
     try {
         readNextFrame();
-        std::scoped_lock lock{frameBuffer_mutex};
-        copyToBuffer(frame_data[activeBuffer]);
+        const auto bufferToCopy = activeBuffer.load();
+        copyToBuffer(frame_data[bufferToCopy]);
     } catch (...) {
         std::throw_with_nested(std::runtime_error("Could not read initial frame"));
     }
@@ -235,19 +234,18 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
         do {
             auto begin = libtrainsim::core::Helper::now();
 
-            frameNumberMutex.lock_shared();
-            uint64_t nextF       = nextFrameToGet;
-            uint64_t currF       = currentFrameNumber;
-            uint64_t _seekCutoff = seekCutoff;
-            frameNumberMutex.unlock_shared();
-
-            frameBuffer_mutex.lock_shared();
-            auto backBuffer = activeBuffer;
-            frameBuffer_mutex.unlock_shared();
+            //create local copies of nextFrameToGet, currentFrameNumber and seekCutoff
+            const uint64_t nextF       = nextFrameToGet;
+            const uint64_t currF       = currentFrameNumber;
+            const uint64_t _seekCutoff = seekCutoff;
 
             // select the next buffer from the active buffer as back buffer
-            incrementFramebuffer(backBuffer);
+            const auto backBuffer = incrementFramebuffer(activeBuffer);
 
+            //calculate the difference in frames
+            //this variable is used to determine if a new frame has to be decoded,
+            //if the specified frame should be seek or if frames should be decoded
+            //until the difference is 0
             uint64_t diff = nextF - currF;
 
             try {
@@ -257,9 +255,9 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
                     continue;
                 } else if (diff < _seekCutoff) {
                     // for these small skips it is faster to simply decode frame by frame
-                    while (currF < nextF) {
+                    while (diff > 0) {
                         readNextFrame();
-                        currF++;
+                        diff--;
                     }
                 } else {
                     // the next frame is more than 4 seconds in the future
@@ -271,27 +269,23 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
                 copyToBuffer(frame_data[backBuffer]);
 
                 // switch to the next framebuffer
-                frameBuffer_mutex.lock();
                 if (bufferExported) {
-                    incrementFramebuffer(activeBuffer);
+                    activeBuffer = incrementFramebuffer(activeBuffer);
                     bufferExported = false;
                 }
-                frameBuffer_mutex.unlock();
 
                 // update the number of the current frame
-                frameNumberMutex.lock();
                 currentFrameNumber = nextF;
-                frameNumberMutex.unlock();
 
                 // append the new rendertime
-                EOF_Mutex.lock();
+                renderTimeMutex.lock();
                 auto dt = libtrainsim::core::Helper::now() - begin;
-                renderTimes.emplace_back(unit_cast(dt, multiplier(std::milli::type{})));
-                EOF_Mutex.unlock();
+                renderTimes.emplace_back(unit_cast(dt));
+                renderTimeMutex.unlock();
 
             } catch (const std::exception& e) {
+                //if an error happened set EOF and exit the render loop
                 libtrainsim::core::Helper::printException(e);
-                std::scoped_lock lock{EOF_Mutex};
                 reachedEOF = true;
                 return false;
             }
@@ -309,9 +303,7 @@ libtrainsim::Video::videoReader::~videoReader() {
     // imguiHandler::removeSettingsTab("decodeSettings");
 
     if (!reachedEndOfFile()) {
-        EOF_Mutex.lock();
         reachedEOF = true;
-        EOF_Mutex.unlock();
     }
 
     if (renderThread.valid()) {
@@ -330,8 +322,6 @@ libtrainsim::Video::videoReader::~videoReader() {
 
 
 void libtrainsim::Video::videoReader::readNextFrame() {
-
-
     // Decode one frame
     int response;
     while (av_read_frame(av_format_ctx, av_packet) >= 0) {
@@ -404,10 +394,9 @@ void libtrainsim::Video::videoReader::copyToBuffer(std::vector<uint8_t>& frame_b
 }
 
 const std::vector<uint8_t>& libtrainsim::Video::videoReader::getUsableFramebufferBuffer() {
-    std::scoped_lock lock{frameBuffer_mutex};
-
+    const auto exportBufferID = activeBuffer.load();
     bufferExported = true;
-    return frame_data[activeBuffer];
+    return frame_data[exportBufferID];
 }
 
 
@@ -424,22 +413,22 @@ dimensions libtrainsim::Video::videoReader::getDimensions() const {
 }
 
 uint64_t libtrainsim::Video::videoReader::getFrameNumber() {
-    std::shared_lock lock{frameNumberMutex};
     return currentFrameNumber;
 }
 
-void libtrainsim::Video::videoReader::requestFrame(uint64_t frame_num) {
-    std::scoped_lock lock{frameNumberMutex};
+bool libtrainsim::Video::videoReader::requestFrame(uint64_t frame_num) {
     if (frame_num > nextFrameToGet) {
         nextFrameToGet = frame_num;
+        return true;
     }
+    return false;
 }
 
 std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::videoReader::getNewRendertimes() {
-    EOF_Mutex.lock();
+    renderTimeMutex.lock();
     auto times = renderTimes;
     renderTimes.clear();
-    EOF_Mutex.unlock();
+    renderTimeMutex.unlock();
 
     if (times.empty()) {
         return std::nullopt;

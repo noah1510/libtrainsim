@@ -82,12 +82,7 @@ namespace libtrainsim {
              * @brief indicates that the end of the video file is reached and the video should close.
              * This is also used to stop the video render thread.
              */
-            bool reachedEOF = false;
-
-            /**
-             * @brief a mutex to secure access to reachedEOF and renderTimes
-             */
-            std::shared_mutex EOF_Mutex;
+            std::atomic<bool> reachedEOF = false;
 
             /**
              * @brief all of the render times of the last render requests.
@@ -95,21 +90,19 @@ namespace libtrainsim {
             std::vector<sakurajin::unit_system::time_si> renderTimes;
 
             /**
+             * @brief A mutex to secure the access to the rendertimes array
+             */
+            std::shared_mutex renderTimeMutex;
+
+            /**
              * @brief the number of the currently displayed frame
              */
-            uint64_t currentFrameNumber = 0;
+            std::atomic<uint64_t> currentFrameNumber = 0;
 
             /**
              * @brief the number of the next frame that should be read.
              */
-            uint64_t nextFrameToGet = 0;
-
-            /**
-             * @brief a mutex for currentFrameNumber and nextFrameToGet
-             * This mutex controls the access to the frame id variables.
-             * Inderectly this also controls the access to the ffmpeg state variables
-             */
-            std::shared_mutex frameNumberMutex;
+            std::atomic<uint64_t> nextFrameToGet = 0;
 
             /**
              * @brief the video render thread is kept alive in this variable
@@ -136,7 +129,7 @@ namespace libtrainsim {
              * To make sure this variable always has a valid value only use
              * incrementFramebuffer to switch between the buffers.
              */
-            uint8_t activeBuffer = 0;
+            std::atomic<uint8_t> activeBuffer = 0;
 
             /**
              * @brief This keeps track if the video code has actually looked at the latest frame.
@@ -144,16 +137,7 @@ namespace libtrainsim {
              * This allows the Back Buffer to be updated more than once before being displayed.
              * This also prevents the front buffer being overwritten while it is read.
              */
-            bool bufferExported = false;
-
-            /**
-             * @brief lock the access to the activeBuffer and bufferExported variable.
-             * This ensures that the buffer is only switched at the correct time.
-             * Because the Buffer ids are mutex protected and the read/write from/to the
-             * frame_data is all regulated in this class, the frame_data access does not
-             * need to be locked directly.
-             */
-            std::shared_mutex frameBuffer_mutex;
+            std::atomic<bool> bufferExported = false;
 
             /**
              * @brief increment a framebuffer number to the next buffer in line
@@ -161,7 +145,7 @@ namespace libtrainsim {
              * This increments a given buffer number by one and makes sure it stays
              * one of the valid buffers.
              */
-            inline void incrementFramebuffer(uint8_t& currentBuffer) const;
+            [[nodiscard]] inline uint8_t incrementFramebuffer(uint8_t currentBuffer) const;
 
             /**
              * @brief reads the next frame in the video file into av_frame.
@@ -191,7 +175,7 @@ namespace libtrainsim {
              * @brief how many frames difference there has to be to seek instead of rendering frame by frame.
              *
              */
-            uint64_t seekCutoff = 200;
+            std::atomic<uint64_t> seekCutoff = 200;
 
             /**
              * @brief A pointer to the simulator settings
@@ -221,7 +205,7 @@ namespace libtrainsim {
              * @note if the given frame number is smaller than an already requested frame it will be ignored.
              */
             [[maybe_unused]]
-            void requestFrame(uint64_t frame_num);
+            bool requestFrame(uint64_t frame_num);
 
             /**
              * @brief get a reference to the currently active framebuffer.
