@@ -51,7 +51,7 @@ void libtrainsim::control::input_handler::startSimulation() {
             serial.reset();
         } else {
             if (registered) {
-                serial->registerWithEventManager(manager);
+                serial->registerWithEventManager(manager, 0);
             }
         }
     } catch (...) {
@@ -93,7 +93,7 @@ bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
     return false;
 }
 
-uint64_t libtrainsim::control::input_handler::registerWithEventManager(SimpleGFX::eventManager* manager, int priority) {
+std::shared_ptr<SimpleGFX::trackedFuture<uint64_t>> libtrainsim::control::input_handler::registerWithEventManager(SimpleGFX::eventManager* manager, int priority) {
 
 #ifdef HAS_VIDEO_SUPPORT
     keyboardPoller->registerWithEventManager(manager, priority);

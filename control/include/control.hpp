@@ -135,7 +135,7 @@ namespace libtrainsim {
              */
             void startSimulation();
 
-            uint64_t registerWithEventManager(SimpleGFX::eventManager* _manager, int priority = 1) override;
+            std::shared_ptr<SimpleGFX::trackedFuture<uint64_t>> registerWithEventManager(SimpleGFX::eventManager* _manager, int priority) override;
             void     unregister() override;
             bool     onEvent(const SimpleGFX::inputEvent& event) override;
 
