@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "helper.hpp"
 #include "simplegl.hpp"
 
@@ -23,30 +25,30 @@ namespace libtrainsim {
             /**
              * @brief the name of the graph
              */
-            std::string name;
+            const std::string name;
 
             /**
              * @brief the tooltip that should be shown when the graph is hovered
              */
             std::string tooltip_txt;
 
-            double minVal;
-            double maxVal;
-            bool   fixedRange = false;
-
             std::shared_mutex dataMutex;
 
-            bool showLatest = true;
-            bool showGraph  = true;
+            std::atomic<double> minVal     = 0.0;
+            std::atomic<double> maxVal     = 0.0;
+            std::atomic<double> latestVal  = 0.0;
+            std::atomic<bool>   fixedRange = false;
+            std::atomic<bool>   showLatest = true;
+            std::atomic<bool>   showGraph  = true;
 
             const double margin = 0.1;
-            double       scaleValue(double val);
+            double       scaleValue(double val) const;
 
           public:
             /**
              * @brief create a new graph with a name and tooltip
              */
-            statusDisplayGraph(const std::string& graphName, const std::string& tooltipMessage);
+            statusDisplayGraph(std::string graphName, std::string tooltipMessage);
 
             /**
              * @brief display the graph in a window
@@ -72,13 +74,13 @@ namespace libtrainsim {
              * @brief get the name of the graph
              */
             [[nodiscard]] [[maybe_unused]]
-            const std::string& getName();
+            const std::string& getName() const;
 
             /**
              * @brief get the latest value of the graph
              */
             [[nodiscard]] [[maybe_unused]]
-            double getLatest();
+            double getLatest() const;
 
             void on_unrealize() override;
         };
@@ -86,13 +88,10 @@ namespace libtrainsim {
 } // namespace libtrainsim
 
 template <size_t VALUE_COUNT>
-libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::statusDisplayGraph(const std::string& graphName, const std::string& tooltipMessage) {
+libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::statusDisplayGraph(std::string graphName, std::string tooltipMessage)
+    : name{std::move(graphName)},
+      tooltip_txt(std::move(tooltipMessage)) {
     std::scoped_lock lock{dataMutex};
-    name        = graphName;
-    tooltip_txt = tooltipMessage;
-    minVal      = 0.0;
-    maxVal      = 0.0;
-
     for (auto& val : values) {
         val = 0.0;
     }
@@ -114,7 +113,6 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_unrealize() {
 
 template <size_t VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::setShowLatest(bool latest) {
-    std::scoped_lock lock{dataMutex};
     showLatest = latest;
 }
 
@@ -122,6 +120,7 @@ template <size_t VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue(double newValue, bool redraw) {
     std::scoped_lock lock{dataMutex};
     libtrainsim::core::Helper::appendValue<double, VALUE_COUNT>(values, newValue);
+    latestVal = newValue;
     if (!fixedRange) {
         if (newValue > maxVal) {
             maxVal = newValue;
@@ -136,13 +135,9 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue(double ne
 }
 
 template <size_t VALUE_COUNT>
-inline double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::scaleValue(double val) {
-
-    const double range = maxVal - minVal;
-
-    auto scaledY = 1 - (val - minVal) / range;
-    scaledY      = std::clamp(scaledY, 0.0, 1.0);
-
+inline double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::scaleValue(double val) const{
+    const double range   = maxVal - minVal;
+    auto         scaledY = std::clamp(1 - (val - minVal) / range, 0.0, 1.0);
     return scaledY * (1.0 - 2.0 * margin) + margin;
 }
 
@@ -199,21 +194,17 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_draw(const Cairo::
 
 template <size_t VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::setRange(double _minVal, double _maxVal) {
-    std::scoped_lock lock{dataMutex};
-
     minVal     = _minVal;
     maxVal     = _maxVal;
     fixedRange = true;
 }
 
 template <size_t VALUE_COUNT>
-const std::string& libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getName() {
-    std::shared_lock lock{dataMutex};
+const std::string& libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getName() const{
     return name;
 }
 
 template <size_t VALUE_COUNT>
-double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getLatest() {
-    std::shared_lock lock{dataMutex};
-    return values.back();
+double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getLatest() const{
+    return latestVal;
 }

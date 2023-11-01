@@ -71,13 +71,11 @@ void libtrainsim::extras::statusDisplay::on_unrealize() {
 
 
 void libtrainsim::extras::statusDisplay::appendFrametime(sakurajin::unit_system::time_si frametime) {
-    frametime = sakurajin::unit_system::unit_cast(frametime, multiplier(std::milli::type{}));
-    appendToGraph("frametimes", static_cast<double>(frametime.value));
+    appendToGraph("frametimes", static_cast<double>(frametime.convert_like(1_ms).value));
 }
 
 void libtrainsim::extras::statusDisplay::appendRendertime(sakurajin::unit_system::time_si rendertime) {
-    rendertime = sakurajin::unit_system::unit_cast(rendertime, multiplier(std::milli::type{}));
-    appendToGraph("rendertimes", static_cast<double>(rendertime.value));
+    appendToGraph("rendertimes", static_cast<double>(rendertime.convert_like(1_ms).value));
 }
 
 
@@ -116,7 +114,7 @@ void libtrainsim::extras::statusDisplay::createCustomGraph(const std::string& gr
 
     auto newGraph = Gtk::make_managed<statusDisplayGraph<100>>(graphName, tooltipMessage);
     graphsList->append(*newGraph);
-    graphs.emplace_back(std::pair{newGraph, true});
+    graphs.emplace_back(newGraph, true);
 }
 
 void libtrainsim::extras::statusDisplay::removeGraph(const std::string& graphName) {
