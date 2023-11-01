@@ -3,5 +3,5 @@ url = https://git.thm.de/singlegfx/core.git
 revision = main
 directory = simplegfx-core
 
-[provides]
+[provide]
 dependency_names = ['simplegfx']

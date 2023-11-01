@@ -1,6 +1,6 @@
 [wrap-git]
 url = https://github.com/unit-system-exports/unit-system-meson
-revision = stable
+revision = main
 
-[provides]
+[provide]
 dependency_names = ['unit-system']

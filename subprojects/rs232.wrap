@@ -2,5 +2,5 @@
 url = https://github.com/noah1510/rs232.git
 revision = master
 
-[provides]
+[provide]
 dependency_names = ['rs232']
