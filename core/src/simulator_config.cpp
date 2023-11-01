@@ -1,16 +1,17 @@
 #include "simulator_config.hpp"
 
 #include <fstream>
+#include <utility>
 
 using namespace SimpleGFX;
 using namespace std::literals;
 
 libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::filesystem::path& URI,
                                                                   bool                         _lazyLoad,
-                                                                  const std::string&           _appID,
+                                                                  std::string            _appID,
                                                                   bool                         tryLastFile)
     : lazyLoad{_lazyLoad},
-      appID{_appID} {
+      appID{std::move(_appID)} {
 
 
     try {
@@ -39,7 +40,7 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
     }
 
     try {
-        inputManager = std::make_shared<SimpleGFX::eventManager>();
+        inputManager = std::make_shared<SimpleGFX::eventManager>(coreLogger);
         *coreLogger << detail << "input manager created";
     } catch (...) {
         coreLogger->logCurrrentException(true);

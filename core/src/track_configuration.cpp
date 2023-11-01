@@ -203,7 +203,7 @@ void Track::parseJsonData() {
                 if (_ar.has_value()) {
                     area = sakurajin::unit_system::area{_ar.value()};
                 } else {
-                    area = std::acos(0) * sakurajin::unit_system::square(3.5_m);
+                    area = sakurajin::unit_system::square(3.5_m) * std::acos(0);
                 }
 
                 undergroundData.emplace_back(undergorundDataPoint{start, end, area});

@@ -164,7 +164,7 @@ namespace libtrainsim {
              */
             explicit simulatorConfiguration(const std::filesystem::path& URI,
                                             bool                         lazyLoad    = true,
-                                            const std::string&           _appID      = "thm.libtrainsim",
+                                            std::string            _appID      = "thm.libtrainsim",
                                             bool                         tryLastFile = false) noexcept(false);
 
             /**
