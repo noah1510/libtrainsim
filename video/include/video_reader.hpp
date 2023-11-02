@@ -1,17 +1,6 @@
 #pragma once
 
-#include "helper.hpp"
 
-#include "simplegl.hpp"
-#include "simulator_config.hpp"
-#include "unit_system.hpp"
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/cpu.h>
-#include <libswscale/swscale.h>
-}
 
 namespace libtrainsim {
     namespace Video {

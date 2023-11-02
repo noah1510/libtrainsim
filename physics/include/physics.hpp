@@ -1,12 +1,6 @@
 #pragma once
 
-#include "helper.hpp"
-
-#include "input_axis.hpp"
-#include "track_configuration.hpp"
-#include "types.hpp"
-
-#include "unit_system.hpp"
+#include "core.hpp"
 
 namespace libtrainsim {
 

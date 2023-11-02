@@ -2,9 +2,6 @@
 
 #include "statusDisplayGraph.hpp"
 
-#include "input_axis.hpp"
-#include "unit_system.hpp"
-
 namespace libtrainsim {
     namespace extras {
         /*

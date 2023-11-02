@@ -4,10 +4,9 @@ sources = [
     'src/track_data.cpp',
     'src/train_properties.cpp',
     'src/track_configuration.cpp',
-    'src/types.cpp',
+    'src/version.cpp',
     'src/input_axis.cpp',
     'src/simulator_config.cpp',
-    'src/helper.cpp',
 ]
 
 cxx_header_list = [
@@ -50,6 +49,7 @@ libtrainsim_core = library(
     include_directories : incdir,
     dependencies: core_deps,
     install : true,
+    cpp_pch : 'include/pch/libtrainsim_core_pch.hpp',
 )
 
 libtrainsim_core_dep = declare_dependency(

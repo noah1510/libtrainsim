@@ -2,10 +2,10 @@
 
 #include "imguiHandler.hpp"
 
-#include "defaultShader.hpp"
 #include "helper.hpp"
-#include "texture.hpp"
-#include "shader.hpp"
+#include "subprojects/simplegl/include/gl/defaultShader.hpp"
+#include "subprojects/simplegl/include/gl/shader.hpp"
+#include "subprojects/simplegl/include/gl/texture.hpp"
 
 #include "wiper.hpp"
 

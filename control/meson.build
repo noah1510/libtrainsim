@@ -1,7 +1,7 @@
 cc = meson.get_compiler('cpp')
 
 sources = [
-    'src/control.cpp',
+    'src/inputHandler.cpp',
     'src/serialcontrol.cpp'
 ]
 
@@ -26,6 +26,7 @@ libtrainsim_control = library(
     include_directories : incdir,
     dependencies: control_deps,
     install : true,
+    cpp_pch: 'include/pch/libtrainsim_control_pch.hpp',
 )
 
 libtrainsim_control_dep = declare_dependency(

@@ -32,16 +32,19 @@ namespace libtrainsim {
              * @brief the decoder used to decode the video file into frames
              */
             videoReader decode;
+          protected:
+
+            bool                         on_render(const Glib::RefPtr<Gdk::GLContext>& context) override;
+            Glib::RefPtr<Gdk::GLContext> on_create_context() override;
 
           public:
             explicit simulatorRenderWidget(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
             videoReader& getDecoder();
 
-            void on_realize() override;
-            void on_unrealize() override;
-            bool on_render(const Glib::RefPtr<Gdk::GLContext>& context) override;
+            void                         on_realize() override;
+            void                         on_unrealize() override;
 
-            bool on_tick(const Glib::RefPtr<Gdk::FrameClock>& frame_clock);
+            // bool on_tick(const Glib::RefPtr<Gdk::FrameClock>& frame_clock);
 
             /**
              * @brief adds a texture to be rendered on top of the video
@@ -63,5 +66,5 @@ namespace libtrainsim {
             // the rendertimes of the video
             std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes();
         };
-    }
-}
+    } // namespace Video
+} // namespace libtrainsim

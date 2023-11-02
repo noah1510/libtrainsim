@@ -1,8 +1,6 @@
 #pragma once
 
-#include <utility>
-
-#include "helper.hpp"
+#include "core.hpp"
 #include "simplegl.hpp"
 
 namespace libtrainsim {
@@ -119,7 +117,7 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::setShowLatest(bool la
 template <size_t VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue(double newValue, bool redraw) {
     std::scoped_lock lock{dataMutex};
-    libtrainsim::core::Helper::appendValue<double, VALUE_COUNT>(values, newValue);
+    SimpleGFX::SimpleGL::GLHelper::appendValue<double, VALUE_COUNT>(values, newValue);
     latestVal = newValue;
     if (!fixedRange) {
         if (newValue > maxVal) {

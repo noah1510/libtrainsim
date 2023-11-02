@@ -11,13 +11,7 @@
 
 #pragma once
 
-#include "helper.hpp"
-#include "types.hpp"
-
-#include "unit_system.hpp"
-#include <nlohmann/json.hpp>
-
-#include <filesystem>
+#include "version.hpp"
 
 namespace libtrainsim {
     namespace core {

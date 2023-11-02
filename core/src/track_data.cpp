@@ -6,6 +6,7 @@
 using namespace libtrainsim::core;
 using namespace sakurajin::unit_system;
 using namespace sakurajin::unit_system::literals;
+using namespace SimpleGFX;
 
 Track_data_point::Track_data_point(uint64_t              _frame,
                                    length                _location,
@@ -84,11 +85,11 @@ void Track_data::parseJsonData(const nlohmann::json& data_json) {
     data.reserve(data_json.size());
     try {
         for (const auto& dat : data_json) {
-            length location{Helper::getJsonField<double>(dat, "location")};
-            auto   frame              = Helper::getJsonField<uint64_t>(dat, "frame");
-            auto   slope              = Helper::getOptionalJsonField<double>(dat, "slope", 0);
-            auto   radius             = Helper::getOptionalJsonField<double>(dat, "radius", std::numeric_limits<double>::infinity());
-            auto   frictionMultiplier = Helper::getOptionalJsonField<double>(dat, "frictionMultiplier");
+            length location{helper::getJsonField<double>(dat, "location")};
+            auto   frame              = helper::getJsonField<uint64_t>(dat, "frame");
+            auto   slope              = helper::getOptionalJsonField<double>(dat, "slope", 0);
+            auto   radius             = helper::getOptionalJsonField<double>(dat, "radius", std::numeric_limits<double>::infinity());
+            auto   frictionMultiplier = helper::getOptionalJsonField<double>(dat, "frictionMultiplier");
 
             libtrainsim::core::Track_data_point point{frame, location, radius, slope, frictionMultiplier};
             data.emplace_back(point);

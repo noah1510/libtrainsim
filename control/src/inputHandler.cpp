@@ -1,4 +1,4 @@
-#include "control.hpp"
+#include "inputHandler.hpp"
 
 using namespace std::literals;
 
@@ -128,7 +128,7 @@ bool libtrainsim::control::input_handler::onEvent(const SimpleGFX::inputEvent& e
         static double accelVal = 0;
         static double brakeVal = 0;
 
-        switch (libtrainsim::core::Helper::stringSwitch(eventName, {"ACCELERATE_ANALOG", "BREAK_ANALOG"})) {
+        switch (SimpleGFX::helper::stringSwitch(eventName, {"ACCELERATE_ANALOG", "BREAK_ANALOG"})) {
             case (0):
                 accelVal         = event.amount / 255;
                 currentInputAxis = accelVal - brakeVal;
@@ -142,7 +142,7 @@ bool libtrainsim::control::input_handler::onEvent(const SimpleGFX::inputEvent& e
         }
     }
 
-    switch (libtrainsim::core::Helper::stringSwitch(eventName, {"TERMINATE", "CLOSE", "EMERGENCY_BREAK", "ACCELERATE", "BREAK"})) {
+    switch (SimpleGFX::helper::stringSwitch(eventName, {"TERMINATE", "CLOSE", "EMERGENCY_BREAK", "ACCELERATE", "BREAK"})) {
         case (0):
             shouldTeminate = true;
             return false;

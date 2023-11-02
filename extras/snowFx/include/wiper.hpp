@@ -1,11 +1,11 @@
 #pragma once
 
-#include "imguiHandler.hpp"
 #include "clampedVariable.hpp"
 #include "helper.hpp"
-#include "texture.hpp"
-#include "shader.hpp"
+#include "imguiHandler.hpp"
 #include "simulator_config.hpp"
+#include "subprojects/simplegl/include/gl/shader.hpp"
+#include "subprojects/simplegl/include/gl/texture.hpp"
 
 namespace libtrainsim{
     namespace extras{

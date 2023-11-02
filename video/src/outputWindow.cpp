@@ -1,4 +1,4 @@
-#include "video.hpp"
+#include "outputWindow.hpp"
 
 using namespace std::literals;
 using namespace SimpleGFX::SimpleGL;
@@ -13,11 +13,10 @@ libtrainsim::Video::videoManager::videoManager(std::shared_ptr<libtrainsim::core
     set_default_size(1280, 720);
     set_cursor("none");
 
-    mainGLArea = Gtk::make_managed<simulatorRenderWidget>(simSettings);
-
     areaFrame = Gtk::make_managed<Gtk::AspectFrame>();
     set_child(*areaFrame);
 
+    mainGLArea = Gtk::make_managed<simulatorRenderWidget>(simSettings);
     auto [w, h] = mainGLArea->getDecoder().getDimensions();
     areaFrame->set_ratio(w / h);
     areaFrame->set_child(*mainGLArea);

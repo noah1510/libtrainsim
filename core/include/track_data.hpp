@@ -11,16 +11,6 @@
  *
  */
 
-#include "helper.hpp"
-#include "unit_system.hpp"
-
-#include <nlohmann/json.hpp>
-
-#include <algorithm>
-#include <filesystem>
-#include <limits>
-
-
 namespace libtrainsim {
     namespace core {
 

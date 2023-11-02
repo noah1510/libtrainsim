@@ -1,10 +1,5 @@
 #pragma once
 
-#include "helper.hpp"
-
-#include <algorithm>
-#include <cmath>
-
 namespace libtrainsim {
     namespace core {
         /**
@@ -129,7 +124,7 @@ void libtrainsim::core::clampedVariable<T>::operator=(const clampedVariable<T>& 
 
 template <typename T>
 bool libtrainsim::core::clampedVariable<T>::isRoughly(const T& val) const noexcept {
-    return libtrainsim::core::Helper::isRoughly<T>(value, val);
+    return SimpleGFX::helper::isRoughly<T>(value, val);
 }
 
 template <typename T>

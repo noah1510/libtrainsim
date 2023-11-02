@@ -164,13 +164,13 @@ void libtrainsim::control::serialcontrol::read_config(const std::filesystem::pat
     in >> data_json;
 
     try {
-        comport = core::Helper::getJsonField<std::string>(data_json, "comport");
+        comport = SimpleGFX::helper::getJsonField<std::string>(data_json, "comport");
     } catch (...) {
         std::throw_with_nested("error reading the comport");
     }
 
     try {
-        auto baud = core::Helper::getJsonField<int>(data_json, "baudrate");
+        auto baud = SimpleGFX::helper::getJsonField<int>(data_json, "baudrate");
         switch (baud) {
             case 110:
                 baudrate = sakurajin::baud110;
@@ -213,16 +213,16 @@ void libtrainsim::control::serialcontrol::read_config(const std::filesystem::pat
     }
 
     try {
-        auto dat = core::Helper::getJsonField(data_json, "channels");
+        auto dat = SimpleGFX::helper::getJsonField(data_json, "channels");
         if (!dat.is_array()) {
             throw std::runtime_error("channels is not an array");
         }
         serial_channels.reserve(dat.size());
         for (const auto& _dat : dat) {
-            auto name    = core::Helper::getJsonField<std::string>(_dat, "name");
-            auto channel = core::Helper::getJsonField<int>(_dat, "channel");
-            auto type    = core::Helper::getJsonField<std::string>(_dat, "type");
-            auto dir     = core::Helper::getJsonField<std::string>(_dat, "direction");
+            auto name    = SimpleGFX::helper::getJsonField<std::string>(_dat, "name");
+            auto channel = SimpleGFX::helper::getJsonField<int>(_dat, "channel");
+            auto type    = SimpleGFX::helper::getJsonField<std::string>(_dat, "type");
+            auto dir     = SimpleGFX::helper::getJsonField<std::string>(_dat, "direction");
 
             serial_channel channel_obj{name, channel, type == "analog", dir == "input"};
             serial_channels.emplace_back(channel_obj);

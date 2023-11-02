@@ -12,7 +12,7 @@ libtrainsim::physics::physics(const libtrainsim::core::Track& conf, bool _autoTi
     velocity             = 0.0_mps;
     location             = config.firstLocation();
     current_acceleration = 0.0_mps2;
-    last_update          = libtrainsim::core::Helper::now();
+    last_update          = SimpleGFX::helper::now();
 
     std::scoped_lock<std::shared_mutex> lock2(mutex_error);
     hasError = false;
@@ -91,7 +91,7 @@ void libtrainsim::physics::tick() {
 
     std::scoped_lock<std::shared_mutex> lock(mutex_data);
 
-    auto new_time = libtrainsim::core::Helper::now();
+    auto new_time = SimpleGFX::helper::now();
 
     time_si dt = unit_cast(new_time - last_update);
 

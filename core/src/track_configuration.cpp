@@ -1,6 +1,7 @@
 #include "track_configuration.hpp"
 
 using namespace libtrainsim::core;
+using namespace SimpleGFX;
 using namespace sakurajin::unit_system;
 
 const length& libtrainsim::core::undergorundDataPoint::begin() const {
@@ -97,7 +98,7 @@ void libtrainsim::core::Track::parseTrack() {
     }
 
     try {
-        auto dat = Helper::getJsonField(data_json.value(), "data");
+        auto dat = helper::getJsonField(data_json.value(), "data");
         if (dat.is_string()) {
             std::filesystem::path da = parentPath / dat.get<std::string>();
             track_dat                = std::make_optional<Track_data>(da);
@@ -111,14 +112,14 @@ void libtrainsim::core::Track::parseTrack() {
     }
 
     try {
-        startingPoint.value = Helper::getJsonField<double>(data_json.value(), "startingPoint");
+        startingPoint.value = helper::getJsonField<double>(data_json.value(), "startingPoint");
         startingPoint       = std::clamp(startingPoint, track_dat->firstLocation(), track_dat->lastLocation());
     } catch (...) {
         startingPoint = track_dat->firstLocation();
     }
 
     try {
-        endPoint.value = Helper::getJsonField<double>(data_json.value(), "endPoint");
+        endPoint.value = helper::getJsonField<double>(data_json.value(), "endPoint");
         endPoint       = std::clamp(endPoint, track_dat->firstLocation(), track_dat->lastLocation());
     } catch (...) {
         endPoint = track_dat->lastLocation();
@@ -141,7 +142,7 @@ void Track::parseJsonData() {
     }
 
     try {
-        auto str = Helper::getOptionalJsonField<std::string>(data_json.value(), "formatVersion");
+        auto str = helper::getOptionalJsonField<std::string>(data_json.value(), "formatVersion");
         if (str.has_value()) {
             version ver = str.value();
             if (version::compare(format_version, ver) < 0) {
@@ -154,19 +155,19 @@ void Track::parseJsonData() {
     }
 
     try {
-        name = Helper::getJsonField<std::string>(data_json.value(), "name");
+        name = helper::getJsonField<std::string>(data_json.value(), "name");
     } catch (...) {
         std::throw_with_nested(std::runtime_error("could not read name field"));
     }
 
     try {
-        videoFile = parentPath / Helper::getJsonField<std::string>(data_json.value(), "videoFile");
+        videoFile = parentPath / helper::getJsonField<std::string>(data_json.value(), "videoFile");
     } catch (...) {
         std::throw_with_nested(std::runtime_error("could not read video file field"));
     }
 
     try {
-        auto dat = Helper::getJsonField(data_json.value(), "train");
+        auto dat = helper::getJsonField(data_json.value(), "train");
         if (dat.is_string()) {
             std::filesystem::path tr = parentPath / dat.get<std::string>();
             train_dat                = train_properties(tr);
@@ -180,22 +181,22 @@ void Track::parseJsonData() {
     }
 
     try {
-        defaultTrackFrictionMultiplier = Helper::getOptionalJsonField<double>(data_json.value(), "defaultTrackFrictionMultiplier", 1.0);
+        defaultTrackFrictionMultiplier = helper::getOptionalJsonField<double>(data_json.value(), "defaultTrackFrictionMultiplier", 1.0);
     } catch (...) {
         std::throw_with_nested(std::runtime_error("Error reading defaultTrackFrictionMultiplier"));
     }
 
     try {
-        auto under = Helper::getOptionalJsonField(data_json.value(), "undergroundData");
+        auto under = helper::getOptionalJsonField(data_json.value(), "undergroundData");
         if (under.has_value()) {
             if (!under->is_array()) {
                 throw std::runtime_error("Could not read undergroundData. Not an array");
             }
 
             for (const auto& _dat : under.value()) {
-                auto sta = Helper::getJsonField<double>(_dat, "begin");
-                auto en  = Helper::getJsonField<double>(_dat, "end");
-                auto _ar = Helper::getOptionalJsonField<double>(_dat, "tunnelArea");
+                auto sta = helper::getJsonField<double>(_dat, "begin");
+                auto en  = helper::getJsonField<double>(_dat, "end");
+                auto _ar = helper::getOptionalJsonField<double>(_dat, "tunnelArea");
 
                 auto                         start = sakurajin::unit_system::length{sta};
                 auto                         end   = sakurajin::unit_system::length{en};
@@ -214,7 +215,7 @@ void Track::parseJsonData() {
     }
 
     try {
-        auto stops = Helper::getOptionalJsonField(data_json.value(), "stops");
+        auto stops = helper::getOptionalJsonField(data_json.value(), "stops");
         if (stops.has_value()) {
             if (!stops->is_array()) {
                 throw std::runtime_error("Could not read stops data. Not an array");
@@ -222,9 +223,9 @@ void Track::parseJsonData() {
 
             for (const auto& _dat : stops.value()) {
 
-                auto _name = Helper::getJsonField<std::string>(_dat, "name");
-                auto _loc  = Helper::getJsonField<double>(_dat, "location");
-                auto _ty   = Helper::getJsonField<std::string>(_dat, "type");
+                auto _name = helper::getJsonField<std::string>(_dat, "name");
+                auto _loc  = helper::getJsonField<double>(_dat, "location");
+                auto _ty   = helper::getJsonField<std::string>(_dat, "type");
 
                 auto      _location = sakurajin::unit_system::length{_loc};
                 stopTypes _type;
@@ -243,7 +244,7 @@ void Track::parseJsonData() {
     }
 
     try {
-        auto excludeTrackBounds = Helper::getOptionalJsonField<bool>(data_json.value(), "excludeTrackBounds", true);
+        auto excludeTrackBounds = helper::getOptionalJsonField<bool>(data_json.value(), "excludeTrackBounds", true);
         if (!excludeTrackBounds || stopsData.size() < 2) {
             stopsData.reserve(stopsData.size() + 2);
             stopsData.insert(stopsData.begin(), {"begin", 0_m, station});

@@ -232,7 +232,7 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
 
     renderThread = std::async(std::launch::async, [&]() {
         do {
-            auto begin = libtrainsim::core::Helper::now();
+            auto begin = SimpleGFX::helper::now();
 
             //create local copies of nextFrameToGet, currentFrameNumber and seekCutoff
             const uint64_t nextF       = nextFrameToGet;
@@ -279,13 +279,13 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
 
                 // append the new rendertime
                 renderTimeMutex.lock();
-                auto dt = libtrainsim::core::Helper::now() - begin;
+                auto dt = SimpleGFX::helper::now() - begin;
                 renderTimes.emplace_back(unit_cast(dt));
                 renderTimeMutex.unlock();
 
             } catch (const std::exception& e) {
                 //if an error happened set EOF and exit the render loop
-                libtrainsim::core::Helper::printException(e);
+                SimpleGFX::helper::printException(e);
                 reachedEOF = true;
                 return false;
             }

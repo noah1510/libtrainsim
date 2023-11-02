@@ -13,16 +13,6 @@
 #include "track_data.hpp"
 #include "train_properties.hpp"
 
-#include "helper.hpp"
-#include "unit_system.hpp"
-
-#include <cmath>
-#include <filesystem>
-#include <limits>
-#include <nlohmann/json.hpp>
-#include <optional>
-#include <tuple>
-
 namespace libtrainsim {
     namespace core {
         // an underground data point as defined in the [track json documentation](@ref track_format)

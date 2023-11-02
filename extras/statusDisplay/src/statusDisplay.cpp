@@ -118,7 +118,7 @@ void libtrainsim::extras::statusDisplay::createCustomGraph(const std::string& gr
 }
 
 void libtrainsim::extras::statusDisplay::removeGraph(const std::string& graphName) {
-    if (libtrainsim::core::Helper::contains(defaultGraphNames, graphName)) {
+    if (SimpleGFX::SimpleGL::GLHelper::contains(defaultGraphNames, graphName)) {
         throw std::invalid_argument("render and frame times may not be removed!");
     }
 

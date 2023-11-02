@@ -1,5 +1,5 @@
 sources = [
-    'src/video.cpp',
+    'src/outputWindow.cpp',
     'src/video_reader.cpp',
     'src/simulatorRenderWidget.cpp',
 ]
@@ -54,6 +54,7 @@ libtrainsim_video = library(
     include_directories : incdir,
     dependencies: video_deps,
     install : true,
+    cpp_pch: 'include/pch/libtrainsim_video_pch.hpp',
 )
 
 libtrainsim_video_dep = declare_dependency(

@@ -1,4 +1,4 @@
-#include "types.hpp"
+#include "version.hpp"
 
 libtrainsim::core::version::version(uint64_t x, uint64_t y, uint64_t z)
     : Version{
@@ -9,9 +9,9 @@ libtrainsim::core::version::version(std::tuple<uint64_t, uint64_t, uint64_t> ver
     : Version{ver} {}
 
 libtrainsim::core::version::version(const std::string& ver)
-    : version(std::stoi(Helper::splitString(ver, '.').at(0)),
-              std::stoi(Helper::splitString(ver, '.').at(1)),
-              std::stoi(Helper::splitString(ver, '.').at(2))) {}
+    : version(std::stoi(SimpleGFX::helper::splitString(ver, '.').at(0)),
+              std::stoi(SimpleGFX::helper::splitString(ver, '.').at(1)),
+              std::stoi(SimpleGFX::helper::splitString(ver, '.').at(2))) {}
 
 std::string libtrainsim::core::version::print() const {
     return std::to_string(major()) + "." + std::to_string(minor()) + "." + std::to_string(patch());

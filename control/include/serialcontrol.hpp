@@ -1,15 +1,8 @@
 #pragma once
 
-#include "helper.hpp"
-
-#include "eventSystem.hpp"
-#include "input_axis.hpp"
-#include "simulator_config.hpp"
-#include "unit_system.hpp"
-
-#include <nlohmann/json.hpp>
-#include <rs232.hpp>
-
+#ifndef LIBTRAINSIM_EXPORT_MACRO
+    #define LIBTRAINSIM_EXPORT_MACRO
+#endif
 
 namespace libtrainsim {
     namespace control {

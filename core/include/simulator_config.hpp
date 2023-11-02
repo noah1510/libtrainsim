@@ -1,16 +1,7 @@
 #pragma once
 
-#include "helper.hpp"
 #include "track_configuration.hpp"
 #include "train_properties.hpp"
-
-#include <exception>
-#include <filesystem>
-#include <future>
-#include <thread>
-#include <vector>
-
-#include <nlohmann/json.hpp>
 
 namespace libtrainsim {
     namespace core {
