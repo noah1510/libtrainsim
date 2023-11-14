@@ -13,13 +13,8 @@ libtrainsim::Video::videoManager::videoManager(std::shared_ptr<libtrainsim::core
     set_default_size(1280, 720);
     set_cursor("none");
 
-    areaFrame = Gtk::make_managed<Gtk::AspectFrame>();
-    set_child(*areaFrame);
-
     mainGLArea = Gtk::make_managed<simulatorRenderWidget>(simSettings);
-    auto [w, h] = mainGLArea->getDecoder().getDimensions();
-    areaFrame->set_ratio(w / h);
-    areaFrame->set_child(*mainGLArea);
+    set_child(*mainGLArea);
 }
 
 bool libtrainsim::Video::videoManager::onEvent(const SimpleGFX::inputEvent& event) {

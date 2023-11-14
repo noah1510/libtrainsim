@@ -169,7 +169,7 @@ namespace libtrainsim {
              * are treated as fallback.
              *
              * @warning this function can be slow, since a new simulatorConfiguration object is created to check
-             * if the data is valid. Because of this the file is loaded two times. The validity test is always done
+             * if the data is valid. Because of this the file is loaded two times. The validity tests is always done
              * with lazyLoad set to true to save as much time as possible.
              * @param URI the location of the file
              * @param lazyLoad set to true if you only want to load tracks on demand

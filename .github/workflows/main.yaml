@@ -24,7 +24,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ubunut20:
-    name: "ubuntu compile and test"
+    name: "ubuntu compile and tests"
     runs-on: "ubuntu-20.04"
     if: "contains(github.event.head_commit.message, '--build-linux')"
     steps:
@@ -38,7 +38,7 @@ jobs:
       - uses: BSFishy/meson-build@v1.0.2
         name: build full
         with:
-          action: test
+          action: tests
           directory: build
           options: --verbose
           meson-version: 0.56.1
@@ -46,7 +46,7 @@ jobs:
         run: rm -rf build
 
   windows:
-    name: "windows compile and test"
+    name: "windows compile and tests"
     runs-on: "windows-latest"
     steps:
       - uses: actions/checkout@v1
@@ -79,7 +79,7 @@ jobs:
           #meson test -C build
 
   macos-10:
-    name: "macos compile and test"
+    name: "macos compile and tests"
     runs-on: "macos-10.15"
     steps:
       - uses: actions/checkout@v1
@@ -95,7 +95,7 @@ jobs:
       - uses: BSFishy/meson-build@v1.0.2
         name: build full
         with:
-          action: test
+          action: tests
           directory: build
           options: --verbose
           meson-version: 1.0.0

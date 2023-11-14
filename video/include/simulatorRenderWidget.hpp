@@ -1,11 +1,14 @@
 #pragma once
 
+#include "displayFragShader.hpp"
 #include "video_reader.hpp"
 
 namespace libtrainsim {
     namespace Video {
-        class simulatorRenderWidget : public Gtk::GLArea {
+        class LIBTRAINSIM_EXPORT_MACRO simulatorRenderWidget : public Gtk::AspectFrame {
           private:
+            Gtk::GLArea mainGLArea;
+
             std::atomic<bool>         realized = false;
             std::atomic<unsigned int> texUnits = 0;
 
@@ -16,12 +19,12 @@ namespace libtrainsim {
             void loadBuffers();
 
             // generate the source of the display shader and compile it
-            void generateDisplayShader();
+            void generateDisplayShader(Glib::RefPtr<Gdk::GLContext> ctx);
 
             /**
              * @brief the shader used to render the video into a texture
              */
-            std::shared_ptr<SimpleGFX::SimpleGL::shader> displayShader = nullptr;
+            std::shared_ptr<SimpleGFX::SimpleGL::shaderProgram> displayShader = nullptr;
 
             // all the textures that are displayed on the output texture
             std::vector<std::shared_ptr<SimpleGFX::SimpleGL::texture>> displayTextures;
@@ -32,19 +35,16 @@ namespace libtrainsim {
              * @brief the decoder used to decode the video file into frames
              */
             videoReader decode;
+
+            std::shared_ptr<SimpleGFX::logger> LOGGER;
+
           protected:
-
-            bool                         on_render(const Glib::RefPtr<Gdk::GLContext>& context) override;
-            Glib::RefPtr<Gdk::GLContext> on_create_context() override;
-
+            bool on_render_glarea(const Glib::RefPtr<Gdk::GLContext>& context);
+            void on_realize_glarea();
+            void on_unrealize_glarea();
           public:
             explicit simulatorRenderWidget(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
             videoReader& getDecoder();
-
-            void                         on_realize() override;
-            void                         on_unrealize() override;
-
-            // bool on_tick(const Glib::RefPtr<Gdk::FrameClock>& frame_clock);
 
             /**
              * @brief adds a texture to be rendered on top of the video

@@ -1,6 +1,6 @@
 option('build_tests', type: 'boolean', value: true, description: 'set to false if you do not want to compile the tests.')
 option('force_build_tests', type: 'boolean', value: false, description: 'set to true if you do not want to compile the tests even with libtrainsim as subproject.')
-option('test_data_location', type: 'string', value: 'testdata', description: 'the location of the folder containgin all of the test files')
+option('test_data_location', type: 'string', value: 'testdata', description: 'the location of the folder containgin all of the tests files')
 option('build_video', type: 'boolean', value: true, description: 'set to false if you do not want to compile the video component.')
 option('build_control', type: 'boolean', value: true, description: 'set to false if you do not want to compile the control component.')
 option('build_physics', type: 'boolean', value: true, description: 'set to false if you do not want to compile the physics component.')

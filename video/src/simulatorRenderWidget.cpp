@@ -2,43 +2,46 @@
 
 using namespace std::literals;
 using namespace SimpleGFX::SimpleGL;
+using namespace SimpleGFX;
 namespace fs = std::filesystem;
 
 libtrainsim::Video::simulatorRenderWidget::simulatorRenderWidget(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings)
-    : Gtk::GLArea{},
+    : Gtk::AspectFrame{},
+      mainGLArea{},
       simSettings{std::move(_simSettings)},
-      decode{simSettings} {
+      decode{simSettings},
+      LOGGER{simSettings->getLogger()} {
 
-    set_use_es(true);
-    set_required_version(3, 2);
-    set_has_depth_buffer(false);
-    set_has_stencil_buffer(false);
+    mainGLArea.set_expand(true);
+    mainGLArea.set_has_depth_buffer(false);
+    mainGLArea.set_has_stencil_buffer(false);
+    mainGLArea.set_auto_render(true);
 
-    set_auto_render(false);
+    mainGLArea.signal_realize().connect(sigc::mem_fun(*this, &simulatorRenderWidget::on_realize_glarea));
+    mainGLArea.signal_unrealize().connect(sigc::mem_fun(*this, &simulatorRenderWidget::on_unrealize_glarea), true);
+    mainGLArea.signal_render().connect(sigc::mem_fun(*this, &simulatorRenderWidget::on_render_glarea), false);
+
+    auto [w, h] = decode.getDimensions();
+    set_ratio(w / h);
+    set_child(mainGLArea);
 }
 
-Glib::RefPtr<Gdk::GLContext> libtrainsim::Video::simulatorRenderWidget::on_create_context() {
-    auto ctx = Gtk::GLArea::on_create_context();
-    // auto ctx = SimpleGFX::SimpleGL::customContext::create();
-    if (ctx == nullptr) {
-        std::runtime_error e{"cannot create opengl context"};
-        simSettings->getLogger()->logException(e, true);
-        throw std::move(e);
-    }
-    return ctx;
-}
+void libtrainsim::Video::simulatorRenderWidget::on_realize_glarea() {
+    mainGLArea.make_current();
+    Glib::RefPtr<Gdk::GLContext> ctx;
+    try{
+        mainGLArea.throw_if_error();
+        ctx = mainGLArea.get_context();
 
-void libtrainsim::Video::simulatorRenderWidget::on_realize() {
-    Gtk::GLArea::on_realize();
+        int major, minor;
+        ctx->get_version(major, minor);
+        bool useES = ctx->get_use_es();
+        *LOGGER << loggingLevel::detail << "Context created with version " << major << "." << minor << (useES ? " ES" : " CORE");
 
-    make_current();
-    auto ctx = get_context();
-    throw_if_error();
-
-    try {
         SimpleGFX::SimpleGL::GLHelper::glErrorCheck();
-    } catch (...) {
-        simSettings->getLogger()->logCurrrentException(false);
+    }catch(...){
+        LOGGER->logCurrrentException(true);
+        std::throw_with_nested(std::runtime_error("cannot create GL context"));
     }
 
     texUnits = SimpleGFX::SimpleGL::GLHelper::getMaxTextureUnits();
@@ -50,15 +53,15 @@ void libtrainsim::Video::simulatorRenderWidget::on_realize() {
     try {
         loadBuffers();
     } catch (...) {
-        simSettings->getLogger()->logCurrrentException(true);
+        LOGGER->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("error creating data buffers"));
     }
 
     // load the display shader and set the default values
     try {
-        generateDisplayShader();
+        generateDisplayShader(ctx);
     } catch (...) {
-        simSettings->getLogger()->logCurrrentException(true);
+        LOGGER->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("cannot init display shader"));
     }
 
@@ -68,15 +71,15 @@ void libtrainsim::Video::simulatorRenderWidget::on_realize() {
     realized = true;
 }
 
-void libtrainsim::Video::simulatorRenderWidget::on_unrealize() {
+void libtrainsim::Video::simulatorRenderWidget::on_unrealize_glarea() {
     if (!realized) {
         return;
     }
 
     std::scoped_lock lock{GLDataMutex};
 
-    make_current();
-    if (has_error()) {
+    mainGLArea.make_current();
+    if (mainGLArea.has_error()) {
         return;
     }
 
@@ -87,7 +90,6 @@ void libtrainsim::Video::simulatorRenderWidget::on_unrealize() {
     displayShader.reset();
 
     realized = false;
-    Gtk::GLArea::on_unrealize();
 }
 
 void libtrainsim::Video::simulatorRenderWidget::loadBuffers() {
@@ -127,58 +129,43 @@ void libtrainsim::Video::simulatorRenderWidget::loadBuffers() {
     glFlush();
 }
 
-void libtrainsim::Video::simulatorRenderWidget::generateDisplayShader() {
+void libtrainsim::Video::simulatorRenderWidget::generateDisplayShader(Glib::RefPtr<Gdk::GLContext> ctx) {
+    auto vert = DefaultShaders::basicVertex::getInstance();
+    auto frag = std::make_shared<displayFragShader>(texUnits.load());
 
-    std::stringstream fragmentSource;
-    fragmentSource << R""""(
-        #version 320 es
-        precision mediump float;
-        layout(location = 0) out vec4 FragColor;
-        in vec2 TexCoord;
-        in vec2 Coord;
-    )"""";
-
-    fragmentSource << "    uniform sampler2D tex[" << texUnits << "];\n";
-    fragmentSource << R""""(
-        uniform uint enabledUnits;
-        void main(){
-            vec4 outColor;
-            FragColor = vec4(0.0,0.0,0.0,0.0);
-    )"""";
+    displayShader = std::make_shared<shaderProgram>();
+    displayShader->addPart(vert);
+    displayShader->addPart(frag);
+    try{
+        displayShader->link(ctx);
+    }catch(...){
+        LOGGER->logCurrrentException(true);
+        std::throw_with_nested(std::runtime_error("cannot link display shader"));
+    }
 
     std::vector<int> units{};
     units.reserve(texUnits);
     for (unsigned int i = 0; i < texUnits; i++) {
         units.emplace_back(i);
-        fragmentSource << "if(enabledUnits > " << i << "u){";
-        fragmentSource << "    outColor = texture(tex[" << i << "], TexCoord);";
-        fragmentSource << "    FragColor = mix(FragColor, outColor, outColor.a);";
-        fragmentSource << "}else{return;}";
     }
 
-    fragmentSource << "}" << std::endl;
-
-    shaderConfiguration disp_conf{defaultShaderSources::getBasicVertexSource(GL_320ES), fragmentSource.str()};
-
-    displayShader = std::make_shared<shader>(disp_conf);
-
-    displayShader->use();
+    displayShader->use(ctx);
+    //displayShader->useUnsafe();
     displayShader->setUniform("tex", units);
+    glFlush();
 }
 
-bool libtrainsim::Video::simulatorRenderWidget::on_render(const Glib::RefPtr<Gdk::GLContext>& context) {
+bool libtrainsim::Video::simulatorRenderWidget::on_render_glarea(const Glib::RefPtr<Gdk::GLContext>& context) {
     if (!realized) {
         return FALSE;
     }
 
     std::scoped_lock lock{GLDataMutex};
 
-    Gtk::GLArea::on_render(context);
-
     try {
         SimpleGFX::SimpleGL::GLHelper::glErrorCheck();
     } catch (...) {
-        simSettings->getLogger()->logCurrrentException(false);
+        LOGGER->logCurrrentException(true);
     }
 
     displayTextures[0]->updateImage(decode.getUsableFramebufferBuffer(), decode.getDimensions());
@@ -186,7 +173,14 @@ bool libtrainsim::Video::simulatorRenderWidget::on_render(const Glib::RefPtr<Gdk
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    displayShader->use();
+    try{
+        displayShader->use(context);
+        //displayShader->useUnsafe();
+    }
+    catch(...){
+        LOGGER->logCurrrentException(false);
+        return FALSE;
+    }
     auto orth = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -10.0f, 10.0f);
     displayShader->setUniform("transform", orth);
     displayShader->setUniform("enabledUnits", displayTextures.size());
@@ -195,14 +189,16 @@ bool libtrainsim::Video::simulatorRenderWidget::on_render(const Glib::RefPtr<Gdk
         displayTextures[i]->bind(i);
     }
 
+    //int oldVAO = 0;
+    //glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &oldVAO);
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-    glDisableVertexAttribArray (0);
-    glBindBuffer (GL_ARRAY_BUFFER, 0);
-    glUseProgram (0);
-
     glFlush();
+
+    //glBindVertexArray(oldVAO);
+    //glUseProgram (0);
 
     return TRUE;
 }
@@ -225,6 +221,7 @@ void libtrainsim::Video::simulatorRenderWidget::addTexture(std::shared_ptr<textu
     }
 
     displayTextures.emplace_back(std::move(newTexture));
+    mainGLArea.queue_render();
 }
 
 void libtrainsim::Video::simulatorRenderWidget::removeTexture(const std::string& textureName) {
@@ -235,6 +232,7 @@ void libtrainsim::Video::simulatorRenderWidget::removeTexture(const std::string&
     for (auto i = displayTextures.begin(); i < displayTextures.end(); i++) {
         if ((*i)->getName() == textureName) {
             displayTextures.erase(i);
+            mainGLArea.queue_render();
             return;
         }
     }
@@ -249,7 +247,7 @@ std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::
 void libtrainsim::Video::simulatorRenderWidget::gotoFrame(uint64_t frame_num) {
     // queue a redraw if the requested frame is newer than the currently displayed one.
     if (decode.requestFrame(frame_num)) {
-        queue_render();
+        mainGLArea.queue_render();
     }
 }
 

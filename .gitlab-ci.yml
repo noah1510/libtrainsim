@@ -6,7 +6,7 @@ build:ubuntu-sdl-ffmpeg:
   script:
   - meson setup build
   - meson compile -C build
-  - meson test -C build
+  - meson tests -C build
   only:
   - merge_requests
   - main
@@ -16,7 +16,7 @@ build:fedora-sdl-ffmpeg:
   script:
   - meson setup build
   - meson compile -C build
-  - meson test -C build
+  - meson tests -C build
   only:
   - merge_requests
   - main
