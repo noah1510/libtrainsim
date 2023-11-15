@@ -121,8 +121,8 @@ void libtrainsim::Video::videoDecodeSettings::content() {
 }
 */
 
-libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount)
-    : simSettings{std::move(_simSettings)} {
+libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount, uint64_t _seekCutoff)
+    :seekCutoff{_seekCutoff}, simSettings{std::move(_simSettings)} {
     /*
     //find all of the hardware devices
     std::vector<AVHWDeviceType> deviceTypes;

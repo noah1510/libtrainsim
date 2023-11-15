@@ -164,7 +164,7 @@ namespace libtrainsim {
              * @brief how many frames difference there has to be to seek instead of rendering frame by frame.
              *
              */
-            std::atomic<uint64_t> seekCutoff = 200;
+            std::atomic<uint64_t> seekCutoff;
 
             /**
              * @brief A pointer to the simulator settings
@@ -178,7 +178,7 @@ namespace libtrainsim {
              * @param filename the path to the file that should be played back by this object
              * @param threadCount the number of threads that should be used for video decode, 0 for autodetect
              */
-            explicit videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount = 0);
+            explicit videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount = 0, uint64_t _seekCutoff = 200);
 
             /**
              * @brief destroys the video decoder
