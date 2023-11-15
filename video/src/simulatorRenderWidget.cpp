@@ -168,7 +168,9 @@ bool libtrainsim::Video::simulatorRenderWidget::on_render_glarea(const Glib::Ref
         LOGGER->logCurrrentException(true);
     }
 
-    displayTextures[0]->updateImage(decode.getUsableFramebufferBuffer(), decode.getDimensions());
+    if(decode.hasNewFramebuffer()){
+        displayTextures[0]->updateImage(decode.getUsableFramebufferBuffer(), decode.getDimensions());
+    }
 
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);

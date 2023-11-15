@@ -399,6 +399,10 @@ const std::vector<uint8_t>& libtrainsim::Video::videoReader::getUsableFramebuffe
     return frame_data[exportBufferID];
 }
 
+bool libtrainsim::Video::videoReader::hasNewFramebuffer(){
+    return !bufferExported;
+}
+
 
 const std::filesystem::path& libtrainsim::Video::videoReader::getLoadedFile() const {
     return uri;

@@ -17,3 +17,5 @@ libtrainsim.kdev4
 
 doxybook/
 
+docs/*.bkp
+docs/*.dtmp

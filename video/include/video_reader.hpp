@@ -208,6 +208,13 @@ namespace libtrainsim {
             const std::vector<uint8_t>& getUsableFramebufferBuffer();
 
             /**
+             * Returns true if a new frame is available using getUsableFramebuffer
+             * @return true if a new frame is available false otherwise
+             */
+            [[nodiscard]]
+            bool hasNewFramebuffer();
+
+            /**
              * @brief get the path of the video that is being played back
              * @return the path to the played back video file
              */
