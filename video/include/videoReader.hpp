@@ -168,6 +168,8 @@ namespace libtrainsim {
              * @brief A pointer to the used loggin interface
              */
             std::shared_ptr<SimpleGFX::logger> LOGGER = nullptr;
+            
+            bool renderLoop();
 
           public:
             /**

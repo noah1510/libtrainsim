@@ -121,8 +121,12 @@ void libtrainsim::Video::videoDecodeSettings::content() {
 }
 */
 
-libtrainsim::Video::videoReader::videoReader(std::filesystem::path videoFile, std::shared_ptr<SimpleGFX::logger> _logger, uint64_t threadCount, uint64_t _seekCutoff)
-    :seekCutoff{_seekCutoff}, LOGGER{std::move(_logger)} {
+libtrainsim::Video::videoReader::videoReader(std::filesystem::path              videoFile,
+                                             std::shared_ptr<SimpleGFX::logger> _logger,
+                                             uint64_t                           threadCount,
+                                             uint64_t                           _seekCutoff)
+    : seekCutoff{_seekCutoff},
+      LOGGER{std::move(_logger)} {
     /*
     //find all of the hardware devices
     std::vector<AVHWDeviceType> deviceTypes;
@@ -228,73 +232,75 @@ libtrainsim::Video::videoReader::videoReader(std::filesystem::path videoFile, st
         std::throw_with_nested(std::runtime_error("Could not read initial frame"));
     }
 
-    renderThread = std::async(std::launch::async, [&]() {
-        do {
-            auto begin = SimpleGFX::helper::now();
-
-            //create local copies of nextFrameToGet, currentFrameNumber and seekCutoff
-            const uint64_t nextF       = nextFrameToGet;
-            const uint64_t currF       = currentFrameNumber;
-            const uint64_t _seekCutoff = seekCutoff;
-
-            // select the next buffer from the active buffer as back buffer
-            const auto backBuffer = incrementFramebuffer(activeBuffer);
-
-            //calculate the difference in frames
-            //this variable is used to determine if a new frame has to be decoded,
-            //if the specified frame should be seek or if frames should be decoded
-            //until the difference is 0
-            uint64_t diff = nextF - currF;
-
-            try {
-                if (diff == 0) {
-                    // no new frame to render so just wait and check again
-                    std::this_thread::sleep_for(1ms);
-                    continue;
-                } else if (diff < _seekCutoff) {
-                    // for these small skips it is faster to simply decode frame by frame
-                    while (diff > 0) {
-                        readNextFrame();
-                        diff--;
-                    }
-                } else {
-                    // the next frame is more than 4 seconds in the future
-                    // in this case av_seek is used to jump to that frame
-                    seekFrame(nextF);
-                }
-
-                // update the back buffer
-                copyToBuffer(frame_data[backBuffer]);
-
-                // switch to the next framebuffer
-                if (bufferExported) {
-                    activeBuffer = incrementFramebuffer(activeBuffer);
-                    bufferExported = false;
-                }
-
-                // update the number of the current frame
-                currentFrameNumber = nextF;
-
-                // append the new rendertime
-                renderTimeMutex.lock();
-                auto dt = SimpleGFX::helper::now() - begin;
-                renderTimes.emplace_back(unit_cast(dt));
-                renderTimeMutex.unlock();
-
-            } catch (const std::exception& e) {
-                //if an error happened set EOF and exit the render loop
-                SimpleGFX::helper::printException(e);
-                reachedEOF = true;
-                return false;
-            }
-
-        } while (!reachedEndOfFile());
-
-        return true;
-    });
+    renderThread = std::async(std::launch::async, sigc::mem_fun(*this, &videoReader::renderLoop));
 
     // auto settingsTab = std::make_shared<videoDecodeSettings>(*this);
     // imguiHandler::addSettingsTab(settingsTab);
+}
+
+bool libtrainsim::Video::videoReader::renderLoop() {
+    do {
+        auto begin = SimpleGFX::helper::now();
+
+        // create local copies of nextFrameToGet, currentFrameNumber and seekCutoff
+        const uint64_t nextF       = nextFrameToGet;
+        const uint64_t currF       = currentFrameNumber;
+        const uint64_t _seekCutoff = seekCutoff;
+
+        // select the next buffer from the active buffer as back buffer
+        const auto backBuffer = incrementFramebuffer(activeBuffer);
+
+        // calculate the difference in frames
+        // this variable is used to determine if a new frame has to be decoded,
+        // if the specified frame should be seek or if frames should be decoded
+        // until the difference is 0
+        uint64_t diff = nextF - currF;
+
+        try {
+            if (diff == 0) {
+                // no new frame to render so just wait and check again
+                std::this_thread::sleep_for(1ms);
+                continue;
+            } else if (diff < _seekCutoff) {
+                // for these small skips it is faster to simply decode frame by frame
+                while (diff > 0) {
+                    readNextFrame();
+                    diff--;
+                }
+            } else {
+                // the next frame is more than 4 seconds in the future
+                // in this case av_seek is used to jump to that frame
+                seekFrame(nextF);
+            }
+
+            // update the back buffer
+            copyToBuffer(frame_data[backBuffer]);
+
+            // switch to the next framebuffer
+            if (bufferExported) {
+                activeBuffer   = incrementFramebuffer(activeBuffer);
+                bufferExported = false;
+            }
+
+            // update the number of the current frame
+            currentFrameNumber = nextF;
+
+            // append the new rendertime
+            renderTimeMutex.lock();
+            auto dt = SimpleGFX::helper::now() - begin;
+            renderTimes.emplace_back(unit_cast(dt));
+            renderTimeMutex.unlock();
+
+        } catch (...) {
+            // if an error happened set EOF and exit the render loop
+            LOGGER->logCurrrentException();
+            reachedEOF = true;
+            return false;
+        }
+
+    } while (!reachedEndOfFile());
+
+    return true;
 }
 
 libtrainsim::Video::videoReader::~videoReader() {
@@ -393,11 +399,11 @@ void libtrainsim::Video::videoReader::copyToBuffer(std::vector<uint8_t>& frame_b
 
 const std::vector<uint8_t>& libtrainsim::Video::videoReader::getUsableFramebufferBuffer() {
     const auto exportBufferID = activeBuffer.load();
-    bufferExported = true;
+    bufferExported            = true;
     return frame_data[exportBufferID];
 }
 
-bool libtrainsim::Video::videoReader::hasNewFramebuffer(){
+bool libtrainsim::Video::videoReader::hasNewFramebuffer() {
     return !bufferExported;
 }
 
