@@ -1,6 +1,6 @@
 #pragma once
 
-#include "video_reader.hpp"
+#include "videoReaderSim.hpp"
 #include "simulatorRenderWidget.hpp"
 
 namespace libtrainsim {

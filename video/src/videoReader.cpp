@@ -1,4 +1,4 @@
-#include "video_reader.hpp"
+#include "videoReader.hpp"
 
 using namespace sakurajin::unit_system;
 using namespace SimpleGFX::SimpleGL;
@@ -121,8 +121,8 @@ void libtrainsim::Video::videoDecodeSettings::content() {
 }
 */
 
-libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount, uint64_t _seekCutoff)
-    :seekCutoff{_seekCutoff}, simSettings{std::move(_simSettings)} {
+libtrainsim::Video::videoReader::videoReader(std::filesystem::path videoFile, std::shared_ptr<SimpleGFX::logger> _logger, uint64_t threadCount, uint64_t _seekCutoff)
+    :seekCutoff{_seekCutoff}, LOGGER{std::move(_logger)} {
     /*
     //find all of the hardware devices
     std::vector<AVHWDeviceType> deviceTypes;
@@ -142,16 +142,14 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
         throw std::runtime_error("Couldn't created AVFormatContext");
     }
 
-    auto filename = simSettings->getCurrentTrack().getVideoFilePath();
-
-    if (!std::filesystem::exists(filename) || filename.empty()) {
+    if (!std::filesystem::exists(videoFile) || videoFile.empty()) {
         throw std::invalid_argument("video file does not exist or is empty");
     }
 
-    if (avformat_open_input(&av_format_ctx, filename.string().c_str(), nullptr, nullptr) != 0) {
+    if (avformat_open_input(&av_format_ctx, videoFile.string().c_str(), nullptr, nullptr) != 0) {
         throw std::invalid_argument("Couldn't open video file");
     }
-    uri = filename;
+    uri = videoFile;
 
     // Find the first valid video stream inside the file
     video_stream_index = -1;
@@ -169,7 +167,7 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
             renderSize         = dimensions{av_codec_params->width, av_codec_params->height};
             auto framerate_tmp = av_format_ctx->streams[i]->avg_frame_rate;
             framerate          = static_cast<double>(framerate_tmp.num) / static_cast<double>(framerate_tmp.den);
-            *simSettings->getLogger() << SimpleGFX::loggingLevel::normal << "video average framerate:" << framerate << " fps";
+            *LOGGER << SimpleGFX::loggingLevel::normal << "video average framerate:" << framerate << " fps";
             break;
         }
     }
@@ -201,7 +199,7 @@ libtrainsim::Video::videoReader::videoReader(std::shared_ptr<libtrainsim::core::
     threadCount                = std::clamp<uint64_t>(threadCount, 1, 16);
     av_codec_ctx->thread_count = static_cast<int>(threadCount);
     av_codec_ctx->thread_type  = FF_THREAD_SLICE;
-    *simSettings->getLogger() << SimpleGFX::loggingLevel::normal << "video decode on " << threadCount << " threads.";
+    *LOGGER << SimpleGFX::loggingLevel::normal << "video decode on " << threadCount << " threads.";
 
     if (avcodec_open2(av_codec_ctx, av_codec, nullptr) < 0) {
         throw std::runtime_error("Couldn't open codec");
@@ -307,7 +305,7 @@ libtrainsim::Video::videoReader::~videoReader() {
     }
 
     if (renderThread.valid()) {
-        *simSettings->getLogger() << SimpleGFX::loggingLevel::debug << "waiting for render to finish";
+        *LOGGER << SimpleGFX::loggingLevel::debug << "waiting for render to finish";
         renderThread.wait();
         renderThread.get();
     }

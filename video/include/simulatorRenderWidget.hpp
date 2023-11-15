@@ -1,7 +1,7 @@
 #pragma once
 
 #include "displayFragShader.hpp"
-#include "video_reader.hpp"
+#include "videoReaderSim.hpp"
 
 namespace libtrainsim {
     namespace Video {
@@ -34,7 +34,7 @@ namespace libtrainsim {
             /**
              * @brief the decoder used to decode the video file into frames
              */
-            videoReader decode;
+            videoReaderSim decode;
 
             std::shared_ptr<SimpleGFX::logger> LOGGER;
 
@@ -44,7 +44,7 @@ namespace libtrainsim {
             void on_unrealize_glarea();
           public:
             explicit simulatorRenderWidget(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
-            videoReader& getDecoder();
+            videoReaderSim& getDecoder();
 
             /**
              * @brief adds a texture to be rendered on top of the video

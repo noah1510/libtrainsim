@@ -1,6 +1,7 @@
 sources = [
     'src/outputWindow.cpp',
-    'src/video_reader.cpp',
+    'src/videoReader.cpp',
+    'src/videoReaderSim.cpp',
     'src/simulatorRenderWidget.cpp',
     'src/displayFragShader.cpp',
 ]

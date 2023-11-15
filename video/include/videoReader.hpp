@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 namespace libtrainsim {
     namespace Video {
         class videoReader;
@@ -167,9 +165,9 @@ namespace libtrainsim {
             std::atomic<uint64_t> seekCutoff;
 
             /**
-             * @brief A pointer to the simulator settings
+             * @brief A pointer to the used loggin interface
              */
-            std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings = nullptr;
+            std::shared_ptr<SimpleGFX::logger> LOGGER = nullptr;
 
           public:
             /**
@@ -178,7 +176,7 @@ namespace libtrainsim {
              * @param filename the path to the file that should be played back by this object
              * @param threadCount the number of threads that should be used for video decode, 0 for autodetect
              */
-            explicit videoReader(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, uint64_t threadCount = 0, uint64_t _seekCutoff = 200);
+            explicit videoReader(std::filesystem::path videoFile, std::shared_ptr<SimpleGFX::logger> _logger, uint64_t threadCount = 0, uint64_t _seekCutoff = 200);
 
             /**
              * @brief destroys the video decoder
