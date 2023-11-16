@@ -1,32 +1,27 @@
-#include "simulatorRenderWidget.hpp"
+#include "renderWidget/renderWidgetGL.hpp"
 
 using namespace std::literals;
 using namespace SimpleGFX::SimpleGL;
 using namespace SimpleGFX;
 namespace fs = std::filesystem;
 
-libtrainsim::Video::simulatorRenderWidget::simulatorRenderWidget(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings)
-    : Gtk::AspectFrame{},
-      mainGLArea{},
-      simSettings{std::move(_simSettings)},
-      decode{simSettings},
-      LOGGER{simSettings->getLogger()} {
+libtrainsim::Video::renderWidgetGL::renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings)
+    : libtrainsim::Video::renderWidgetBase{std::move(_simSettings)},
+      mainGLArea{} {
 
     mainGLArea.set_expand(true);
     mainGLArea.set_has_depth_buffer(false);
     mainGLArea.set_has_stencil_buffer(false);
     mainGLArea.set_auto_render(true);
 
-    mainGLArea.signal_realize().connect(sigc::mem_fun(*this, &simulatorRenderWidget::on_realize_glarea));
-    mainGLArea.signal_unrealize().connect(sigc::mem_fun(*this, &simulatorRenderWidget::on_unrealize_glarea), true);
-    mainGLArea.signal_render().connect(sigc::mem_fun(*this, &simulatorRenderWidget::on_render_glarea), false);
+    mainGLArea.signal_realize().connect(sigc::mem_fun(*this, &renderWidgetGL::on_realize_glarea));
+    mainGLArea.signal_unrealize().connect(sigc::mem_fun(*this, &renderWidgetGL::on_unrealize_glarea), true);
+    mainGLArea.signal_render().connect(sigc::mem_fun(*this, &renderWidgetGL::on_render_glarea), false);
 
-    auto [w, h] = decode.getDimensions();
-    set_ratio(w / h);
     set_child(mainGLArea);
 }
 
-void libtrainsim::Video::simulatorRenderWidget::on_realize_glarea() {
+void libtrainsim::Video::renderWidgetGL::on_realize_glarea() {
     mainGLArea.make_current();
     Glib::RefPtr<Gdk::GLContext> ctx;
     try{
@@ -71,7 +66,7 @@ void libtrainsim::Video::simulatorRenderWidget::on_realize_glarea() {
     realized = true;
 }
 
-void libtrainsim::Video::simulatorRenderWidget::on_unrealize_glarea() {
+void libtrainsim::Video::renderWidgetGL::on_unrealize_glarea() {
     if (!realized) {
         return;
     }
@@ -92,7 +87,7 @@ void libtrainsim::Video::simulatorRenderWidget::on_unrealize_glarea() {
     realized = false;
 }
 
-void libtrainsim::Video::simulatorRenderWidget::loadBuffers() {
+void libtrainsim::Video::renderWidgetGL::loadBuffers() {
     if (VAO != 0 || VBO != 0 || EBO != 0) {
         return;
     }
@@ -129,7 +124,7 @@ void libtrainsim::Video::simulatorRenderWidget::loadBuffers() {
     glFlush();
 }
 
-void libtrainsim::Video::simulatorRenderWidget::generateDisplayShader(Glib::RefPtr<Gdk::GLContext> ctx) {
+void libtrainsim::Video::renderWidgetGL::generateDisplayShader(Glib::RefPtr<Gdk::GLContext> ctx) {
     auto vert = DefaultShaders::basicVertex::getInstance();
     auto frag = std::make_shared<displayFragShader>(texUnits.load());
 
@@ -155,7 +150,7 @@ void libtrainsim::Video::simulatorRenderWidget::generateDisplayShader(Glib::RefP
     glFlush();
 }
 
-bool libtrainsim::Video::simulatorRenderWidget::on_render_glarea(const Glib::RefPtr<Gdk::GLContext>& context) {
+bool libtrainsim::Video::renderWidgetGL::on_render_glarea(const Glib::RefPtr<Gdk::GLContext>& context) {
     if (!realized) {
         return FALSE;
     }
@@ -205,7 +200,7 @@ bool libtrainsim::Video::simulatorRenderWidget::on_render_glarea(const Glib::Ref
     return TRUE;
 }
 
-void libtrainsim::Video::simulatorRenderWidget::addTexture(std::shared_ptr<texture> newTexture) {
+void libtrainsim::Video::renderWidgetGL::addTexture(std::shared_ptr<texture> newTexture) {
     if (displayTextures.size() == texUnits) {
         std::stringstream ss;
         ss << "For now only ";
@@ -226,7 +221,7 @@ void libtrainsim::Video::simulatorRenderWidget::addTexture(std::shared_ptr<textu
     mainGLArea.queue_render();
 }
 
-void libtrainsim::Video::simulatorRenderWidget::removeTexture(const std::string& textureName) {
+void libtrainsim::Video::renderWidgetGL::removeTexture(const std::string& textureName) {
     if (textureName == "background") {
         throw std::invalid_argument("the background texture cannot be removed");
     }
@@ -242,17 +237,3 @@ void libtrainsim::Video::simulatorRenderWidget::removeTexture(const std::string&
     throw std::invalid_argument("a texture with the name '" + textureName + "' does not exist");
 }
 
-std::optional<std::vector<sakurajin::unit_system::time_si>> libtrainsim::Video::simulatorRenderWidget::getNewRendertimes() {
-    return decode.getNewRendertimes();
-}
-
-void libtrainsim::Video::simulatorRenderWidget::gotoFrame(uint64_t frame_num) {
-    // queue a redraw if the requested frame is newer than the currently displayed one.
-    if (decode.requestFrame(frame_num)) {
-        mainGLArea.queue_render();
-    }
-}
-
-libtrainsim::Video::videoReaderSim& libtrainsim::Video::simulatorRenderWidget::getDecoder() {
-    return decode;
-}

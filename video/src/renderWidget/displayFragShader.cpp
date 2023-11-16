@@ -1,4 +1,4 @@
-#include "displayFragShader.hpp"
+#include "renderWidget/displayFragShader.hpp"
 
 using namespace SimpleGFX::SimpleGL;
 

@@ -1,9 +1,9 @@
 sources = [
-    'src/outputWindow.cpp',
-    'src/videoReader.cpp',
-    'src/videoReaderSim.cpp',
-    'src/simulatorRenderWidget.cpp',
-    'src/displayFragShader.cpp',
+    'src/videoDecode/videoReader.cpp',
+
+    'src/renderWidget/renderWidgetBase.cpp',
+    'src/renderWidget/renderWidgetGL.cpp',
+    'src/renderWidget/displayFragShader.cpp',
 ]
 
 video_deps = [

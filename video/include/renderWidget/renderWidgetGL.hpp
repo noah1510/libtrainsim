@@ -1,11 +1,11 @@
 #pragma once
 
-#include "displayFragShader.hpp"
-#include "videoReaderSim.hpp"
+#include "renderWidget/renderWidgetBase.hpp"
+#include "renderWidget/displayFragShader.hpp"
 
 namespace libtrainsim {
     namespace Video {
-        class LIBTRAINSIM_EXPORT_MACRO simulatorRenderWidget : public Gtk::AspectFrame {
+        class LIBTRAINSIM_EXPORT_MACRO renderWidgetGL : public renderWidgetBase {
           private:
             Gtk::GLArea mainGLArea;
 
@@ -29,22 +29,12 @@ namespace libtrainsim {
             // all the textures that are displayed on the output texture
             std::vector<std::shared_ptr<SimpleGFX::SimpleGL::texture>> displayTextures;
 
-            std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings;
-
-            /**
-             * @brief the decoder used to decode the video file into frames
-             */
-            videoReaderSim decode;
-
-            std::shared_ptr<SimpleGFX::logger> LOGGER;
-
           protected:
             bool on_render_glarea(const Glib::RefPtr<Gdk::GLContext>& context);
             void on_realize_glarea();
             void on_unrealize_glarea();
           public:
-            explicit simulatorRenderWidget(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
-            videoReaderSim& getDecoder();
+            explicit renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
 
             /**
              * @brief adds a texture to be rendered on top of the video
@@ -55,16 +45,6 @@ namespace libtrainsim {
              * @brief remove a texture from being rendered
              */
             void removeTexture(const std::string& textureName);
-
-            /**
-             * @brief jumps to a given frame in the video and display it
-             *
-             * @param frame_num the number of the frame that should be displayed next
-             */
-            void gotoFrame(uint64_t frame_num);
-
-            // the rendertimes of the video
-            std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes();
         };
     } // namespace Video
 } // namespace libtrainsim

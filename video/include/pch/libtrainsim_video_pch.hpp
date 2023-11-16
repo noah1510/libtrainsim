@@ -8,3 +8,5 @@ extern "C" {
 #include <libavutil/cpu.h>
 #include <libswscale/swscale.h>
 }
+
+#include <type_traits>
