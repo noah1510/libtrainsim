@@ -3,7 +3,7 @@ project(
     'cpp',
     'c',
     default_options : [
-        'cpp_std=c++17',
+        'cpp_std=c++23',
         'warning_level=3'
     ],
     version : '0.12.0',
