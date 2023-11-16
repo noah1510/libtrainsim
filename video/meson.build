@@ -2,6 +2,7 @@ sources = [
     'src/videoDecode/videoReader.cpp',
 
     'src/renderWidget/renderWidgetBase.cpp',
+    'src/renderWidget/renderWidgetPicture.cpp',
     'src/renderWidget/renderWidgetGL.cpp',
     'src/renderWidget/displayFragShader.cpp',
 ]

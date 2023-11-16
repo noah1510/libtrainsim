@@ -208,6 +208,17 @@ namespace libtrainsim {
             const std::vector<uint8_t>& getUsableFramebufferBuffer();
 
             /**
+             * @brief get the usable framebuffer as pixbuf
+             *
+             * This function performs an internal conversion from the framebuffer to a pixbuf.
+             * The returned object can be used to display the image in a gtk widget.
+             * @param pixbuf the pixbuf that should be used to store the framebuffer nullptr to create a new pixbuf
+             * @return The usable framebuffer as pixbuf
+             */
+            [[maybe_unused]] [[nodiscard]]
+            std::shared_ptr<Gdk::Pixbuf> getUsablePixbuf(std::shared_ptr<Gdk::Pixbuf> pixbuf);
+
+            /**
              * Returns true if a new frame is available using getUsableFramebuffer
              * @return true if a new frame is available false otherwise
              */

@@ -82,12 +82,12 @@ namespace libtrainsim {
              *
              * @param URI The location of the serial configuration file (should be given by the settings)
              */
-            input_handler(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _conf) noexcept(false);
+            explicit input_handler(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _conf) noexcept(false);
 
             /**
              * @brief destory the input handler
              */
-            ~input_handler();
+            ~input_handler() override;
 
             /**
              * @brief return true if getSpeedAxis came across a close command

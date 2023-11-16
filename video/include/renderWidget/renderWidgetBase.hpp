@@ -52,7 +52,7 @@ namespace libtrainsim {
              *
              * @param frame_num the number of the frame that should be displayed next
              */
-            void gotoFrame(uint64_t frame_num);
+            virtual void gotoFrame(uint64_t frame_num);
 
             /**
              * A shorthand for getDecoder().getNewRendertimes()

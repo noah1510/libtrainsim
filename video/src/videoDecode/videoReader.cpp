@@ -403,6 +403,43 @@ const std::vector<uint8_t>& libtrainsim::Video::videoReader::getUsableFramebuffe
     return frame_data[exportBufferID];
 }
 
+std::shared_ptr<Gdk::Pixbuf> libtrainsim::Video::videoReader::getUsablePixbuf(std::shared_ptr<Gdk::Pixbuf> pixbuf){
+    const auto exportBufferID = activeBuffer.load();
+    auto [w,h] = renderSize.getCasted<int>();
+
+    //if a pixbuf was given and the buffer already exported
+    //it is assumed that the pixbuf is already up-to-date
+    if(bufferExported && pixbuf != nullptr){
+        return pixbuf;
+    }
+
+    //create a pixbuf from the data
+    auto usebalePixbuf = Gdk::Pixbuf::create_from_data(
+        frame_data[exportBufferID].data(),
+        Gdk::Colorspace::RGB,
+        true,
+        8,
+        w,
+        h,
+        w*4
+    );
+
+    //if a pixbuf was given copy the data into it
+    if(pixbuf != nullptr){
+        usebalePixbuf->copy_area(
+            0,0,
+            w,h,
+            pixbuf,
+            0,0
+        );
+    }
+
+    //mark the buffer as exported
+    bufferExported = true;
+
+    return pixbuf == nullptr ? std::move(usebalePixbuf) : std::move(pixbuf);
+}
+
 bool libtrainsim::Video::videoReader::hasNewFramebuffer() {
     return !bufferExported;
 }

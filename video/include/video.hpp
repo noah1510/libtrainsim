@@ -7,5 +7,6 @@
 
 #include "renderWidget/renderWidgetBase.hpp"
 #include "renderWidget/renderWidgetGL.hpp"
+#include "renderWidget/renderWidgetPicture.hpp"
 
 #include "outputWindow.hpp"
