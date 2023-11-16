@@ -5,8 +5,9 @@ using namespace SimpleGFX::SimpleGL;
 using namespace SimpleGFX;
 namespace fs = std::filesystem;
 
-libtrainsim::Video::renderWidgetGL::renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings)
-    : libtrainsim::Video::renderWidgetBase{std::move(_simSettings)},
+libtrainsim::Video::renderWidgetGL::renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
+                                                   std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher)
+    : libtrainsim::Video::renderWidgetBase{std::move(_simSettings), std::move(_mainAppLauncher)},
       mainGLArea{} {
 
     mainGLArea.set_expand(true);
@@ -24,7 +25,7 @@ libtrainsim::Video::renderWidgetGL::renderWidgetGL(std::shared_ptr<libtrainsim::
 void libtrainsim::Video::renderWidgetGL::on_realize_glarea() {
     mainGLArea.make_current();
     Glib::RefPtr<Gdk::GLContext> ctx;
-    try{
+    try {
         mainGLArea.throw_if_error();
         ctx = mainGLArea.get_context();
 
@@ -34,7 +35,7 @@ void libtrainsim::Video::renderWidgetGL::on_realize_glarea() {
         *LOGGER << loggingLevel::detail << "Context created with version " << major << "." << minor << (useES ? " ES" : " CORE");
 
         SimpleGFX::SimpleGL::GLHelper::glErrorCheck();
-    }catch(...){
+    } catch (...) {
         LOGGER->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("cannot create GL context"));
     }
@@ -117,8 +118,8 @@ void libtrainsim::Video::renderWidgetGL::loadBuffers() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    glBindBuffer (GL_ARRAY_BUFFER, 0);
-    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     glFlush();
@@ -131,9 +132,9 @@ void libtrainsim::Video::renderWidgetGL::generateDisplayShader(Glib::RefPtr<Gdk:
     displayShader = std::make_shared<shaderProgram>();
     displayShader->addPart(vert);
     displayShader->addPart(frag);
-    try{
+    try {
         displayShader->link(ctx);
-    }catch(...){
+    } catch (...) {
         LOGGER->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("cannot link display shader"));
     }
@@ -145,7 +146,7 @@ void libtrainsim::Video::renderWidgetGL::generateDisplayShader(Glib::RefPtr<Gdk:
     }
 
     displayShader->use(ctx);
-    //displayShader->useUnsafe();
+    // displayShader->useUnsafe();
     displayShader->setUniform("tex", units);
     glFlush();
 }
@@ -163,18 +164,17 @@ bool libtrainsim::Video::renderWidgetGL::on_render_glarea(const Glib::RefPtr<Gdk
         LOGGER->logCurrrentException(true);
     }
 
-    if(decode.hasNewFramebuffer()){
+    if (decode.hasNewFramebuffer()) {
         displayTextures[0]->updateImage(decode.getUsableFramebufferBuffer(), decode.getDimensions());
     }
 
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    try{
+    try {
         displayShader->use(context);
-        //displayShader->useUnsafe();
-    }
-    catch(...){
+        // displayShader->useUnsafe();
+    } catch (...) {
         LOGGER->logCurrrentException(false);
         return FALSE;
     }
@@ -186,16 +186,16 @@ bool libtrainsim::Video::renderWidgetGL::on_render_glarea(const Glib::RefPtr<Gdk
         displayTextures[i]->bind(i);
     }
 
-    //int oldVAO = 0;
-    //glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &oldVAO);
+    // int oldVAO = 0;
+    // glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &oldVAO);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glFlush();
 
-    //glBindVertexArray(oldVAO);
-    //glUseProgram (0);
+    // glBindVertexArray(oldVAO);
+    // glUseProgram (0);
 
     return TRUE;
 }
@@ -218,7 +218,7 @@ void libtrainsim::Video::renderWidgetGL::addTexture(std::shared_ptr<texture> new
     }
 
     displayTextures.emplace_back(std::move(newTexture));
-    mainGLArea.queue_render();
+    mainAppLauncher->callDeffered(sigc::mem_fun(*this, &renderWidgetGL::queue_draw));
 }
 
 void libtrainsim::Video::renderWidgetGL::removeTexture(const std::string& textureName) {
@@ -229,11 +229,10 @@ void libtrainsim::Video::renderWidgetGL::removeTexture(const std::string& textur
     for (auto i = displayTextures.begin(); i < displayTextures.end(); i++) {
         if ((*i)->getName() == textureName) {
             displayTextures.erase(i);
-            mainGLArea.queue_render();
+            mainAppLauncher->callDeffered(sigc::mem_fun(*this, &renderWidgetGL::queue_draw));
             return;
         }
     }
 
     throw std::invalid_argument("a texture with the name '" + textureName + "' does not exist");
 }
-

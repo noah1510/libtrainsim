@@ -17,10 +17,17 @@ namespace libtrainsim {
             videoReader decode;
 
             /**
-             * The Logging interface used by this class.
+             * @brief The Logging interface used by this class.
              * This will be set in the constructor and usually is the same as simSettings->getLogger().
              */
             std::shared_ptr<SimpleGFX::logger> LOGGER;
+
+            /**
+             * @brief The appLauncher used by this class.
+             * It is needed to queue api calls to happen in the main thread.
+             * This allows gotoFrame to be called from any thread without crashing the program.
+             */
+            std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> mainAppLauncher;
 
             /**
              * Construct a new generic renderWidgetBase
@@ -29,7 +36,8 @@ namespace libtrainsim {
              * @note this object can not be constructed directly and should only be used as a base class.
              * @param _simSettings the simulator settings
              */
-            explicit renderWidgetBase(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
+            explicit renderWidgetBase(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
+                                      std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher);
 
           public:
             /**

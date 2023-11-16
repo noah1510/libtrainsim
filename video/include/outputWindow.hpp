@@ -19,6 +19,8 @@ namespace libtrainsim {
 
             std::shared_ptr<SimpleGFX::logger> LOGGER;
 
+            std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> mainAppLauncher;
+
           protected:
             bool on_close_request() override {
                 *LOGGER << SimpleGFX::loggingLevel::normal << "closing video manager";
@@ -51,11 +53,13 @@ namespace libtrainsim {
              *
              */
             [[maybe_unused]]
-            explicit outputWindow(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings)
+            explicit outputWindow(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
+                                  std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher)
                 : Gtk::Window{},
                   SimpleGFX::eventHandle(),
                   simSettings{std::move(_simSettings)},
-                  LOGGER{simSettings->getLogger()} {
+                  LOGGER{simSettings->getLogger()},
+                  mainAppLauncher{std::move(_mainAppLauncher)} {
 
                 static_assert(std::is_base_of_v<renderWidgetBase, renderWidgetClass>, "not an allowed renderWidgetClass");
 
@@ -63,7 +67,7 @@ namespace libtrainsim {
                 set_default_size(1280, 720);
                 set_cursor("none");
 
-                mainRenderer = Gtk::make_managed<renderWidgetClass>(simSettings);
+                mainRenderer = Gtk::make_managed<renderWidgetClass>(simSettings, mainAppLauncher);
                 set_child(*mainRenderer);
             }
 
@@ -78,7 +82,7 @@ namespace libtrainsim {
              * This advances the video to the specified frame number.
              */
             [[maybe_unused]]
-            void gotoFrame(uint64_t frame_num){
+            void gotoFrame(uint64_t frame_num) {
                 mainRenderer->gotoFrame(frame_num);
             }
 
@@ -88,7 +92,7 @@ namespace libtrainsim {
              * @return the latest render times
              */
             [[maybe_unused]] [[nodiscard]]
-            std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes(){
+            std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes() {
                 return mainRenderer->getNewRendertimes();
             }
 
@@ -99,14 +103,16 @@ namespace libtrainsim {
 
                 switch (SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"CLOSE", "MAXIMIZE"})) {
                     case (0):
-                        close();
+                        mainAppLauncher->callDeffered(sigc::mem_fun(*this, &outputWindow::close));
                         return false;
                     case (1):
-                        if (is_fullscreen()) {
-                            unfullscreen();
-                        } else {
-                            fullscreen();
-                        }
+                        mainAppLauncher->callDeffered([this](){
+                            if (is_fullscreen()) {
+                                unfullscreen();
+                            } else {
+                                fullscreen();
+                            }
+                        });
                         return true;
                     default:
                         return false;

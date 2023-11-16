@@ -1,7 +1,7 @@
 #pragma once
 
-#include "renderWidget/renderWidgetBase.hpp"
 #include "renderWidget/displayFragShader.hpp"
+#include "renderWidget/renderWidgetBase.hpp"
 
 namespace libtrainsim {
     namespace Video {
@@ -33,8 +33,10 @@ namespace libtrainsim {
             bool on_render_glarea(const Glib::RefPtr<Gdk::GLContext>& context);
             void on_realize_glarea();
             void on_unrealize_glarea();
+
           public:
-            explicit renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings);
+            explicit renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
+                                    std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher);
 
             /**
              * @brief adds a texture to be rendered on top of the video
