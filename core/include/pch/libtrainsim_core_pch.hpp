@@ -2,7 +2,6 @@
 #include "libtrainsim_config.hpp"
 
 // external libraries
-#include "nlohmann/json.hpp"
 #include "unit_system.hpp"
 #include "simplegfx.hpp"
 

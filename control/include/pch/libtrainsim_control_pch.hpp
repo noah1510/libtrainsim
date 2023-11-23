@@ -11,5 +11,5 @@
 #endif
 
 // external libraries
-#include "eventSystem.hpp"
+#include "simplegfx.hpp"
 #include "rs232.hpp"

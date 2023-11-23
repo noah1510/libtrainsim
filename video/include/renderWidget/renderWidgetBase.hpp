@@ -61,5 +61,8 @@ namespace libtrainsim {
             [[nodiscard]]
             std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes();
         };
+
+        template<class widgetClass>
+        concept renderWidgetClass = std::is_base_of<::libtrainsim::Video::renderWidgetBase, widgetClass>::value;
     } // namespace Video
 } // namespace libtrainsim

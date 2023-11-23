@@ -10,10 +10,10 @@ namespace libtrainsim {
          * @brief This class is resposible for managing all the video material.
          *
          */
-        template <class renderWidgetClass>
+        template <renderWidgetClass widgetClass>
         class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] outputWindow : public Gtk::Window, public SimpleGFX::eventHandle {
           private:
-            renderWidgetClass* mainRenderer = nullptr;
+            widgetClass* mainRenderer = nullptr;
 
             std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings;
 
@@ -61,18 +61,16 @@ namespace libtrainsim {
                   LOGGER{simSettings->getLogger()},
                   mainAppLauncher{std::move(_mainAppLauncher)} {
 
-                static_assert(std::is_base_of_v<renderWidgetBase, renderWidgetClass>, "not an allowed renderWidgetClass");
-
                 set_title(simSettings->getCurrentTrack().getName());
                 set_default_size(1280, 720);
                 set_cursor("none");
 
-                mainRenderer = Gtk::make_managed<renderWidgetClass>(simSettings, mainAppLauncher);
+                mainRenderer = Gtk::make_managed<widgetClass>(simSettings, mainAppLauncher);
                 set_child(*mainRenderer);
             }
 
             [[maybe_unused]] [[nodiscard]]
-            renderWidgetClass& getRenderer() noexcept {
+            widgetClass& getRenderer() noexcept {
                 return *mainRenderer;
             };
 
