@@ -24,4 +24,6 @@ IndentPPDirectives: BeforeHash
 IndentCaseLabels: true
 AlignArrayOfStructures: Right
 BreakArrays: false
-Standard: c++17
+IndentRequiresClause: true
+RequiresClausePosition: OwnLine
+Standard: c++20

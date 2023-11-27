@@ -3,89 +3,89 @@
 #include "core.hpp"
 #include "simplegl.hpp"
 
-namespace libtrainsim {
-    namespace extras {
+namespace libtrainsim::extras {
+    /**
+     * @brief an abstraction over the ImGui graphs for use with the statusDisplay
+     * This class provides an easy abstraction over the PlotLines function to
+     * handle all of the common graph display needs
+     *
+     * @tparam VALUE_COUNT The number of samples this graph should have
+     */
+    template <size_t VALUE_COUNT>
+        requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
+    class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] statusDisplayGraph : public Gtk::DrawingArea {
+      private:
         /**
-         * @brief an abstraction over the ImGui graphs for use with the statusDisplay
-         * This class provides an easy abstraction over the PlotLines function to
-         * handle all of the common graph display needs
-         *
-         * @tparam VALUE_COUNT The number of samples this graph should have
+         * @brief the internal array to store the data values that are displayed
          */
-        template <size_t VALUE_COUNT>
-        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] statusDisplayGraph : public Gtk::DrawingArea {
-          private:
-            /**
-             * @brief the internal array to store the data values that are displayed
-             */
-            std::array<double, VALUE_COUNT> values;
+        std::array<double, VALUE_COUNT> values;
 
-            /**
-             * @brief the name of the graph
-             */
-            const std::string name;
+        /**
+         * @brief the name of the graph
+         */
+        const std::string name;
 
-            /**
-             * @brief the tooltip that should be shown when the graph is hovered
-             */
-            std::string tooltip_txt;
+        /**
+         * @brief the tooltip that should be shown when the graph is hovered
+         */
+        std::string tooltip_txt;
 
-            std::shared_mutex dataMutex;
+        std::shared_mutex dataMutex;
 
-            std::atomic<double> minVal     = 0.0;
-            std::atomic<double> maxVal     = 0.0;
-            std::atomic<double> latestVal  = 0.0;
-            std::atomic<bool>   fixedRange = false;
-            std::atomic<bool>   showLatest = true;
-            std::atomic<bool>   showGraph  = true;
+        std::atomic<double> minVal     = 0.0;
+        std::atomic<double> maxVal     = 0.0;
+        std::atomic<double> latestVal  = 0.0;
+        std::atomic<bool>   fixedRange = false;
+        std::atomic<bool>   showLatest = true;
+        std::atomic<bool>   showGraph  = true;
 
-            const double margin = 0.1;
-            double       scaleValue(double val) const;
+        const double margin = 0.1;
+        double       scaleValue(double val) const;
 
-          public:
-            /**
-             * @brief create a new graph with a name and tooltip
-             */
-            statusDisplayGraph(std::string graphName, std::string tooltipMessage);
+      public:
+        /**
+         * @brief create a new graph with a name and tooltip
+         */
+        statusDisplayGraph(std::string graphName, std::string tooltipMessage);
 
-            /**
-             * @brief display the graph in a window
-             *
-             * @param showLatest if true next to the name of the graph there will be the latest value
-             */
+        /**
+         * @brief display the graph in a window
+         *
+         * @param showLatest if true next to the name of the graph there will be the latest value
+         */
 
-            [[maybe_unused]]
-            void setShowLatest(bool latest = true);
-            void on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
+        [[maybe_unused]]
+        void setShowLatest(bool latest = true);
+        void on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
 
-            /**
-             * @brief append a value to the graph to be the latest value to be displayed
-             */
+        /**
+         * @brief append a value to the graph to be the latest value to be displayed
+         */
+        [[maybe_unused]]
+        void appendValue(double newValue, bool redraw = true);
 
-            [[maybe_unused]]
-            void appendValue(double newValue, bool redraw = true);
+        [[maybe_unused]]
+        void setRange(double _minVal, double _maxVal);
 
-            [[maybe_unused]]
-            void setRange(double _minVal, double _maxVal);
+        /**
+         * @brief get the name of the graph
+         */
+        [[nodiscard]] [[maybe_unused]]
+        const std::string& getName() const;
 
-            /**
-             * @brief get the name of the graph
-             */
-            [[nodiscard]] [[maybe_unused]]
-            const std::string& getName() const;
+        /**
+         * @brief get the latest value of the graph
+         */
+        [[nodiscard]] [[maybe_unused]]
+        double getLatest() const;
 
-            /**
-             * @brief get the latest value of the graph
-             */
-            [[nodiscard]] [[maybe_unused]]
-            double getLatest() const;
+        void on_unrealize() override;
+    };
+} // namespace libtrainsim::extras
 
-            void on_unrealize() override;
-        };
-    } // namespace extras
-} // namespace libtrainsim
 
 template <size_t VALUE_COUNT>
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
 libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::statusDisplayGraph(std::string graphName, std::string tooltipMessage)
     : name{std::move(graphName)},
       tooltip_txt(std::move(tooltipMessage)) {
@@ -103,6 +103,7 @@ libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::statusDisplayGraph(std::st
 
 
 template <size_t VALUE_COUNT>
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_unrealize() {
     std::scoped_lock lock{dataMutex};
 
@@ -110,14 +111,16 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_unrealize() {
 }
 
 template <size_t VALUE_COUNT>
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::setShowLatest(bool latest) {
     showLatest = latest;
 }
 
 template <size_t VALUE_COUNT>
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue(double newValue, bool redraw) {
     std::scoped_lock lock{dataMutex};
-    SimpleGFX::SimpleGL::GLHelper::appendValue<double, VALUE_COUNT>(values, newValue);
+    SimpleGFX::container::appendValue<double, VALUE_COUNT>(values, newValue);
     latestVal = newValue;
     if (!fixedRange) {
         if (newValue > maxVal) {
@@ -133,13 +136,15 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::appendValue(double ne
 }
 
 template <size_t VALUE_COUNT>
-inline double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::scaleValue(double val) const{
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
+inline double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::scaleValue(double val) const {
     const double range   = maxVal - minVal;
     auto         scaledY = std::clamp(1 - (val - minVal) / range, 0.0, 1.0);
     return scaledY * (1.0 - 2.0 * margin) + margin;
 }
 
 template <size_t VALUE_COUNT>
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height) {
     if (!get_realized()) {
         return;
@@ -191,6 +196,7 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_draw(const Cairo::
 }
 
 template <size_t VALUE_COUNT>
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
 void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::setRange(double _minVal, double _maxVal) {
     minVal     = _minVal;
     maxVal     = _maxVal;
@@ -198,11 +204,13 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::setRange(double _minV
 }
 
 template <size_t VALUE_COUNT>
-const std::string& libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getName() const{
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
+const std::string& libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getName() const {
     return name;
 }
 
 template <size_t VALUE_COUNT>
-double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getLatest() const{
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
+double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getLatest() const {
     return latestVal;
 }

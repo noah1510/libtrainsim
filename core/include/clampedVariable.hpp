@@ -128,7 +128,7 @@ void libtrainsim::core::clampedVariable<T>::operator=(const clampedVariable<T>& 
 
 template <typename T>
 bool libtrainsim::core::clampedVariable<T>::isRoughly(const T& val) const noexcept {
-    return SimpleGFX::helper::isRoughly<T>(value, val);
+    return SimpleGFX::numbers::isRoughly<T>(value, val);
 }
 
 template <typename T>

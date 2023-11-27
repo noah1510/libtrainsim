@@ -27,7 +27,7 @@ namespace libtrainsim {
             std::shared_ptr<SimpleGFX::SimpleGL::shaderProgram> displayShader = nullptr;
 
             // all the textures that are displayed on the output texture
-            std::vector<std::shared_ptr<SimpleGFX::SimpleGL::texture>> displayTextures;
+            std::vector<std::shared_ptr<SimpleGFX::SimpleGL::sglTexture>> displayTextures;
 
           protected:
             bool on_render_glarea(const Glib::RefPtr<Gdk::GLContext>& context);
@@ -41,7 +41,7 @@ namespace libtrainsim {
             /**
              * @brief adds a texture to be rendered on top of the video
              */
-            void addTexture(std::shared_ptr<SimpleGFX::SimpleGL::texture> newTexture);
+            void addTexture(std::shared_ptr<SimpleGFX::SimpleGL::sglTexture> newTexture);
 
             /**
              * @brief remove a texture from being rendered

@@ -42,9 +42,9 @@ void libtrainsim::Video::renderWidgetGL::on_realize_glarea() {
 
     texUnits = SimpleGFX::SimpleGL::GLHelper::getMaxTextureUnits();
 
-    textureProperties bgProps{};
+    sglTextureProperties bgProps{};
     bgProps.name   = "background";
-    auto bgTexture = std::make_shared<texture>(bgProps);
+    auto bgTexture = std::make_shared<sglTexture>(bgProps);
 
     try {
         loadBuffers();
@@ -165,7 +165,7 @@ bool libtrainsim::Video::renderWidgetGL::on_render_glarea(const Glib::RefPtr<Gdk
     }
 
     if (decode.hasNewFramebuffer()) {
-        displayTextures[0]->updateImage(decode.getUsableFramebufferBuffer(), decode.getDimensions());
+        displayTextures[0]->updateImage(context, decode.getUsablePixbuf());
     }
 
     glClearColor(0, 0, 0, 1);
@@ -183,7 +183,7 @@ bool libtrainsim::Video::renderWidgetGL::on_render_glarea(const Glib::RefPtr<Gdk
     displayShader->setUniform("enabledUnits", displayTextures.size());
 
     for (unsigned int i = 0; i < displayTextures.size(); i++) {
-        displayTextures[i]->bind(i);
+        displayTextures[i]->bind(context, i);
     }
 
     // int oldVAO = 0;
@@ -200,7 +200,7 @@ bool libtrainsim::Video::renderWidgetGL::on_render_glarea(const Glib::RefPtr<Gdk
     return TRUE;
 }
 
-void libtrainsim::Video::renderWidgetGL::addTexture(std::shared_ptr<texture> newTexture) {
+void libtrainsim::Video::renderWidgetGL::addTexture(std::shared_ptr<sglTexture> newTexture) {
     if (displayTextures.size() == texUnits) {
         std::stringstream ss;
         ss << "For now only ";

@@ -216,7 +216,7 @@ namespace libtrainsim {
              * @return The usable framebuffer as pixbuf
              */
             [[maybe_unused]] [[nodiscard]]
-            std::shared_ptr<Gdk::Pixbuf> getUsablePixbuf(std::shared_ptr<Gdk::Pixbuf> pixbuf);
+            std::shared_ptr<Gdk::Pixbuf> getUsablePixbuf(std::shared_ptr<Gdk::Pixbuf> pixbuf = nullptr);
 
             /**
              * Returns true if a new frame is available using getUsableFramebuffer
