@@ -42,8 +42,7 @@ void libtrainsim::Video::renderWidgetGL::on_realize_glarea() {
 
     texUnits = SimpleGFX::SimpleGL::getMaxTextureUnits();
 
-    sglTextureProperties bgProps{};
-    bgProps.name   = "background";
+    sglTextureProperties bgProps{"", true, "background"};
     auto bgTexture = std::make_shared<sglTexture>(bgProps);
 
     try {
