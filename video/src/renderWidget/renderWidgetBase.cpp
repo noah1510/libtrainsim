@@ -9,7 +9,7 @@ libtrainsim::Video::renderWidgetBase::renderWidgetBase(std::shared_ptr<libtrains
                                                        std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher)
     : Gtk::AspectFrame{},
       simSettings{std::move(_simSettings)},
-      decode{_simSettings->getCurrentTrack().getVideoFilePath(), _simSettings->getLogger()},
+      decode{simSettings->getCurrentTrack().getVideoFilePath(), simSettings->getLogger()},
       LOGGER{simSettings->getLogger()},
       mainAppLauncher{std::move(_mainAppLauncher)} {
 

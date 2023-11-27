@@ -13,3 +13,15 @@ libtrainsim::Video::renderWidgetPicture::renderWidgetPicture(std::shared_ptr<lib
     mainPicture.set_expand(true);
     set_child(mainPicture);
 }
+
+void libtrainsim::Video::renderWidgetPicture::updateImage() {
+    if(decode.hasNewFramebuffer()) {
+        mainPicture.set_pixbuf(decode.getUsablePixbuf());
+    }
+}
+
+void libtrainsim::Video::renderWidgetPicture::gotoFrame(uint64_t frame_num) {
+    libtrainsim::Video::renderWidgetBase::gotoFrame(frame_num);
+
+    mainAppLauncher->callDeffered(sigc::mem_fun(*this, &renderWidgetPicture::updateImage));
+}
