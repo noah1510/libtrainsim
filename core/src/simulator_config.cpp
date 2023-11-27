@@ -15,7 +15,7 @@ libtrainsim::core::simulatorConfiguration::simulatorConfiguration(const std::fil
 
 
     try {
-        appDir = helper::getApplicationDirectory(appID);
+        appDir = filesystem::getApplicationDirectory(appID);
     } catch (...) {
         std::throw_with_nested(std::runtime_error("cannot get the application directory"));
     }
@@ -94,7 +94,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     in >> data_json;
 
     try {
-        auto str = helper::getOptionalJsonField<std::string>(data_json, "formatVersion");
+        auto str = json::getOptionalJsonField<std::string>(data_json, "formatVersion");
         if (str.has_value()) {
             version ver = str.value();
             if (version::compare(format_version, ver) < 0) {
@@ -109,7 +109,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     auto p = URI.parent_path();
 
     try {
-        auto loggerConf = helper::getOptionalJsonField(data_json, "loggerConfig");
+        auto loggerConf = json::getOptionalJsonField(data_json, "loggerConfig");
         initLogging(loggerConf);
     } catch (...) {
         std::throw_with_nested(std::runtime_error("could not init logging"));
@@ -120,7 +120,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     *coreLogger << debug << "application directory: " << appDir.string();
 
     try {
-        serialConfigLocation = p / helper::getJsonField<std::string>(data_json, "serialConfig");
+        serialConfigLocation = p / json::getJsonField<std::string>(data_json, "serialConfig");
         *coreLogger << detail << "serial config location: " << serialConfigLocation;
     } catch (...) {
         coreLogger->logCurrrentException(true);
@@ -128,7 +128,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     }
 
     try {
-        shaderFolderLocation = p / helper::getOptionalJsonField<std::string>(data_json, "shaderLocation", "shaders");
+        shaderFolderLocation = p / json::getOptionalJsonField<std::string>(data_json, "shaderLocation", "shaders");
         *coreLogger << detail << "shader location: " << shaderFolderLocation;
     } catch (...) {
         coreLogger->logCurrrentException(true);
@@ -136,7 +136,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     }
 
     try {
-        textureFolderLocation = p / helper::getOptionalJsonField<std::string>(data_json, "textureLocation", "textures");
+        textureFolderLocation = p / json::getOptionalJsonField<std::string>(data_json, "textureLocation", "textures");
         *coreLogger << detail << "texture location: " << textureFolderLocation;
     } catch (...) {
         coreLogger->logCurrrentException(true);
@@ -144,7 +144,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     }
 
     try {
-        extrasLocation = p / helper::getOptionalJsonField<std::string>(data_json, "extrasLocation", "extras");
+        extrasLocation = p / json::getOptionalJsonField<std::string>(data_json, "extrasLocation", "extras");
         *coreLogger << detail << "extras location: " << extrasLocation;
     } catch (...) {
         coreLogger->logCurrrentException(true);
@@ -152,7 +152,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     }
 
     try {
-        auto dat = helper::getJsonField(data_json, "tracks");
+        auto dat = json::getJsonField(data_json, "tracks");
         if (!dat.is_array()) {
             coreLogger->logCurrrentException(true);
             throw std::runtime_error("tracks json filed is not an array");
@@ -179,7 +179,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     }
 
     try {
-        auto dat = helper::getJsonField(data_json, "trains");
+        auto dat = json::getJsonField(data_json, "trains");
         if (!dat.is_array()) {
             coreLogger->logCurrrentException(true);
             throw std::runtime_error("trains json filed is not an array");
@@ -210,7 +210,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     }
 
     try {
-        auto val = helper::getOptionalJsonField<int>(data_json, "defaultTrack", 0);
+        auto val = json::getOptionalJsonField<int>(data_json, "defaultTrack", 0);
         selectTrack(val);
         *coreLogger << detail << "default track: " << tracks[val].getName() << "index: " << val;
     } catch (...) {
@@ -219,7 +219,7 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     }
 
     try {
-        readOnly = helper::getOptionalJsonField<bool>(data_json, "settingFileReadOnly", false);
+        readOnly = json::getOptionalJsonField<bool>(data_json, "settingFileReadOnly", false);
         *coreLogger << detail << "setting config files read only: " << readOnly;
     } catch (...) {
         coreLogger->logCurrrentException(true);
@@ -237,7 +237,7 @@ bool libtrainsim::core::simulatorConfiguration::loadLastFile() noexcept {
     try {
         initLogging(std::nullopt);
     } catch (const std::exception& e) {
-        helper::printException(e);
+        exception::printException(e);
         return false;
     }
 
@@ -256,14 +256,14 @@ bool libtrainsim::core::simulatorConfiguration::loadLastFile() noexcept {
             nlohmann::json j;
             file >> j;
 
-            auto filePath = std::filesystem::path{helper::getJsonField<std::string>(j, "lastConfigFile")};
-            auto lazyLoad = helper::getJsonField<bool>(j, "lazyLoad");
+            auto filePath = std::filesystem::path{json::getJsonField<std::string>(j, "lastConfigFile")};
+            auto lazyLoad = json::getJsonField<bool>(j, "lazyLoad");
 
             *coreLogger << detail << "Loading last configuration from " << filePath << " with lazyLoad = " << lazyLoad;
             loadFileInternal(filePath, lazyLoad);
 
 
-            auto loadedTrack = helper::getJsonField<uint64_t>(j, "loadedTrack");
+            auto loadedTrack = json::getJsonField<uint64_t>(j, "loadedTrack");
             *coreLogger << detail << "restoring last loaded track: " << loadedTrack << ", name: " << getTrack(loadedTrack).getName();
             selectTrack(loadedTrack);
 
@@ -307,7 +307,7 @@ void libtrainsim::core::simulatorConfiguration::initLogging(std::optional<nlohma
 
     // create the core logger with the given log level
     try {
-        auto logeLevelStr = helper::getJsonField<std::string>(config.value(), "logLevel");
+        auto logeLevelStr = json::getJsonField<std::string>(config.value(), "logLevel");
         auto coreLogLevel = SimpleGFX::levelFromString(logeLevelStr);
         coreLogger        = std::make_shared<SimpleGFX::logger>(coreLogLevel);
 
@@ -320,7 +320,7 @@ void libtrainsim::core::simulatorConfiguration::initLogging(std::optional<nlohma
     basicLoggerInitialized = false;
 
     // check if extra loggers are specified
-    auto extraLogger = helper::getOptionalJsonField(config.value(), "extraLoggers");
+    auto extraLogger = json::getOptionalJsonField(config.value(), "extraLoggers");
     if (!extraLogger.has_value()) {
         *coreLogger << debug << "no extra loggers specified";
         return;
@@ -332,11 +332,11 @@ void libtrainsim::core::simulatorConfiguration::initLogging(std::optional<nlohma
 
         for (auto& logger : extraLogger.value()) {
             // load all fields from the json object
-            auto logLevelStr = helper::getJsonField<std::string>(logger, "logLevel");
+            auto logLevelStr = json::getJsonField<std::string>(logger, "logLevel");
             auto logLevel    = SimpleGFX::levelFromString(logLevelStr);
-            auto logFile     = std::filesystem::path{helper::getJsonField<std::string>(logger, "file")};
-            auto appendDate  = helper::getOptionalJsonField<bool>(logger, "appendDate", false);
-            auto cleanFile   = helper::getOptionalJsonField<bool>(logger, "cleanFile", false);
+            auto logFile     = std::filesystem::path{json::getJsonField<std::string>(logger, "file")};
+            auto appendDate  = json::getOptionalJsonField<bool>(logger, "appendDate", false);
+            auto cleanFile   = json::getOptionalJsonField<bool>(logger, "cleanFile", false);
 
             // add the date to the logFile if needed
             if (appendDate) {
@@ -356,7 +356,7 @@ void libtrainsim::core::simulatorConfiguration::initLogging(std::optional<nlohma
             }
 
             // create the logger object for the correct type
-            auto loggerType = helper::getJsonField<std::string>(logger, "type");
+            auto loggerType = json::getJsonField<std::string>(logger, "type");
             if (loggerType == "txt") {
                 SimpleGFX::loggerTxtProperties props{logLevel, logFileLocation};
                 props.cleanFile = cleanFile;

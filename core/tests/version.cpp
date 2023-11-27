@@ -1,6 +1,3 @@
-#include "version.hpp"
-#include <gtest/gtest.h>
-
 using namespace libtrainsim::core;
 
 TEST(VersionTests, CheckCompare) {

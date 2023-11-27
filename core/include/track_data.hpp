@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef LIBTRAINSIM_EXPORT_MACRO
+    #define LIBTRAINSIM_EXPORT_MACRO
+#endif
+
 /**
  * @file track_data.hpp
  * @author Noah Kirschmann (noah.kirschmann@mnd.thm.de)

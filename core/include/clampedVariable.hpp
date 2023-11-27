@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef LIBTRAINSIM_EXPORT_MACRO
+    #define LIBTRAINSIM_EXPORT_MACRO
+#endif
+
 namespace libtrainsim {
     namespace core {
         /**

@@ -9,9 +9,9 @@ libtrainsim::core::version::version(std::tuple<uint64_t, uint64_t, uint64_t> ver
     : Version{ver} {}
 
 libtrainsim::core::version::version(const std::string& ver)
-    : version(std::stoi(SimpleGFX::helper::splitString(ver, '.').at(0)),
-              std::stoi(SimpleGFX::helper::splitString(ver, '.').at(1)),
-              std::stoi(SimpleGFX::helper::splitString(ver, '.').at(2))) {}
+    : version(std::stoi(SimpleGFX::string::splitString(ver, '.').at(0)),
+              std::stoi(SimpleGFX::string::splitString(ver, '.').at(1)),
+              std::stoi(SimpleGFX::string::splitString(ver, '.').at(2))) {}
 
 std::string libtrainsim::core::version::print() const {
     return std::to_string(major()) + "." + std::to_string(minor()) + "." + std::to_string(patch());

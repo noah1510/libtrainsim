@@ -15,6 +15,10 @@
 #undef minor
 #undef patch
 
+#ifndef LIBTRAINSIM_EXPORT_MACRO
+    #define LIBTRAINSIM_EXPORT_MACRO
+#endif
+
 /**
  * @brief This namespace contains all of libtrainsim.
  *

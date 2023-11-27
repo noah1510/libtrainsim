@@ -1,9 +1,3 @@
-#include <gtest/gtest.h>
-
-#include "libtrainsim_config.hpp"
-#include "train_properties.hpp"
-#include <iostream>
-
 using namespace libtrainsim::core;
 
 using namespace sakurajin::unit_system::literals;

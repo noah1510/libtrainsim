@@ -85,11 +85,11 @@ void Track_data::parseJsonData(const nlohmann::json& data_json) {
     data.reserve(data_json.size());
     try {
         for (const auto& dat : data_json) {
-            length location{helper::getJsonField<double>(dat, "location")};
-            auto   frame              = helper::getJsonField<uint64_t>(dat, "frame");
-            auto   slope              = helper::getOptionalJsonField<double>(dat, "slope", 0);
-            auto   radius             = helper::getOptionalJsonField<double>(dat, "radius", std::numeric_limits<double>::infinity());
-            auto   frictionMultiplier = helper::getOptionalJsonField<double>(dat, "frictionMultiplier");
+            length location{json::getJsonField<double>(dat, "location")};
+            auto   frame              = json::getJsonField<uint64_t>(dat, "frame");
+            auto   slope              = json::getOptionalJsonField<double>(dat, "slope", 0);
+            auto   radius             = json::getOptionalJsonField<double>(dat, "radius", std::numeric_limits<double>::infinity());
+            auto   frictionMultiplier = json::getOptionalJsonField<double>(dat, "frictionMultiplier");
 
             libtrainsim::core::Track_data_point point{frame, location, radius, slope, frictionMultiplier};
             data.emplace_back(point);

@@ -7,6 +7,7 @@ using namespace libtrainsim::core;
 using namespace SimpleGFX;
 using namespace sakurajin::unit_system;
 using namespace sakurajin::unit_system::literals;
+using namespace std::literals;
 
 train_properties::train_properties(const std::filesystem::path& URI) {
     if (!std::filesystem::exists(URI)) {
@@ -47,7 +48,7 @@ void train_properties::loadJsonData(const nlohmann::json& data_json) {
     }
 
     try {
-        auto str = helper::getOptionalJsonField<std::string>(data_json, "formatVersion");
+        auto str = json::getOptionalJsonField<std::string>(data_json, "formatVersion");
         if (str.has_value()) {
             version ver = str.value();
             if (version::compare(format_version, ver) < 0) {
@@ -60,22 +61,23 @@ void train_properties::loadJsonData(const nlohmann::json& data_json) {
     }
 
     try {
-        name = helper::getJsonField<std::string>(data_json, "name");
+        name = json::getJsonField<std::string>(data_json, "name");
     } catch (...) {
         std::throw_with_nested(std::runtime_error("could not read name"));
     }
 
     try {
-        mass = sakurajin::unit_system::mass{helper::getJsonField<double>(data_json, "mass")};
+        mass = sakurajin::unit_system::mass{json::getJsonField<double>(data_json, "mass")};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("could not read mass"));
     }
 
     long double powerUnit = 1.0;
     try {
-        auto unit = helper::getOptionalJsonField<std::string>(data_json, "powerUnit");
+        auto unit = json::getOptionalJsonField<std::string>(data_json, "powerUnit");
         if (unit.has_value()) {
-            switch (helper::stringSwitch(unit.value(), {"W", "kW"})) {
+            auto cases = {"W", "kW"};
+            switch (TSwitch(unit.value(), cases)) {
                 case (0):
                     powerUnit = 1.0;
                     break;
@@ -95,39 +97,40 @@ void train_properties::loadJsonData(const nlohmann::json& data_json) {
     }
 
     try {
-        maxPower = sakurajin::unit_system::power{helper::getJsonField<double>(data_json, "maxPower"), powerUnit};
+        maxPower = sakurajin::unit_system::power{json::getJsonField<double>(data_json, "maxPower"), powerUnit};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading max power"));
     }
 
     try {
-        surfaceArea = sakurajin::unit_system::area{helper::getJsonField<double>(data_json, "surfaceArea"), 1.0};
+        surfaceArea = sakurajin::unit_system::area{json::getJsonField<double>(data_json, "surfaceArea"), 1.0};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading train surface area"));
     }
 
     try {
-        numberWagons = helper::getJsonField<unsigned int>(data_json, "numberWagons");
+        numberWagons = json::getJsonField<unsigned int>(data_json, "numberWagons");
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading number of wagons"));
     }
 
     try {
-        wagonLength = sakurajin::unit_system::length{helper::getJsonField<double>(data_json, "wagonLength"), 1.0};
+        wagonLength = sakurajin::unit_system::length{json::getJsonField<double>(data_json, "wagonLength"), 1.0};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading length of wagons"));
     }
 
     try {
-        driverLength = sakurajin::unit_system::length{helper::getJsonField<double>(data_json, "driverLength"), 1.0};
+        driverLength = sakurajin::unit_system::length{json::getJsonField<double>(data_json, "driverLength"), 1.0};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading length of driver"));
     }
 
     try {
-        auto _type = helper::getOptionalJsonField<std::string>(data_json, "trainType");
+        auto _type = json::getOptionalJsonField<std::string>(data_json, "trainType");
         if (_type.has_value()) {
-            switch (helper::stringSwitch(_type.value(), {"passenger", "cargo"})) {
+            auto cases = {"passenger", "cargo"};
+            switch (TSwitch(_type.value(), cases)) {
                 case (0):
                     type = trainType::passenger;
                     break;

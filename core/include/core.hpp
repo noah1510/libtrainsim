@@ -4,6 +4,10 @@
 //it has all the includes for the required external libs
 #include "pch/libtrainsim_core_pch.hpp"
 
+#ifndef LIBTRAINSIM_EXPORT_MACRO
+    #define LIBTRAINSIM_EXPORT_MACRO
+#endif
+
 //generic common types
 #include "clampedVariable.hpp"
 #include "input_axis.hpp"

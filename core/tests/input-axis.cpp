@@ -1,7 +1,3 @@
-#include <gtest/gtest.h>
-
-#include "input_axis.hpp"
-
 using namespace libtrainsim::core;
 
 TEST(InputAxisTest, CheckCompare) {

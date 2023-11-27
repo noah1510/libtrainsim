@@ -10,7 +10,6 @@ tests = [
     'train_properties',
     'version',
     'input-axis',
-    'helper',
 ]
 
 #create all the tests
@@ -18,7 +17,8 @@ foreach test_obj : tests
     exe = executable(
         test_obj, 
         test_obj + '.cpp',
-        dependencies: deps
+        dependencies: deps,
+        cpp_pch: 'pch/libtrainsim_core_test_pch.hpp',
     )
     test(test_obj + ' Test', exe)
 endforeach
