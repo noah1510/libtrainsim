@@ -128,7 +128,8 @@ bool libtrainsim::control::input_handler::onEvent(const SimpleGFX::inputEvent& e
         static double accelVal = 0;
         static double brakeVal = 0;
 
-        switch (SimpleGFX::helper::stringSwitch(eventName, {"ACCELERATE_ANALOG", "BREAK_ANALOG"})) {
+        const auto analogCases = {"ACCELERATE_ANALOG", "BREAK_ANALOG"};
+        switch (SimpleGFX::TSwitch(eventName, analogCases)) {
             case (0):
                 accelVal         = event.amount / 255;
                 currentInputAxis = accelVal - brakeVal;
@@ -142,7 +143,8 @@ bool libtrainsim::control::input_handler::onEvent(const SimpleGFX::inputEvent& e
         }
     }
 
-    switch (SimpleGFX::helper::stringSwitch(eventName, {"TERMINATE", "CLOSE", "EMERGENCY_BREAK", "ACCELERATE", "BREAK"})) {
+    const auto actionCases = {"TERMINATE", "CLOSE", "EMERGENCY_BREAK", "ACCELERATE", "BREAK"};
+    switch (SimpleGFX::TSwitch(eventName, actionCases)) {
         case (0):
             shouldTeminate = true;
             return false;

@@ -52,9 +52,14 @@ namespace libtrainsim {
              * To construct it a window name
              *
              */
-            [[maybe_unused]]
-            explicit outputWindow(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
-                                  std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher)
+            template <typename... args>
+                requires std::constructible_from<widgetClass,
+                                                 std::shared_ptr<libtrainsim::core::simulatorConfiguration>,
+                                                 std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>,
+                                                 args...>
+            [[maybe_unused]] explicit outputWindow(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
+                                                   std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
+                                                   args&&... _args)
                 : Gtk::Window{},
                   SimpleGFX::eventHandle(),
                   simSettings{std::move(_simSettings)},
@@ -65,7 +70,7 @@ namespace libtrainsim {
                 set_default_size(1280, 720);
                 set_cursor("none");
 
-                mainRenderer = Gtk::make_managed<widgetClass>(simSettings, mainAppLauncher);
+                mainRenderer = Gtk::make_managed<widgetClass>(simSettings, mainAppLauncher, &_args...);
                 set_child(*mainRenderer);
             }
 
@@ -99,12 +104,13 @@ namespace libtrainsim {
                     return false;
                 }
 
-                switch (SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"CLOSE", "MAXIMIZE"})) {
+                const auto actionCases = {"CLOSE", "MAXIMIZE"};
+                switch (SimpleGFX::TSwitch(event.name, actionCases)) {
                     case (0):
                         mainAppLauncher->callDeffered(sigc::mem_fun(*this, &outputWindow::close));
                         return false;
                     case (1):
-                        mainAppLauncher->callDeffered([this](){
+                        mainAppLauncher->callDeffered([this]() {
                             if (is_fullscreen()) {
                                 unfullscreen();
                             } else {

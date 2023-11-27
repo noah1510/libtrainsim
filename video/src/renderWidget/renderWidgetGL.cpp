@@ -34,13 +34,13 @@ void libtrainsim::Video::renderWidgetGL::on_realize_glarea() {
         bool useES = ctx->get_use_es();
         *LOGGER << loggingLevel::detail << "Context created with version " << major << "." << minor << (useES ? " ES" : " CORE");
 
-        SimpleGFX::SimpleGL::GLHelper::glErrorCheck();
+        SimpleGFX::SimpleGL::glErrorCheck();
     } catch (...) {
         LOGGER->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("cannot create GL context"));
     }
 
-    texUnits = SimpleGFX::SimpleGL::GLHelper::getMaxTextureUnits();
+    texUnits = SimpleGFX::SimpleGL::getMaxTextureUnits();
 
     sglTextureProperties bgProps{};
     bgProps.name   = "background";
@@ -159,7 +159,7 @@ bool libtrainsim::Video::renderWidgetGL::on_render_glarea(const Glib::RefPtr<Gdk
     std::scoped_lock lock{GLDataMutex};
 
     try {
-        SimpleGFX::SimpleGL::GLHelper::glErrorCheck();
+        SimpleGFX::SimpleGL::glErrorCheck();
     } catch (...) {
         LOGGER->logCurrrentException(true);
     }

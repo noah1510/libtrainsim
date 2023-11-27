@@ -118,7 +118,7 @@ void libtrainsim::extras::statusDisplay::createCustomGraph(const std::string& gr
 }
 
 void libtrainsim::extras::statusDisplay::removeGraph(const std::string& graphName) {
-    if (SimpleGFX::SimpleGL::GLHelper::contains(defaultGraphNames, graphName)) {
+    if(std::ranges::contains(defaultGraphNames, graphName)){
         throw std::invalid_argument("render and frame times may not be removed!");
     }
 
@@ -171,7 +171,8 @@ bool libtrainsim::extras::statusDisplay::onEvent(const SimpleGFX::inputEvent& ev
         return false;
     }
 
-    switch (SimpleGFX::SimpleGL::GLHelper::stringSwitch(event.name, {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"})) {
+    const auto actionCases = {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"};
+    switch (SimpleGFX::TSwitch(event.name, actionCases)) {
         case (0):
             if (is_visible()) {
                 hide();

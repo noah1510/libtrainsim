@@ -5,7 +5,7 @@ using namespace SimpleGFX::SimpleGL;
 static constexpr const shaderStage stage = shaderStage::FRAGMENT;
 
 static void addVersion(std::stringstream& source, glVersion version){
-    source << GLHelper::getGLShaderVersion(version);
+    source << getGLShaderVersion(version);
 }
 
 static void addCommonParts(std::stringstream& source, unsigned int texUnits){
@@ -59,10 +59,15 @@ static std::shared_ptr<shaderPart> makeModernShader(glVersion version, unsigned 
     return std::make_shared<shaderPart>(fragmentSource.str(), stage, version);
 }
 
+static inline bool useCompatShader(const glVersion& version){
+    return isGLES(version) || version == glVersion::GL_33_CORE;
+}
+
 libtrainsim::Video::displayFragShader::displayFragShader(unsigned int texUnits) : shaderPartGroup{stage}{
-    const auto& versions = GLHelper::getAllGLVersions();
+    const auto& versions = getAllGLVersions();
+
     for(auto version: versions){
-        if(GLHelper::isGLES(version) || version == glVersion::GL_33_CORE){
+        if(useCompatShader(version)){
             addPart(makeCompatShader(version, texUnits));
         }else{
             addPart(makeModernShader(version, texUnits));

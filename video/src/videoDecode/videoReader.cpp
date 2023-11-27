@@ -240,7 +240,7 @@ libtrainsim::Video::videoReader::videoReader(std::filesystem::path              
 
 bool libtrainsim::Video::videoReader::renderLoop() {
     do {
-        auto begin = SimpleGFX::helper::now();
+        auto begin = SimpleGFX::chrono::now();
 
         // create local copies of nextFrameToGet, currentFrameNumber and seekCutoff
         const uint64_t nextF       = nextFrameToGet;
@@ -287,7 +287,7 @@ bool libtrainsim::Video::videoReader::renderLoop() {
 
             // append the new rendertime
             renderTimeMutex.lock();
-            auto dt = SimpleGFX::helper::now() - begin;
+            auto dt = SimpleGFX::chrono::now() - begin;
             renderTimes.emplace_back(unit_cast(dt));
             renderTimeMutex.unlock();
 
