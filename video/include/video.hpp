@@ -5,13 +5,12 @@
 
 #include "videoDecode/videoDecoderBase.hpp"
 
-#ifdef HAS_FFMPEG_SUPPORT
-    #include "videoDecode/videoDecoderLibav.hpp"
-#endif
-
 #include "renderWidget/renderWidgetBase.hpp"
 #include "renderWidget/renderWidgetGL.hpp"
 #include "renderWidget/renderWidgetPicture.hpp"
 
 #include "outputWindow.hpp"
+
+//the window types header includes the video decoders that are available
+//It defines template specializations for the output window class
 #include "outputWindowTypes.hpp"

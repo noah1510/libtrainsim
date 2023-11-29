@@ -16,7 +16,6 @@ CC = meson.get_compiler('c')
 
 has_libav = false
 if get_option('video_decode_libav').allowed()
-
     #try to find ffmpeg dependencies
     av_libs = [
         ['avcodec', '55.28.1'],
@@ -46,15 +45,33 @@ if get_option('video_decode_libav').allowed()
     has_libav = all_libav_found
 endif
 
-if not has_libav
-    error('No video decoder backend found')
-else
+has_gstreamer = false
+if get_option('video_decode_gstreamer').allowed()
+    gst_dep = dependency(
+        'gstreamer-1.0',
+        required: get_option('video_decode_gstreamer').enabled(),
+        version : '>=1.0.0',
+    )
+    video_deps += [gst_dep]
+    has_gstreamer = gst_dep.found()
+endif
+
+if not has_libav and not has_gstreamer
+    error('No video decoder backend found! Install either ffmpeg or gstreamermm.')
+endif
+
+if has_libav
     sources += ['src/videoDecode/videoDecoderLibav.cpp']
+endif
+
+if has_gstreamer
+    sources += ['src/videoDecode/videoDecoderGstreamer.cpp']
 endif
 
 #create the video configuration file
 video_conf_data = configuration_data()
 video_conf_data.set('HAS_FFMPEG_SUPPORT', has_libav)
+video_conf_data.set('HAS_GSTREAMER_SUPPORT', has_gstreamer)
 configure_file(output : 'video_config.hpp', configuration : video_conf_data, install: true, install_dir: 'include/libtrainsim')
 
 #include all headers including the video configuration

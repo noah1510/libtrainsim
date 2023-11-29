@@ -30,9 +30,9 @@ namespace libtrainsim {
             explicit renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
                                     std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
                                     decoderArgs&&... decoder_args)
-                : libtrainsim::Video::renderWidgetBase<videoDecoderLibav>{std::move(_simSettings),
-                                                                          std::move(_mainAppLauncher),
-                                                                          &decoder_args...},
+                : libtrainsim::Video::renderWidgetBase<decoderClass>{std::move(_simSettings),
+                                                                     std::move(_mainAppLauncher),
+                                                                     &decoder_args...},
                   mainGLArea{} {
 
                 mainGLArea.set_expand(true);
