@@ -1,7 +1,6 @@
 sources = [
     'src/videoDecode/videoDecoderBase.cpp',
 
-    'src/renderWidget/renderWidgetGL.cpp',
     'src/renderWidget/displayFragShader.cpp',
 ]
 
