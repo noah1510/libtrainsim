@@ -3,9 +3,11 @@
 #include "renderWidget/displayFragShader.hpp"
 #include "renderWidget/renderWidgetBase.hpp"
 
+#include "videoDecode/videoDecoderLibav.hpp"
+
 namespace libtrainsim {
     namespace Video {
-        class LIBTRAINSIM_EXPORT_MACRO renderWidgetGL : public renderWidgetBase {
+        class LIBTRAINSIM_EXPORT_MACRO renderWidgetGL : public renderWidgetBase<videoDecoderLibav> {
           private:
             Gtk::GLArea mainGLArea;
 

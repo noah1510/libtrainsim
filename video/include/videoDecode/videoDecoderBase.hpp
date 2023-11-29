@@ -232,5 +232,8 @@ namespace libtrainsim {
             [[maybe_unused]] [[nodiscard]]
             std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes();
         };
+
+        template<class decoderClass>
+        concept videoDecoderClass = std::is_base_of<::libtrainsim::Video::videoDecoderBase, decoderClass>::value;
     } // namespace Video
 } // namespace libtrainsim

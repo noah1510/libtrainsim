@@ -7,7 +7,7 @@ namespace fs = std::filesystem;
 
 libtrainsim::Video::renderWidgetGL::renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
                                                    std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher)
-    : libtrainsim::Video::renderWidgetBase{std::move(_simSettings), std::move(_mainAppLauncher)},
+    : libtrainsim::Video::renderWidgetBase<videoDecoderLibav>{std::move(_simSettings), std::move(_mainAppLauncher)},
       mainGLArea{} {
 
     mainGLArea.set_expand(true);

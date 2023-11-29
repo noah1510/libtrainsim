@@ -10,7 +10,7 @@ namespace libtrainsim {
          * @brief This class is resposible for managing all the video material.
          *
          */
-        template <renderWidgetClass widgetClass>
+        template <videoDecoderClass decoderClass, renderWidgetClass<decoderClass> widgetClass>
         class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] outputWindow : public Gtk::Window, public SimpleGFX::eventHandle {
           private:
             widgetClass* mainRenderer = nullptr;
