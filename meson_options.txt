@@ -9,4 +9,7 @@ option('build_extras', type: 'boolean', value: true, description: 'set to false 
 option('build_extras_statusDisplay', type : 'boolean', value : true, description: 'set to false if you do not want to compile the statusDisplay component.')
 option('build_extras_snowFx', type : 'boolean', value : false, description: 'set to false if you do not want to compile the snow effects component.')
 
+option('video_decode_libav', type: 'feature', value: 'auto', description: 'enables the libav video decoder. auto will try to find it, enabled will force it, disabled will disable it.')
+option('video_decode_gstreamer', type: 'feature', value: 'auto', description: 'enables the gstreamer video decoder. auto will try to find it, enabled will force it, disabled will disable it.')
+
 option('build_full', type: 'boolean', value: false, description: 'set to true if you to build all components and create libtrainsim_full as dependency.')

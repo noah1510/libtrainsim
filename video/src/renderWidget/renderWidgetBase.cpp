@@ -29,6 +29,6 @@ void libtrainsim::Video::renderWidgetBase::gotoFrame(uint64_t frame_num) {
     }
 }
 
-libtrainsim::Video::videoReader& libtrainsim::Video::renderWidgetBase::getDecoder() {
+libtrainsim::Video::videoDecoderLibav& libtrainsim::Video::renderWidgetBase::getDecoder() {
     return decode;
 }

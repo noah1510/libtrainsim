@@ -1,6 +1,6 @@
 #pragma once
 
-#include "videoDecode/videoReader.hpp"
+#include "videoDecode/videoDecoderLibav.hpp"
 
 namespace libtrainsim {
     namespace Video {
@@ -14,7 +14,7 @@ namespace libtrainsim {
             /**
              * @brief the decoder used to decode the video file into frames
              */
-            videoReader decode;
+            videoDecoderLibav decode;
 
             /**
              * @brief The Logging interface used by this class.
@@ -45,7 +45,7 @@ namespace libtrainsim {
              * @return a reference to the decoder used by this object.
              */
             [[nodiscard]]
-            videoReader& getDecoder();
+            videoDecoderLibav& getDecoder();
 
             /**
              * @brief jumps to a given frame in the video and display it

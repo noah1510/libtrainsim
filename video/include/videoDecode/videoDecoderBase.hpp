@@ -1,23 +1,11 @@
 #pragma once
 
+#ifndef LIBTRAINSIM_EXPORT_MACRO
+    #define LIBTRAINSIM_EXPORT_MACRO
+#endif
+
 namespace libtrainsim {
     namespace Video {
-        class videoReader;
-
-        /**
-         * @brief the settings page for the video decoder settings
-         *
-         */
-        /*class LIBTRAINSIM_EXPORT_MACRO videoDecodeSettings : public SimpleGFX::SimpleGL::tabPage{
-          private:
-            void content() override;
-            videoReader& decoder;
-            const std::array< std::pair<std::string, int>, 11> AlgorithmOptions;
-            const std::array< std::tuple<std::string, int>, 7> AlgorithmDetailsOptions;
-          public:
-            videoDecodeSettings(videoReader& VR);
-        };*/
-
         /**
          * @brief a class the handle asynchronous video decode from a single file
          *
@@ -29,32 +17,8 @@ namespace libtrainsim {
          * @note if you want to check if the video decoder has quit use the reachedEndOfFile function.
          *
          */
-        class LIBTRAINSIM_EXPORT_MACRO videoReader {
-            // friend class videoDecodeSettings;
-          private:
-            // all the ffmpeg state variables
-
-            // The framerate of the video as double
-            double framerate;
-            // the avcontext
-            AVFormatContext* av_format_ctx = nullptr;
-            // the av codec context
-            AVCodecContext* av_codec_ctx = nullptr;
-            // the id of the video stream
-            int video_stream_index;
-            // The most recently decoded frame
-            AVFrame* av_frame = nullptr;
-            // the most recent packet
-            AVPacket* av_packet = nullptr;
-            // the SwsContext for scaling and color space conversion
-            SwsContext* sws_scaler_ctx = nullptr;
-
-            // The params for the scaling context
-            int scalingContextParams = SWS_SINC;
-
-            // a mutex for locking the scaling context parameter
-            std::shared_mutex contextMutex;
-
+        class LIBTRAINSIM_EXPORT_MACRO videoDecoderBase {
+          protected:
             /**
              * @brief the size of the video
              */
@@ -132,31 +96,8 @@ namespace libtrainsim {
              * This increments a given buffer number by one and makes sure it stays
              * one of the valid buffers.
              */
-            [[nodiscard]] inline uint8_t incrementFramebuffer(uint8_t currentBuffer) const;
-
-            /**
-             * @brief reads the next frame in the video file into av_frame.
-             * @note this function does not update the currentFrameNumber variable
-             */
-            void readNextFrame();
-
-            /**
-             * @brief jump directly to a given frame number
-             * @todo fix seek for non const framerate (at the moment the fram number is
-             * converted to a timestamp based on the assumption that the framerate is constant).
-             * @param framenumber the number of the frame the decode should seek.
-             */
-            void seekFrame(uint64_t framenumber);
-
-            /**
-             * @brief copy the av_frame to the given frame_buffer
-             *
-             * This function uses swscale to copy the frame data into a buffer and
-             * while doing that converts the frame to rgba8888.
-             *
-             * @param frame_buffer The frame buffer the frame data should be copied into
-             */
-            void copyToBuffer(std::vector<uint8_t>& frame_buffer);
+            [[nodiscard]]
+            inline uint8_t incrementFramebuffer(uint8_t currentBuffer) const;
 
             /**
              * @brief how many frames difference there has to be to seek instead of rendering frame by frame.
@@ -168,22 +109,54 @@ namespace libtrainsim {
              * @brief A pointer to the used loggin interface
              */
             std::shared_ptr<SimpleGFX::logger> LOGGER = nullptr;
-            
-            bool renderLoop();
 
-          public:
+            void startRendering();
+
             /**
              * @brief create a new video decoder for a given video file
              *
              * @param filename the path to the file that should be played back by this object
              * @param threadCount the number of threads that should be used for video decode, 0 for autodetect
              */
-            explicit videoReader(std::filesystem::path videoFile, std::shared_ptr<SimpleGFX::logger> _logger, uint64_t threadCount = 0, uint64_t _seekCutoff = 200);
+            explicit videoDecoderBase(std::filesystem::path              videoFile,
+                                      std::shared_ptr<SimpleGFX::logger> _logger,
+                                      uint64_t                           _seekCutoff = 200);
 
+            /**
+             * @brief reads the next frame in the video file into av_frame.
+             * @note this function does not update the currentFrameNumber variable
+             */
+            virtual void readNextFrame();
+
+            /**
+             * @brief jump directly to a given frame number
+             * @todo fix seek for non const framerate (at the moment the fram number is
+             * converted to a timestamp based on the assumption that the framerate is constant).
+             * @param framenumber the number of the frame the decode should seek.
+             */
+            virtual void seekFrame(uint64_t framenumber);
+
+            /**
+             * @brief copy the av_frame to the given frame_buffer
+             *
+             * This function uses swscale to copy the frame data into a buffer and
+             * while doing that converts the frame to rgba8888.
+             *
+             * @param frame_buffer The frame buffer the frame data should be copied into
+             */
+            virtual void copyToBuffer(std::vector<uint8_t>& frame_buffer);
+
+            /**
+             * @brief the main render loop of the video decoder
+             * @return true if the render loop exited without error false if something went wrong
+             */
+            virtual bool renderLoop();
+
+          public:
             /**
              * @brief destroys the video decoder
              */
-            ~videoReader();
+            ~videoDecoderBase();
 
             /**
              * @brief request a frame to be decoded as soon as possible
@@ -195,17 +168,6 @@ namespace libtrainsim {
              */
             [[maybe_unused]]
             bool requestFrame(uint64_t frame_num);
-
-            /**
-             * @brief get a reference to the currently active framebuffer.
-             *
-             * This is the function that need to be called if you want to update the
-             * output of the program.
-             *
-             * @note this might not be the latest requested frame since that might be in the back buffer.
-             */
-            [[maybe_unused]] [[nodiscard]]
-            const std::vector<uint8_t>& getUsableFramebufferBuffer();
 
             /**
              * @brief get the usable framebuffer as pixbuf
@@ -223,6 +185,13 @@ namespace libtrainsim {
              * @return true if a new frame is available false otherwise
              */
             [[nodiscard]]
+            bool hasNewPixbuf();
+
+            /**
+             * Returns true if a new frame is available using getUsableFramebuffer
+             * @return true if a new frame is available false otherwise
+             */
+            [[nodiscard]] [[deprecated("use hasNewPixbuf instead")]]
             bool hasNewFramebuffer();
 
             /**

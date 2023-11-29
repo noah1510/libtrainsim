@@ -1,7 +1,7 @@
 #pragma once
 
 #include "renderWidget/renderWidgetBase.hpp"
-#include "videoDecode/videoReader.hpp"
+#include "videoDecode/videoDecoderLibav.hpp"
 
 namespace libtrainsim {
     namespace Video {
