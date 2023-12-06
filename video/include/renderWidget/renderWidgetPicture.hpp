@@ -9,10 +9,14 @@ namespace libtrainsim {
           private:
             Gtk::Picture mainPicture;
 
-            void updateImage() {
+            unsigned int interval_ms = 10;
+
+            bool updateImage() {
                 if (this->decode.hasNewPixbuf()) {
                     mainPicture.set_pixbuf(this->decode.getUsablePixbuf());
                 }
+
+                return true;
             }
 
           public:
@@ -27,13 +31,13 @@ namespace libtrainsim {
 
                 this->mainPicture.set_expand(true);
                 this->set_child(mainPicture);
+
+                Glib::signal_timeout().connect(sigc::mem_fun(*this, &renderWidgetPicture::updateImage), interval_ms);
             }
 
-            void gotoFrame(uint64_t frame_num) override {
+            /*void gotoFrame(uint64_t frame_num) override {
                 libtrainsim::Video::renderWidgetBase<decoderClass>::gotoFrame(frame_num);
-
-                this->mainAppLauncher->callDeffered(sigc::mem_fun(*this, &renderWidgetPicture::updateImage));
-            }
+            }*/
         };
     } // namespace Video
 } // namespace libtrainsim

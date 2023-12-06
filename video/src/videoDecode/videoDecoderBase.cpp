@@ -4,7 +4,7 @@ using namespace sakurajin::unit_system;
 using namespace SimpleGFX::SimpleGL;
 using namespace std::literals;
 
-inline uint8_t libtrainsim::Video::videoDecoderBase::incrementFramebuffer(uint8_t currentBuffer) const {
+uint8_t libtrainsim::Video::videoDecoderBase::incrementFramebuffer(uint8_t currentBuffer) const {
     return (currentBuffer + 1) % FRAME_BUFFER_COUNT;
 }
 
@@ -19,94 +19,91 @@ libtrainsim::Video::videoDecoderBase::videoDecoderBase(std::filesystem::path    
     }
 
     uri = videoFile;
-
-    for (auto& buf : frame_data) {
-        if (buf.size() < static_cast<size_t>(renderSize.x() * renderSize.y() * 4)) {
-            buf.resize(static_cast<int>(renderSize.x() * renderSize.y()) * 4);
-        }
-    }
     reachedEOF = true;
 }
 
-void libtrainsim::Video::videoDecoderBase::startRendering(){
+void libtrainsim::Video::videoDecoderBase::startRendering() {
+    auto [w, h] = renderSize.getCasted<int>();
     for (auto& buf : frame_data) {
-        if (buf.size() < static_cast<size_t>(renderSize.x() * renderSize.y() * 4)) {
-            buf.resize(static_cast<int>(renderSize.x() * renderSize.y()) * 4);
-        }
+        buf = Gdk::Pixbuf::create(Gdk::Colorspace::RGB, true, 8, w, h);
     }
 
-    try {
-        readNextFrame();
-        const auto bufferToCopy = activeBuffer.load();
-        copyToBuffer(frame_data[bufferToCopy]);
-    } catch (...) {
-        std::throw_with_nested(std::runtime_error("Could not read initial frame"));
-    }
+    renderThread = std::async(std::launch::async, sigc::mem_fun(*this, &videoDecoderBase::renderLoopCaller));
+}
 
-    renderThread = std::async(std::launch::async, sigc::mem_fun(*this, &videoDecoderBase::renderLoop));
+bool libtrainsim::Video::videoDecoderBase::renderLoopCaller() {
+    return renderLoop();
 }
 
 bool libtrainsim::Video::videoDecoderBase::renderLoop() {
     do {
-        auto begin = SimpleGFX::chrono::now();
-
-        // create local copies of nextFrameToGet, currentFrameNumber and seekCutoff
-        const uint64_t nextF       = nextFrameToGet;
-        const uint64_t currF       = currentFrameNumber;
-        const uint64_t _seekCutoff = seekCutoff;
-
-        // select the next buffer from the active buffer as back buffer
-        const auto backBuffer = incrementFramebuffer(activeBuffer);
-
-        // calculate the difference in frames
-        // this variable is used to determine if a new frame has to be decoded,
-        // if the specified frame should be seek or if frames should be decoded
-        // until the difference is 0
-        uint64_t diff = nextF - currF;
-
-        try {
-            if (diff == 0) {
-                // no new frame to render so just wait and check again
-                std::this_thread::sleep_for(1ms);
-                continue;
-            } else if (diff < _seekCutoff) {
-                // for these small skips it is faster to simply decode frame by frame
-                while (diff > 0) {
-                    readNextFrame();
-                    diff--;
-                }
-            } else {
-                // the next frame is more than 4 seconds in the future
-                // in this case av_seek is used to jump to that frame
-                seekFrame(nextF);
-            }
-
-            // update the back buffer
-            copyToBuffer(frame_data[backBuffer]);
-
-            // switch to the next framebuffer
-            if (bufferExported) {
-                activeBuffer   = incrementFramebuffer(activeBuffer);
-                bufferExported = false;
-            }
-
-            // update the number of the current frame
-            currentFrameNumber = nextF;
-
-            // append the new rendertime
-            renderTimeMutex.lock();
-            auto dt = SimpleGFX::chrono::now() - begin;
-            renderTimes.emplace_back(unit_cast(dt));
-            renderTimeMutex.unlock();
-
-        } catch (...) {
-            // if an error happened set EOF and exit the render loop
-            LOGGER->logCurrrentException();
-            reachedEOF = true;
+        //if there was an error in the last frame exit the render loop
+        if(!renderRequestedFrame()){
             return false;
         }
-
     } while (!reachedEndOfFile());
+
+    return true;
+}
+
+bool libtrainsim::Video::videoDecoderBase::renderRequestedFrame() {
+    auto begin = SimpleGFX::chrono::now();
+
+    // create local copies of nextFrameToGet, currentFrameNumber and seekCutoff
+    const uint64_t nextF       = nextFrameToGet;
+    const uint64_t currF       = currentFrameNumber;
+    const uint64_t _seekCutoff = seekCutoff;
+
+    // select the next buffer from the active buffer as back buffer
+    const auto backBuffer = incrementFramebuffer(activeBuffer);
+
+    // calculate the difference in frames
+    // this variable is used to determine if a new frame has to be decoded,
+    // if the specified frame should be seek or if frames should be decoded
+    // until the difference is 0
+    uint64_t diff = nextF - currF;
+
+    try {
+        if (diff == 0) {
+            // no new frame to render so just wait and check again
+            std::this_thread::sleep_for(1ms);
+            return true;
+        } else if (diff < _seekCutoff) {
+            // for these small skips it is faster to simply decode frame by frame
+            while (diff > 0) {
+                readNextFrame();
+                diff--;
+            }
+        } else {
+            // the next frame is more than 4 seconds in the future
+            // in this case av_seek is used to jump to that frame
+            seekFrame(nextF);
+        }
+
+        // update the back buffer
+        fillInternalPixbuf(frame_data[backBuffer]);
+
+        // switch to the next framebuffer
+        if (bufferExported) {
+            activeBuffer   = incrementFramebuffer(activeBuffer);
+            bufferExported = false;
+        }
+
+        // update the number of the current frame
+        currentFrameNumber = nextF;
+
+        // append the new rendertime
+        renderTimeMutex.lock();
+        auto dt = SimpleGFX::chrono::now() - begin;
+        renderTimes.emplace_back(unit_cast(dt));
+        renderTimeMutex.unlock();
+
+    } catch (...) {
+        // if an error happened set EOF and exit the render loop
+        LOGGER->logCurrrentException();
+        reachedEOF = true;
+        return false;
+    }
 
     return true;
 }
@@ -132,6 +129,16 @@ void libtrainsim::Video::videoDecoderBase::seekFrame(uint64_t framenumber) {}
 
 void libtrainsim::Video::videoDecoderBase::copyToBuffer(std::vector<uint8_t>& frame_buffer) {}
 
+void libtrainsim::Video::videoDecoderBase::fillInternalPixbuf(std::shared_ptr<Gdk::Pixbuf>& pixbuf) {
+    std::vector<uint8_t> rawBuffer;
+    auto [w, h] = renderSize.getCasted<int>();
+    rawBuffer.resize(w * h * 4);
+    copyToBuffer(rawBuffer);
+
+    // create a pixbuf from the data
+    pixbuf = Gdk::Pixbuf::create_from_data(rawBuffer.data(), Gdk::Colorspace::RGB, true, 8, w, h, w * 4);
+}
+
 std::shared_ptr<Gdk::Pixbuf> libtrainsim::Video::videoDecoderBase::getUsablePixbuf(std::shared_ptr<Gdk::Pixbuf> pixbuf) {
     const auto exportBufferID = activeBuffer.load();
     auto [w, h]               = renderSize.getCasted<int>();
@@ -142,18 +149,19 @@ std::shared_ptr<Gdk::Pixbuf> libtrainsim::Video::videoDecoderBase::getUsablePixb
         return pixbuf;
     }
 
-    // create a pixbuf from the data
-    auto usebalePixbuf = Gdk::Pixbuf::create_from_data(frame_data[exportBufferID].data(), Gdk::Colorspace::RGB, true, 8, w, h, w * 4);
+    //move the pixbuf to the return value
+    auto useablePixbuf = std::move(frame_data[exportBufferID]);
 
     // if a pixbuf was given copy the data into it
     if (pixbuf != nullptr) {
-        usebalePixbuf->copy_area(0, 0, w, h, pixbuf, 0, 0);
+        useablePixbuf->copy_area(0, 0, w, h, pixbuf, 0, 0);
     }
 
     // mark the buffer as exported
     bufferExported = true;
 
-    return pixbuf == nullptr ? std::move(usebalePixbuf) : std::move(pixbuf);
+    //if the pixbuf was not given return the usablePixbuf otherwise return the given pixbuf
+    return pixbuf == nullptr ? std::move(useablePixbuf) : std::move(pixbuf);
 }
 
 bool libtrainsim::Video::videoDecoderBase::hasNewPixbuf() {

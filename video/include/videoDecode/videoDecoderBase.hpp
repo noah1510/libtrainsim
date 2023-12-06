@@ -17,7 +17,9 @@ namespace libtrainsim {
          * @note if you want to check if the video decoder has quit use the reachedEndOfFile function.
          *
          */
-        class LIBTRAINSIM_EXPORT_MACRO videoDecoderBase {
+        class LIBTRAINSIM_EXPORT_MACRO videoDecoderBase : public sigc::trackable {
+          private:
+            bool renderLoopCaller();
           protected:
             /**
              * @brief the size of the video
@@ -53,7 +55,7 @@ namespace libtrainsim {
             /**
              * @brief the number of the next frame that should be read.
              */
-            std::atomic<uint64_t> nextFrameToGet = 0;
+            std::atomic<uint64_t> nextFrameToGet = 1;
 
             /**
              * @brief the video render thread is kept alive in this variable
@@ -72,7 +74,7 @@ namespace libtrainsim {
              * @note this is a double buffer implementation. This way the time
              * copy operation can be done while a frame is being drawn
              */
-            std::array<std::vector<uint8_t>, FRAME_BUFFER_COUNT> frame_data;
+            std::array<std::shared_ptr<Gdk::Pixbuf>, FRAME_BUFFER_COUNT> frame_data;
 
             /**
              * @brief The index of the active buffer.
@@ -97,7 +99,7 @@ namespace libtrainsim {
              * one of the valid buffers.
              */
             [[nodiscard]]
-            inline uint8_t incrementFramebuffer(uint8_t currentBuffer) const;
+            uint8_t incrementFramebuffer(uint8_t currentBuffer) const;
 
             /**
              * @brief how many frames difference there has to be to seek instead of rendering frame by frame.
@@ -146,11 +148,19 @@ namespace libtrainsim {
              */
             virtual void copyToBuffer(std::vector<uint8_t>& frame_buffer);
 
+            virtual void fillInternalPixbuf(std::shared_ptr<Gdk::Pixbuf>& pixbuf);
+
             /**
              * @brief the main render loop of the video decoder
              * @return true if the render loop exited without error false if something went wrong
              */
             virtual bool renderLoop();
+
+            /**
+             * @brief render until the most recent frame is reached
+             * @return true if the rendering was successful false if an error happened
+             */
+            bool renderRequestedFrame();
 
           public:
             /**

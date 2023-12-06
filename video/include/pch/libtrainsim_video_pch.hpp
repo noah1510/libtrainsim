@@ -16,6 +16,7 @@ extern "C" {
 #ifdef HAS_GSTREAMER_SUPPORT
 extern "C" {
     #include <gst/gst.h>
+    #include <gst/video/video.h>
 }
 #endif
 

@@ -17,24 +17,33 @@ namespace libtrainsim {
          */
         class LIBTRAINSIM_EXPORT_MACRO videoDecoderGstreamer : public videoDecoderBase {
           private:
-            class LIBTRAINSIM_EXPORT_MACRO pipelineData {
-              public:
-                GstElement* pipeline;
-                GstElement* source;
-                GstElement* convert;
-                GstElement* sink;
-            };
+            GstElement* pipeline = nullptr;
+            GstElement* source   = nullptr;
+            GstElement* videorate = nullptr;
+            GstElement* convert = nullptr;
+            GstElement* sink    = nullptr;
 
-            pipelineData data;
-            GstBus*     bus;
-            GstMessage* msg;
+            unsigned int      bus_watch_id = 0;
+            std::atomic<bool> isStepping   = false;
+            const bool        logTags      = false;
+
+            void        pad_added_handler(GstElement* src, GstPad* new_pad);
+            static void pad_added_callback_connector(GstElement* src, GstPad* new_pad, videoDecoderGstreamer* self) {
+                self->pad_added_handler(src, new_pad);
+            }
+
+
+            bool       handleMessages(GstBus* bus, GstMessage* message);
+            static int handleMessages_connector(GstBus* bus, GstMessage* message, gpointer data) {
+                return static_cast<videoDecoderGstreamer*>(data)->handleMessages(bus, message);
+            }
 
           protected:
             /**
              * @brief reads the next frame in the video file into av_frame.
              * @note this function does not update the currentFrameNumber variable
              */
-            void readNextFrame() override;
+            // void readNextFrame() override;
 
             /**
              * @brief jump directly to a given frame number
@@ -42,7 +51,7 @@ namespace libtrainsim {
              * converted to a timestamp based on the assumption that the framerate is constant).
              * @param framenumber the number of the frame the decode should seek.
              */
-            void seekFrame(uint64_t framenumber) override;
+            // void seekFrame(uint64_t framenumber) override;
 
             /**
              * @brief copy the av_frame to the given frame_buffer
@@ -52,7 +61,9 @@ namespace libtrainsim {
              *
              * @param frame_buffer The frame buffer the frame data should be copied into
              */
-            void copyToBuffer(std::vector<uint8_t>& frame_buffer) override;
+            void fillInternalPixbuf(std::shared_ptr<Gdk::Pixbuf>& pixbuf) override;
+
+            bool renderLoop() override;
 
           public:
             /**

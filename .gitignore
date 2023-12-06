@@ -1,6 +1,7 @@
 build
 .cache
 .idea
+.vscode
 doc
 subprojects/*
 !subprojects/simplegl.wrap
