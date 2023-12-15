@@ -5,6 +5,12 @@ using namespace std::literals;
 libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _conf) noexcept(false)
     : conf{_conf} {
 
+    try{
+        serial = std::make_unique<serialcontrol>(conf);
+    }catch(...){
+        std::throw_with_nested(std::runtime_error("Error initializing the serial control"));
+    }
+
 #ifdef HAS_VIDEO_SUPPORT
     keyboardPoller = std::make_shared<SimpleGFX::SimpleGL::eventPollerGtkKeyboard>();
 
@@ -44,19 +50,11 @@ void libtrainsim::control::input_handler::startSimulation() {
 
     std::scoped_lock lock{dataMutex};
 
-    try {
-        // create a serial controller and if it cannot connect destroy it
-        serial = std::make_unique<serialcontrol>(conf);
-        if (!serial->IsConnected()) {
-            serial.reset();
-        } else {
-            if (registered) {
-                serial->registerWithEventManager(manager, 0);
-            }
-        }
-    } catch (...) {
-        std::throw_with_nested(std::runtime_error("Error initializing the serial control"));
+    if(!serial->IsConnected()){
+        serial->connect();
     }
+
+    *conf->getLogger() << SimpleGFX::loggingLevel::normal << "starting simulation. Serial connection status: " << serial->IsConnected();
 
     running = true;
 }
@@ -81,7 +79,6 @@ bool libtrainsim::control::input_handler::closingFlag() noexcept {
     }
 
     return false;
-    ;
 }
 
 bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
@@ -99,10 +96,6 @@ std::shared_ptr<SimpleGFX::trackedFuture<uint64_t>> libtrainsim::control::input_
     keyboardPoller->registerWithEventManager(manager, priority);
 #endif
 
-    if (serial) {
-        serial->registerWithEventManager(manager, priority);
-    }
-
     return SimpleGFX::eventHandle::registerWithEventManager(manager, priority);
 }
 
@@ -112,10 +105,6 @@ void libtrainsim::control::input_handler::unregister() {
     keyboardPoller->unregister();
 #endif
 
-    if (serial) {
-        serial->unregister();
-    }
-
     SimpleGFX::eventHandle::unregister();
 }
 
@@ -123,8 +112,9 @@ bool libtrainsim::control::input_handler::onEvent(const SimpleGFX::inputEvent& e
 
     std::scoped_lock lock{dataMutex};
     auto             eventName = event.name;
+    bool serialConnected = serial && serial->IsConnected();
 
-    if (serial) {
+    if (serialConnected) {
         static double accelVal = 0;
         static double brakeVal = 0;
 
@@ -158,7 +148,7 @@ bool libtrainsim::control::input_handler::onEvent(const SimpleGFX::inputEvent& e
             shouldEmergencyBreak = true;
             return true;
         case (3):
-            if (!running || serial) {
+            if (!running || serialConnected) {
                 return false;
             };
             currentInputAxis += 0.1;
@@ -167,7 +157,7 @@ bool libtrainsim::control::input_handler::onEvent(const SimpleGFX::inputEvent& e
             }
             return true;
         case (4):
-            if (!running || serial) {
+            if (!running || serialConnected) {
                 return false;
             };
             currentInputAxis -= 0.1;

@@ -53,31 +53,6 @@ namespace libtrainsim {
         class LIBTRAINSIM_EXPORT_MACRO serialcontrol : public SimpleGFX::eventPoller {
           private:
             /**
-             * @brief a single mutex to secure the data access
-             */
-            std::shared_mutex accessMutex;
-
-            /**
-             * @brief comport given by config-file.
-             */
-            std::string comport;
-
-            /**
-             * @brief baudrate given by config-file.
-             */
-            sakurajin::Baudrate baudrate;
-
-            /**
-             * @brief flag, true if COMPort successfully opened.
-             */
-            bool isConnected = false;
-
-            /**
-             * @brief a separate mutex for the isConnected variable
-             */
-            std::shared_mutex connectedMutex;
-
-            /**
              * @brief object which handels the communication with the COM-Port.
              */
             std::unique_ptr<sakurajin::RS232> rs232_obj;
@@ -88,32 +63,64 @@ namespace libtrainsim {
             std::vector<serial_channel> serial_channels;
 
             /**
+             * @brief The baudrate to use for the serial connection
+             * @warning it is assumed to be constant outside of the constructor
+             */
+            sakurajin::Baudrate baudrate;
+
+            /**
+             * @brief a single mutex to secure the data access
+             */
+            std::shared_mutex channelMutex;
+
+            /**
+             * @brief this stores a pointer to the simulator configuration
+             */
+            std::shared_ptr<libtrainsim::core::simulatorConfiguration> config;
+
+            /**
+             * @brief The regex to check if a string is a telegram
+             */
+            const std::regex telegramRegex{"X[UV][0-9]{2}[0]{2}[0-9A-F]{2}Y"};
+
+            /**
              * @brief This function converts a given hexadecimal value into an integer.
              */
             [[nodiscard]]
-            int hex2int(char hex) const;
+            static inline int64_t hex2int(std::string hex) {
+                int64_t val = 0;
+                uint64_t index = 0;
+
+                std::reverse(hex.begin(), hex.end());
+
+                for (auto c : hex) {
+                    int digitVal = 0;
+                    if (c >= '0' && c <= '9') {
+                        digitVal = c - '0';
+                    }else if (c >= 'A' && c <= 'F') {
+                        digitVal = c - 'A' + 10;
+                    }else{
+                        return -1;
+                    }
+
+                    val += digitVal * std::pow(16, index);
+                    index++;
+                }
+
+                return val;
+            }
 
             /**
              * @brief returns the decoded telegram:
              * @return serial_channel with the decoded data
              */
             [[nodiscard]]
-            serial_channel decodeTelegram(const std::string& telegram) const;
+            serial_channel decodeTelegram(const std::string& telegram);
 
             /**
              * @brief This function filles the variables with the data of the config-file.
              */
-            void read_config(const std::filesystem::path& filename);
-
-            /**
-             * @brief this stores the job to update the serial interface on a different thread
-             */
-            std::future<void> updateLoop;
-
-            /**
-             * @brief this stores a pointer to the simulator configuration
-             */
-            std::shared_ptr<libtrainsim::core::simulatorConfiguration> config;
+            sakurajin::Baudrate read_config(const std::filesystem::path& filename);
 
           public:
             /**
@@ -127,6 +134,12 @@ namespace libtrainsim {
              * @brief destroy the serial control object
              */
             ~serialcontrol() override;
+
+            void poll() override;
+
+            void disconnect();
+
+            bool connect();
 
             /**
              * @brief This function returns the value of isConnected.

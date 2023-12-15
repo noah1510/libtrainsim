@@ -5,151 +5,40 @@ using namespace SimpleGFX;
 
 libtrainsim::control::serialcontrol::serialcontrol(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _config)
     : config(std::move(_config)) {
-    std::scoped_lock lock{accessMutex};
 
     *config->getLogger() << debug << "starting serialcontrol";
+
     try {
-        read_config(config->getSerialConfigLocation());
+        baudrate = read_config(config->getSerialConfigLocation());
     } catch (...) {
         std::throw_with_nested(std::runtime_error("could not read serial config"));
     }
 
-    rs232_obj = std::make_unique<sakurajin::RS232>(comport, baudrate);
-    if (!rs232_obj->IsAvailable()) {
-        *config->getLogger() << warning << "serialPort" << rs232_obj->GetDeviceName()
-                             << " is not available! Check the config and if the device is connected to " << comport;
+    registerWithEventManager(config->getInputManager().get(), 0);
+
+    try{
+        auto rs232_log_stream = *config->getLogger() << error;
+        rs232_obj             = std::make_unique<sakurajin::RS232>(baudrate, rs232_log_stream);
+    }catch(...){
+        config->getLogger()->logCurrrentException();
+        rs232_obj.reset();
+        rs232_obj = nullptr;
+    }
+
+    if(rs232_obj->getCurrentDevice() == nullptr){
+        *config->getLogger() << error << "no serial port found";
         return;
     }
 
-    isConnected = true;
-
-    updateLoop = std::async(std::launch::async, [&]() {
-        do {
-            auto [message, serialError] = rs232_obj->ReadUntil({'Y'}, 100ms);
-            if (serialError < 0) {
-                continue;
-            }
-
-            serial_channel channel;
-            try {
-                channel = decodeTelegram(message);
-            } catch (const std::exception& e) {
-                config->getLogger()->logException(e, false);
-                continue;
-            }
-
-            if (registered) {
-                SimpleGFX::inputEvent e;
-                e.name       = channel.name;
-                e.originName = "serialcontrol";
-                e.amount     = static_cast<double>(channel.value);
-
-                if (channel.isAnalog) {
-                    e.inputType = SimpleGFX::inputAction::update;
-                } else {
-                    if (channel.value == 0) {
-                        e.inputType = SimpleGFX::inputAction::release;
-                    } else {
-                        e.inputType = SimpleGFX::inputAction::press;
-                    }
-                }
-
-                raiseEvent(e);
-            }
-        } while (IsConnected());
-    });
-    rs232_obj.reset();
+    if (rs232_obj->getCurrentDevice()->getConnectionStatus() != sakurajin::connectionStatus::connected) {
+        *config->getLogger() << error << "could not connect to serial port " << rs232_obj->getCurrentDevice()->getDeviceName();
+        return;
+    }
 
     *config->getLogger() << normal << "serialcontrol fully started";
 }
 
-libtrainsim::control::serialcontrol::~serialcontrol() {
-    if (IsConnected()) {
-        connectedMutex.lock();
-        isConnected = false;
-        connectedMutex.unlock();
-    }
-
-    if (updateLoop.valid()) {
-        updateLoop.wait();
-        updateLoop.get();
-    }
-}
-
-
-int libtrainsim::control::serialcontrol::hex2int(char hex) const {
-    if (hex >= '0' && hex <= '9') {
-        return hex - '0';
-    }
-    if (hex >= 'A' && hex <= 'F') {
-        return hex - 'A' + 10;
-    }
-    return -1;
-}
-
-libtrainsim::control::serial_channel libtrainsim::control::serialcontrol::decodeTelegram(const std::string& telegram) const {
-
-    // 8 digits and \0 at the end
-    if (telegram.length() != 9) {
-        throw std::invalid_argument("invalid length of telegram");
-    }
-
-    // invalid begin of message
-    if (telegram.at(0) != 'X') {
-        throw std::invalid_argument("invalid begin of telegram");
-    }
-
-    // invalid end of message
-    if (telegram.at(8) != 'Y') {
-        throw std::invalid_argument("invalid end of telegram");
-    }
-
-    // decode the type of the telegram
-    bool isDigital;
-    auto type = telegram.at(1);
-    if (type == 'V') {
-        isDigital = false;
-    } else if (type == 'U') {
-        isDigital = true;
-    } else {
-        throw std::invalid_argument("invalid type of telegram");
-    }
-
-    // decode the port number of the telegram
-    uint8_t port;
-    port = (telegram.at(2) - '0') * 10 + (telegram.at(3) - '0');
-
-    // decode the value of the telegram
-    uint8_t value;
-    if (isDigital) {
-        value = telegram.at(7) - '0';
-    } else {
-        auto v1 = hex2int(telegram.at(6));
-        auto v2 = hex2int(telegram.at(7));
-
-        if (v1 < 0 || v2 < 0) {
-            throw std::invalid_argument("invalid value of telegram");
-        }
-
-        value = v1 * 16 + v2;
-    }
-
-    for (auto channel : serial_channels) {
-        if (channel.channel == port && channel.isAnalog == !isDigital) {
-            channel.value = value;
-            return channel;
-        }
-    }
-
-    throw std::invalid_argument("somehow got an unidentified channel");
-}
-
-bool libtrainsim::control::serialcontrol::IsConnected() {
-    std::shared_lock lock{accessMutex};
-    return isConnected;
-}
-
-void libtrainsim::control::serialcontrol::read_config(const std::filesystem::path& filename) {
+sakurajin::Baudrate libtrainsim::control::serialcontrol::read_config(const std::filesystem::path& filename) {
     if (!std::filesystem::exists(filename)) {
         throw std::runtime_error("serial config file does not exist! " + filename.string());
     }
@@ -163,12 +52,7 @@ void libtrainsim::control::serialcontrol::read_config(const std::filesystem::pat
     auto in = std::ifstream(filename);
     in >> data_json;
 
-    try {
-        comport = SimpleGFX::json::getJsonField<std::string>(data_json, "comport");
-    } catch (...) {
-        std::throw_with_nested("error reading the comport");
-    }
-
+    sakurajin::Baudrate baudrate;
     try {
         auto baud = SimpleGFX::json::getJsonField<int>(data_json, "baudrate");
         switch (baud) {
@@ -213,6 +97,8 @@ void libtrainsim::control::serialcontrol::read_config(const std::filesystem::pat
     }
 
     try {
+        std::scoped_lock lock{channelMutex};
+
         auto dat = SimpleGFX::json::getJsonField(data_json, "channels");
         if (!dat.is_array()) {
             throw std::runtime_error("channels is not an array");
@@ -231,7 +117,136 @@ void libtrainsim::control::serialcontrol::read_config(const std::filesystem::pat
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error parsing channels"));
     }
+
+    return baudrate;
 }
+
+libtrainsim::control::serial_channel libtrainsim::control::serialcontrol::decodeTelegram(const std::string& telegram) {
+
+    if (!std::regex_match(telegram, telegramRegex)) {
+        throw std::invalid_argument("invalid telegram");
+    }
+
+    // decode the type of the telegram
+    bool isDigital;
+    auto type = telegram.at(1);
+    if (type == 'V') {
+        isDigital = false;
+    } else if (type == 'U') {
+        isDigital = true;
+    } else {
+        throw std::invalid_argument("invalid type of telegram");
+    }
+
+    // decode the port number of the telegram
+    uint8_t port;
+    port = (telegram.at(2) - '0') * 10 + (telegram.at(3) - '0');
+
+    // decode the value of the telegram
+    uint8_t value;
+    if (isDigital) {
+        value = telegram.at(7) - '0';
+    } else {
+        auto val = hex2int(telegram.substr(6, 2));
+        if (val < 0) {
+            throw std::invalid_argument("invalid value of telegram");
+        }
+        value = static_cast<uint8_t>(val);
+    }
+
+    std::shared_lock lock{channelMutex};
+    for (auto channel : serial_channels) {
+        if (channel.channel == port && channel.isAnalog == !isDigital) {
+            channel.value = value;
+            return channel;
+        }
+    }
+
+    throw std::invalid_argument("somehow got an unidentified channel");
+}
+
+libtrainsim::control::serialcontrol::~serialcontrol() {
+    rs232_obj.reset();
+    unregister();
+}
+
+void libtrainsim::control::serialcontrol::poll() {
+    if (!IsConnected()) {
+        return;
+    }
+
+    if (!registered) {
+        return;
+    }
+
+    std::vector<std::string> rawTelegrams = rs232_obj->retrieveAllMatches(telegramRegex);
+    if (rawTelegrams.empty()) {
+        return;
+    }
+
+    for (const auto& telegram : rawTelegrams) {
+        try {
+            auto channel = decodeTelegram(telegram);
+
+            SimpleGFX::inputEvent e;
+            e.name       = channel.name;
+            e.originName = "serialcontrol";
+            e.amount     = static_cast<double>(channel.value);
+
+            if (channel.isAnalog) {
+                e.inputType = SimpleGFX::inputAction::update;
+            } else {
+                if (channel.value == 0) {
+                    e.inputType = SimpleGFX::inputAction::release;
+                } else {
+                    e.inputType = SimpleGFX::inputAction::press;
+                }
+            }
+
+            raiseEvent(e);
+        } catch (const std::exception& e) {
+            config->getLogger()->logException(e, false);
+            continue;
+        }
+    }
+}
+
+bool libtrainsim::control::serialcontrol::connect() {
+    if (rs232_obj == nullptr) {
+        try{
+            auto rs232_log_stream = *config->getLogger() << error;
+            rs232_obj             = std::make_unique<sakurajin::RS232>(baudrate, rs232_log_stream);
+            return rs232_obj->getCurrentDevice()->getConnectionStatus() == sakurajin::connectionStatus::connected;
+        }catch(...){
+            config->getLogger()->logCurrrentException();
+            rs232_obj.reset();
+            rs232_obj = nullptr;
+        }
+
+        return false;
+    }
+    return rs232_obj->Connect();
+}
+
+void libtrainsim::control::serialcontrol::disconnect() {
+    if (rs232_obj == nullptr) {
+        return;
+    }
+    rs232_obj->DisconnectAll();
+}
+
+bool libtrainsim::control::serialcontrol::IsConnected() {
+    if (rs232_obj == nullptr) {
+        return false;
+    }
+    auto currentDevice = rs232_obj->getCurrentDevice();
+    if (currentDevice == nullptr) {
+        return false;
+    }
+
+    return currentDevice->getConnectionStatus() == sakurajin::connectionStatus::connected;
+}
+
 
 libtrainsim::control::serial_channel::serial_channel(const std::string& n, int ch, bool t, bool dir)
     : name{n},
