@@ -87,7 +87,7 @@ namespace libtrainsim {
             /**
              * @brief destory the input handler
              */
-            ~input_handler() override;
+            ~input_handler();
 
             /**
              * @brief return true if getSpeedAxis came across a close command
@@ -119,10 +119,7 @@ namespace libtrainsim {
              */
             void startSimulation();
 
-            std::shared_ptr<SimpleGFX::trackedFuture<uint64_t>> registerWithEventManager(SimpleGFX::eventManager* _manager, int priority) override;
-            void     unregister() override;
-            bool     onEvent(const SimpleGFX::inputEvent& event) override;
-
+            void onEvent(const SimpleGFX::inputEvent& event, bool& handled) override;
 
 #ifdef HAS_VIDEO_SUPPORT
             std::shared_ptr<SimpleGFX::SimpleGL::eventPollerGtkKeyboard> getKeyboardPoller();

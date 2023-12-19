@@ -135,7 +135,7 @@ namespace libtrainsim {
              */
             ~serialcontrol() override;
 
-            void poll() override;
+            void poll(SimpleGFX::eventManager& manager) override;
 
             void disconnect();
 

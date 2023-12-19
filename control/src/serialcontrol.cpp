@@ -14,7 +14,7 @@ libtrainsim::control::serialcontrol::serialcontrol(std::shared_ptr<libtrainsim::
         std::throw_with_nested(std::runtime_error("could not read serial config"));
     }
 
-    registerWithEventManager(config->getInputManager().get(), 0);
+    config->getInputManager()->registerPoller(sigc::mem_fun(*this, &serialcontrol::poll));
 
     try{
         auto rs232_log_stream = *config->getLogger() << error;
@@ -167,15 +167,10 @@ libtrainsim::control::serial_channel libtrainsim::control::serialcontrol::decode
 
 libtrainsim::control::serialcontrol::~serialcontrol() {
     rs232_obj.reset();
-    unregister();
 }
 
-void libtrainsim::control::serialcontrol::poll() {
+void libtrainsim::control::serialcontrol::poll(SimpleGFX::eventManager& manager) {
     if (!IsConnected()) {
-        return;
-    }
-
-    if (!registered) {
         return;
     }
 
@@ -203,7 +198,7 @@ void libtrainsim::control::serialcontrol::poll() {
                 }
             }
 
-            raiseEvent(e);
+            manager.raiseEvent(e);
         } catch (const std::exception& e) {
             config->getLogger()->logException(e, false);
             continue;

@@ -159,7 +159,7 @@ namespace libtrainsim {
             [[maybe_unused]]
             void redrawGraphs();
 
-            bool onEvent(const SimpleGFX::inputEvent& event) override;
+            void onEvent(const SimpleGFX::inputEvent& event, bool& handled) override;
 
             void on_unrealize() override;
         };

@@ -11,7 +11,7 @@ namespace libtrainsim {
          *
          */
         template <videoDecoderClass decoderClass, renderWidgetClass<decoderClass> widgetClass>
-        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] outputWindow : public Gtk::Window, public SimpleGFX::eventHandle {
+        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] outputWindow : public Gtk::Window {
           private:
             widgetClass* mainRenderer = nullptr;
 
@@ -61,7 +61,6 @@ namespace libtrainsim {
                                                    std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
                                                    args&&... _args)
                 : Gtk::Window{},
-                  SimpleGFX::eventHandle(),
                   simSettings{std::move(_simSettings)},
                   LOGGER{simSettings->getLogger()},
                   mainAppLauncher{std::move(_mainAppLauncher)} {
@@ -99,17 +98,22 @@ namespace libtrainsim {
                 return mainRenderer->getNewRendertimes();
             }
 
-            bool onEvent(const SimpleGFX::inputEvent& event) override {
+            void onEvent(const SimpleGFX::inputEvent& event, bool& handled) {
                 if (event.inputType != SimpleGFX::inputAction::press) {
-                    return false;
+                    return;
                 }
 
                 const auto actionCases = {"CLOSE", "MAXIMIZE"};
                 switch (SimpleGFX::TSwitch(event.name, actionCases)) {
                     case (0):
                         mainAppLauncher->callDeffered(sigc::mem_fun(*this, &outputWindow::close));
-                        return false;
+                        handled = true;
+                        return;
                     case (1):
+                        if(handled){
+                            return;
+                        }
+
                         mainAppLauncher->callDeffered([this]() {
                             if (is_fullscreen()) {
                                 unfullscreen();
@@ -117,9 +121,10 @@ namespace libtrainsim {
                                 fullscreen();
                             }
                         });
-                        return true;
+                        handled = true;
+                        return;
                     default:
-                        return false;
+                        return;
                 }
             }
         };

@@ -163,12 +163,12 @@ void libtrainsim::extras::statusDisplay::redrawGraphs() {
     }
 }
 
-bool libtrainsim::extras::statusDisplay::onEvent(const SimpleGFX::inputEvent& event) {
+void libtrainsim::extras::statusDisplay::onEvent(const SimpleGFX::inputEvent& event, bool& handled) {
     static auto app        = get_application();
     static bool showLatest = true;
 
     if (event.inputType != SimpleGFX::inputAction::press) {
-        return false;
+        return;
     }
 
     const auto actionCases = {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"};
@@ -180,14 +180,16 @@ bool libtrainsim::extras::statusDisplay::onEvent(const SimpleGFX::inputEvent& ev
                 app->add_window(*this);
                 set_visible(true);
             }
-            return true;
+            handled = true;
+            return;
         case (1):
             showLatest = !showLatest;
             for (auto [graph, _] : graphs) {
                 graph->setShowLatest(showLatest);
             }
-            return true;
+            handled = true;
+            return;
         default:
-            return false;
+            return;
     }
 }
