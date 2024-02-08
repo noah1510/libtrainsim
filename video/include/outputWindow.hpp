@@ -11,7 +11,7 @@ namespace libtrainsim {
          *
          */
         template <videoDecoderClass decoderClass, renderWidgetClass<decoderClass> widgetClass>
-        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] outputWindow : public Gtk::Window {
+        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] outputWindow : public Gtk::Window, public SimpleGFX::tracked_eventHandle {
           private:
             widgetClass* mainRenderer = nullptr;
 
@@ -98,7 +98,7 @@ namespace libtrainsim {
                 return mainRenderer->getNewRendertimes();
             }
 
-            void onEvent(const SimpleGFX::inputEvent& event, bool& handled) {
+            void operator()(const SimpleGFX::inputEvent& event, bool& handled) {
                 if (event.inputType != SimpleGFX::inputAction::press) {
                     return;
                 }

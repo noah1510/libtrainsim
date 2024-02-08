@@ -28,7 +28,7 @@ libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::
     keyboardPoller->addKey(GDK_KEY_S, "BREAK");
     keyboardPoller->addKey(GDK_KEY_P, "EMERGENCY_BREAK");
 
-    conf->getInputManager()->registerPoller(sigc::mem_fun(*keyboardPoller, &SimpleGFX::SimpleGL::eventPollerGtkKeyboard::poll) );
+    conf->getInputManager()->registerPoller(*keyboardPoller);
 #endif
 }
 
@@ -92,7 +92,7 @@ bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
     return false;
 }
 
-void libtrainsim::control::input_handler::onEvent(const SimpleGFX::inputEvent& event, bool& handled) {
+void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent& event, bool& handled) {
 
     std::scoped_lock lock{dataMutex};
     auto             eventName       = event.name;

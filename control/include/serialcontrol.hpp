@@ -50,7 +50,7 @@ namespace libtrainsim {
         /**
          * @brief This class contains all variables and functions to handle hardware input.
          */
-        class LIBTRAINSIM_EXPORT_MACRO serialcontrol : public SimpleGFX::eventPoller {
+        class LIBTRAINSIM_EXPORT_MACRO serialcontrol : public SimpleGFX::tracked_eventPoller {
           private:
             /**
              * @brief object which handels the communication with the COM-Port.
@@ -88,7 +88,9 @@ namespace libtrainsim {
              */
             [[nodiscard]]
             static inline int64_t hex2int(std::string hex) {
+
                 int64_t val = 0;
+                int64_t position_value = 1;
                 uint64_t index = 0;
 
                 std::reverse(hex.begin(), hex.end());
@@ -103,7 +105,10 @@ namespace libtrainsim {
                         return -1;
                     }
 
-                    val += digitVal * std::pow(16, index);
+                    val += digitVal * position_value;
+
+                    //bitshift by 4 equals multiplication by 16
+                    position_value = position_value << 4;
                     index++;
                 }
 
@@ -135,7 +140,7 @@ namespace libtrainsim {
              */
             ~serialcontrol() override;
 
-            void poll(SimpleGFX::eventManager& manager) override;
+            void operator()(SimpleGFX::eventManager& manager) override;
 
             void disconnect();
 

@@ -163,7 +163,7 @@ void libtrainsim::extras::statusDisplay::redrawGraphs() {
     }
 }
 
-void libtrainsim::extras::statusDisplay::onEvent(const SimpleGFX::inputEvent& event, bool& handled) {
+void libtrainsim::extras::statusDisplay::operator()(const SimpleGFX::inputEvent& event, bool& handled) {
     static auto app        = get_application();
     static bool showLatest = true;
 

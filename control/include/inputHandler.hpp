@@ -30,7 +30,7 @@ namespace libtrainsim {
          * it is not possible to retrieve the currently pressed keys. If libtrainsim::video is not available the serialcontrol
          * part still works, its just that this can no longer detect window events and the closing flag is always false.
          */
-        class LIBTRAINSIM_EXPORT_MACRO input_handler : public SimpleGFX::eventHandle {
+        class LIBTRAINSIM_EXPORT_MACRO input_handler : public SimpleGFX::tracked_eventHandle {
           private:
             /**
              * @brief a mutex to control the data access across threads
@@ -119,7 +119,7 @@ namespace libtrainsim {
              */
             void startSimulation();
 
-            void onEvent(const SimpleGFX::inputEvent& event, bool& handled) override;
+            void operator()(const SimpleGFX::inputEvent& event, bool& handled) override;
 
 #ifdef HAS_VIDEO_SUPPORT
             std::shared_ptr<SimpleGFX::SimpleGL::eventPollerGtkKeyboard> getKeyboardPoller();
