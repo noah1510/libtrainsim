@@ -98,7 +98,7 @@ namespace libtrainsim {
                 return mainRenderer->getNewRendertimes();
             }
 
-            void operator()(const SimpleGFX::inputEvent& event, bool& handled) {
+            void operator()(const SimpleGFX::inputEvent& event, bool& handled) override {
                 if (event.inputType != SimpleGFX::inputAction::press) {
                     return;
                 }

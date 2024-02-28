@@ -82,7 +82,7 @@ namespace libtrainsim {
              *
              * @param frame_buffer The frame buffer the frame data should be copied into
              */
-            void copyToBuffer(std::vector<uint8_t>& frame_buffer) override;
+            void copyToBuffer(std::shared_ptr<Gdk::Pixbuf>& pixbuf) override;
 
           public:
             /**

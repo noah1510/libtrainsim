@@ -61,7 +61,7 @@ namespace libtrainsim {
              *
              * @param frame_buffer The frame buffer the frame data should be copied into
              */
-            void fillInternalPixbuf(std::shared_ptr<Gdk::Pixbuf>& pixbuf) override;
+            void copyToBuffer(std::shared_ptr<Gdk::Pixbuf>& pixbuf) override;
 
             bool renderLoop() override;
 

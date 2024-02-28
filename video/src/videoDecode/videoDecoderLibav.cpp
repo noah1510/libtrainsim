@@ -285,14 +285,18 @@ void libtrainsim::Video::videoDecoderLibav::seekFrame(uint64_t framenumber) {
     }
 }
 
-void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::vector<uint8_t>& frame_buffer) {
+void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Pixbuf>& pixbuf) {
+
+    std::vector<uint8_t> rawBuffer;
+    auto [w, h] = renderSize.getCasted<int>();
+    rawBuffer.resize(w * h * 4);
 
     std::shared_lock<std::shared_mutex> lock{contextMutex};
 
     auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
     sws_scaler_ctx      = sws_getCachedContext(sws_scaler_ctx,
-                                          renderSize.x(),
-                                          renderSize.y(),
+                                          w,
+                                          h,
                                           source_pix_fmt,
                                           av_frame->width,
                                           av_frame->height,
@@ -302,11 +306,13 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::vector<uint8_t>& f
                                           nullptr,
                                           nullptr);
 
-    uint8_t* dest[4]          = {frame_buffer.data(), nullptr, nullptr, nullptr};
+    uint8_t* dest[4]          = {rawBuffer.data(), nullptr, nullptr, nullptr};
     int      dest_linesize[4] = {static_cast<int>(renderSize.x()) * 4, 0, 0, 0};
     auto     hnew             = sws_scale(sws_scaler_ctx, av_frame->data, av_frame->linesize, 0, av_frame->height, dest, dest_linesize);
     if (hnew != av_frame->height) {
         throw std::runtime_error("Got a wrong size after scaling.");
     }
+
+    pixbuf = Gdk::Pixbuf::create_from_data(rawBuffer.data(), Gdk::Colorspace::RGB, true, 8, w, h, w * 4);
 }
 

@@ -146,9 +146,7 @@ namespace libtrainsim {
              *
              * @param frame_buffer The frame buffer the frame data should be copied into
              */
-            virtual void copyToBuffer(std::vector<uint8_t>& frame_buffer);
-
-            virtual void fillInternalPixbuf(std::shared_ptr<Gdk::Pixbuf>& pixbuf);
+            virtual void copyToBuffer(std::shared_ptr<Gdk::Pixbuf>& pixbuf) = 0;
 
             /**
              * @brief the main render loop of the video decoder

@@ -87,7 +87,7 @@ namespace libtrainsim {
             /**
              * @brief destory the input handler
              */
-            ~input_handler();
+            virtual ~input_handler();
 
             /**
              * @brief return true if getSpeedAxis came across a close command

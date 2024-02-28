@@ -120,7 +120,8 @@ void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent
     }
 
     const auto actionCases = {"TERMINATE", "CLOSE", "EMERGENCY_BREAK", "ACCELERATE", "BREAK"};
-    switch (SimpleGFX::TSwitch(eventName, actionCases)) {
+    const auto selectedCase = SimpleGFX::TSwitch(eventName, actionCases);
+    switch (selectedCase) {
         case (0):
             shouldTeminate = true;
             handled        = true;
@@ -136,17 +137,13 @@ void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent
             };
             return;
         case (3):
-            if (running && serialConnected) {
-                currentInputAxis += 0.1;
-                if (abs(currentInputAxis.get()) < 0.07) {
-                    currentInputAxis = 0.0;
-                }
-                handled = true;
-            };
-            return;
         case (4):
-            if (running && serialConnected) {
-                currentInputAxis -= 0.1;
+            if (running && !serialConnected) {
+                if (selectedCase == 3) {
+                    currentInputAxis += 0.1;
+                } else {
+                    currentInputAxis -= 0.1;
+                }
                 if (abs(currentInputAxis.get()) < 0.07) {
                     currentInputAxis = 0.0;
                 }

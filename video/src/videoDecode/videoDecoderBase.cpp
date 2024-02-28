@@ -81,7 +81,7 @@ bool libtrainsim::Video::videoDecoderBase::renderRequestedFrame() {
         }
 
         // update the back buffer
-        fillInternalPixbuf(frame_data[backBuffer]);
+        copyToBuffer(frame_data[backBuffer]);
 
         // switch to the next framebuffer
         if (bufferExported) {
@@ -126,18 +126,6 @@ libtrainsim::Video::videoDecoderBase::~videoDecoderBase() {
 void libtrainsim::Video::videoDecoderBase::readNextFrame() {}
 
 void libtrainsim::Video::videoDecoderBase::seekFrame(uint64_t framenumber) {}
-
-void libtrainsim::Video::videoDecoderBase::copyToBuffer(std::vector<uint8_t>& frame_buffer) {}
-
-void libtrainsim::Video::videoDecoderBase::fillInternalPixbuf(std::shared_ptr<Gdk::Pixbuf>& pixbuf) {
-    std::vector<uint8_t> rawBuffer;
-    auto [w, h] = renderSize.getCasted<int>();
-    rawBuffer.resize(w * h * 4);
-    copyToBuffer(rawBuffer);
-
-    // create a pixbuf from the data
-    pixbuf = Gdk::Pixbuf::create_from_data(rawBuffer.data(), Gdk::Colorspace::RGB, true, 8, w, h, w * 4);
-}
 
 std::shared_ptr<Gdk::Pixbuf> libtrainsim::Video::videoDecoderBase::getUsablePixbuf(std::shared_ptr<Gdk::Pixbuf> pixbuf) {
     const auto exportBufferID = activeBuffer.load();
