@@ -38,7 +38,7 @@ libtrainsim::control::input_handler::~input_handler() {
 
 void libtrainsim::control::input_handler::resetFlags() {
     std::scoped_lock lock{dataMutex};
-    serial.reset();
+    //serial.reset();
 
     currentInputAxis     = 0.0;
     shouldClose          = false;
