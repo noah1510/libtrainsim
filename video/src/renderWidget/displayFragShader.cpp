@@ -66,7 +66,7 @@ static inline bool useCompatShader(const glVersion& version){
 libtrainsim::Video::displayFragShader::displayFragShader(unsigned int texUnits) : shaderPartGroup{stage}{
     const auto& versions = getAllGLVersions();
 
-    for(auto version: versions){
+    for(const auto& version: versions){
         if(useCompatShader(version)){
             addPart(makeCompatShader(version, texUnits));
         }else{
