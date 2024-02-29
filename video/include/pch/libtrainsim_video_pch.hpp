@@ -20,4 +20,15 @@ extern "C" {
 }
 #endif
 
+#ifdef HAS_VLC_SUPPORT
+#include "vlcpp/vlc.hpp"
+
+#if LIBVLC_VERSION_INT >= LIBVLC_VERSION(4, 0, 0, 0)
+#define LIBTRAINSIM_VLC4_MODE
+#else
+#define LIBTRAINSIM_VLC3_MODE
+#endif
+
+#endif
+
 #include <type_traits>

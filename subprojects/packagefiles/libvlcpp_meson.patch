@@ -1,0 +1,29 @@
+diff --git a/meson.build b/meson.build
+new file mode 100644
+index 0000000..8401fb5
+--- /dev/null
++++ b/meson.build
+@@ -0,0 +1,23 @@
++project(
++    'libvlcpp',
++    'cpp',
++    'c',
++    default_options : [
++        'cpp_std=c++11',
++        'warning_level=3'
++    ],
++    version : '0.1.0',
++    meson_version : '>= 1.0.0',
++) 
++
++incdir = include_directories('.')
++
++libvlc_dep = dependency('libvlc', required: true, version: '>=3.0.0')
++
++libvlcpp_dep = declare_dependency(
++    include_directories : incdir,
++    dependencies : libvlc_dep,
++    version: meson.project_version()
++)
++
++install_subdir('vlcpp', install_dir: 'vlcpp')

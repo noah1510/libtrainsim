@@ -10,6 +10,10 @@
     #include "videoDecode/videoDecoderGstreamer.hpp"
 #endif
 
+#ifdef HAS_VLC_SUPPORT
+    #include "videoDecode/videoDecoderVlc.hpp"
+#endif
+
 #include "renderWidget/renderWidgetGL.hpp"
 #include "renderWidget/renderWidgetPicture.hpp"
 
@@ -28,5 +32,13 @@ namespace libtrainsim::Video {
 
     LIBTRAINSIM_EXPORT_MACRO using outputWindow_GLGstreamer      = outputWindow<videoDecoderGstreamer, renderWidgetGLGstreamer>;
     LIBTRAINSIM_EXPORT_MACRO using outputWindow_PictureGstreamer = outputWindow<videoDecoderGstreamer, renderWidgetPictureGstreamer>;
+#endif
+
+#ifdef HAS_VLC_SUPPORT
+    LIBTRAINSIM_EXPORT_MACRO using renderWidgetGLVlc      = renderWidgetGL<videoDecoderVlc>;
+    LIBTRAINSIM_EXPORT_MACRO using renderWidgetPictureVlc = renderWidgetPicture<videoDecoderVlc>;
+
+    LIBTRAINSIM_EXPORT_MACRO using outputWindow_GLVlc      = outputWindow<videoDecoderVlc, renderWidgetGLVlc>;
+    LIBTRAINSIM_EXPORT_MACRO using outputWindow_PictureVlc = outputWindow<videoDecoderVlc, renderWidgetPictureVlc>;
 #endif
 } // namespace libtrainsim::Video

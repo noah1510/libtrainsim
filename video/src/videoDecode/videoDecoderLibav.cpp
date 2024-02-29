@@ -146,6 +146,8 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
         throw std::invalid_argument("Couldn't open video file");
     }
 
+    *LOGGER << SimpleGFX::loggingLevel::normal << "opened video file: " << uri;
+
     // Find the first valid video stream inside the file
     video_stream_index = -1;
     AVCodecParameters* av_codec_params;
@@ -249,7 +251,9 @@ void libtrainsim::Video::videoDecoderLibav::readNextFrame() {
 
         response = avcodec_send_packet(av_codec_ctx, av_packet);
         if (response < 0) {
-            throw std::runtime_error("Failed to decode packet: " + makeAVError(response));
+            *LOGGER << SimpleGFX::loggingLevel::error << "Failed to decode packet: " << makeAVError(response);
+            av_packet_unref(av_packet);
+            continue;
         }
 
         response = avcodec_receive_frame(av_codec_ctx, av_frame);

@@ -11,5 +11,6 @@ option('build_extras_snowFx', type : 'boolean', value : false, description: 'set
 
 option('video_decode_libav', type: 'feature', value: 'auto', description: 'enables the libav video decoder. auto will try to find it, enabled will force it, disabled will disable it.')
 option('video_decode_gstreamer', type: 'feature', value: 'auto', description: 'enables the gstreamer video decoder. auto will try to find it, enabled will force it, disabled will disable it.')
+option('video_decode_vlc', type: 'feature', value: 'auto', description: 'enables the libvlc video decoder. auto will try to find it, enabled will force it, disabled will disable it.')
 
 option('build_full', type: 'boolean', value: false, description: 'set to true if you to build all components and create libtrainsim_full as dependency.')

@@ -56,7 +56,17 @@ if get_option('video_decode_gstreamer').allowed()
     has_gstreamer = gst_dep.found()
 endif
 
-if not has_libav and not has_gstreamer
+has_vlc = false
+if get_option('video_decode_vlc').allowed()
+    vlcpp_proj = subproject('libvlcpp', required: get_option('video_decode_vlc').enabled())
+    has_vlc = vlcpp_proj.found()
+
+    libvlcpp_dep = vlcpp_proj.get_variable('libvlcpp_dep')
+
+    video_deps += [libvlcpp_dep]
+endif
+
+if not has_libav and not has_gstreamer and not has_vlc
     error('No video decoder backend found! Install either ffmpeg or gstreamermm.')
 endif
 
@@ -68,10 +78,15 @@ if has_gstreamer
     sources += ['src/videoDecode/videoDecoderGstreamer.cpp']
 endif
 
+if has_vlc
+    sources += ['src/videoDecode/videoDecoderVlc.cpp']
+endif
+
 #create the video configuration file
 video_conf_data = configuration_data()
 video_conf_data.set('HAS_FFMPEG_SUPPORT', has_libav)
 video_conf_data.set('HAS_GSTREAMER_SUPPORT', has_gstreamer)
+video_conf_data.set('HAS_VLC_SUPPORT', has_vlc)
 configure_file(output : 'video_config.hpp', configuration : video_conf_data, install: true, install_dir: 'include/libtrainsim')
 
 #include all headers including the video configuration

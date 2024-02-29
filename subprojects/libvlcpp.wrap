@@ -1,0 +1,8 @@
+[wrap-git]
+url = https://code.videolan.org/videolan/libvlcpp.git
+revision = master
+
+diff_files = libvlcpp_meson.patch
+
+[provide]
+dependency_names = ['libvlcpp']

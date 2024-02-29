@@ -10,6 +10,8 @@ subprojects/*
 !subprojects/gtest.wrap
 !subprojects/rs232.wrap
 !subprojects/unit-system.wrap
+!subprojects/libvlcpp.wrap
+!subprojects/packagefiles
 
 .meson-subproject-wrap-hash.txt
 
