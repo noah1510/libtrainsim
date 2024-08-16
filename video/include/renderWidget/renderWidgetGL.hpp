@@ -10,6 +10,7 @@ namespace libtrainsim::Video {
     template <videoDecoderClass decoderClass>
     class LIBTRAINSIM_EXPORT_MACRO renderWidgetGL : public renderWidgetBase<decoderClass> {
       private:
+        Gtk::GraphicsOffload graphics_offloader;
         Gtk::GLArea mainGLArea;
 
         std::atomic<bool>         realized = false;
@@ -33,7 +34,7 @@ namespace libtrainsim::Video {
                                 std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
                                 decoderArgs&&... decoder_args)
             : libtrainsim::Video::renderWidgetBase<decoderClass>{std::move(_simSettings), std::move(_mainAppLauncher), &decoder_args...},
-              mainGLArea{} {
+              graphics_offloader{}, mainGLArea{} {
 
             SimpleGFX::SimpleGL::prepareGLArea(mainGLArea);
 
@@ -41,7 +42,8 @@ namespace libtrainsim::Video {
             mainGLArea.signal_unrealize().connect(sigc::mem_fun(*this, &renderWidgetGL::on_unrealize_glarea), true);
             mainGLArea.signal_render().connect(sigc::mem_fun(*this, &renderWidgetGL::on_render_glarea), true);
 
-            this->set_child(mainGLArea);
+            this->set_child(graphics_offloader);
+            graphics_offloader.set_child(mainGLArea);
         }
 
         /**
