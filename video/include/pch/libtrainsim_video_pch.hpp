@@ -8,8 +8,10 @@
 extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libavformat/avformat.h>
-    #include <libavutil/cpu.h>
     #include <libswscale/swscale.h>
+
+    #include <libavutil/cpu.h>
+    #include <libavutil/hwcontext_drm.h>
 }
 #endif
 
@@ -29,6 +31,12 @@ extern "C" {
 #define LIBTRAINSIM_VLC3_MODE
 #endif
 
+#endif
+
+#ifdef LIBTRAINSIM_HAS_DMABUF_SUPPORT
+extern "C"{
+    #include <linux/dma-buf.h>
+}
 #endif
 
 #include <type_traits>

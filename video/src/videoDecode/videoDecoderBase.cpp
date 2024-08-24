@@ -24,8 +24,9 @@ libtrainsim::Video::videoDecoderBase::videoDecoderBase(std::filesystem::path    
 
 void libtrainsim::Video::videoDecoderBase::startRendering() {
     auto [w, h] = renderSize.getCasted<int>();
-    for (auto& buf : frame_data) {
-        buf = Gdk::Pixbuf::create(Gdk::Colorspace::RGB, true, 8, w, h);
+    for (auto& tex : frame_data) {
+        auto buf = Gdk::Pixbuf::create(Gdk::Colorspace::RGB, true, 8, w, h);
+        tex = Gdk::Texture::create_for_pixbuf(buf);
     }
 
     renderThread = std::async(std::launch::async, sigc::mem_fun(*this, &videoDecoderBase::renderLoopCaller));
@@ -127,37 +128,32 @@ void libtrainsim::Video::videoDecoderBase::readNextFrame() {}
 
 void libtrainsim::Video::videoDecoderBase::seekFrame(uint64_t framenumber) {}
 
-std::shared_ptr<Gdk::Pixbuf> libtrainsim::Video::videoDecoderBase::getUsablePixbuf(std::shared_ptr<Gdk::Pixbuf> pixbuf) {
+std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderBase::getUsableTexture(std::shared_ptr<Gdk::Texture> texture) {
     const auto exportBufferID = activeBuffer.load();
     auto [w, h]               = renderSize.getCasted<int>();
 
     // if a pixbuf was given and the buffer already exported
     // it is assumed that the pixbuf is already up-to-date
-    if (bufferExported && pixbuf != nullptr) {
-        return pixbuf;
+    if (bufferExported && texture != nullptr) {
+        return texture;
     }
 
     //move the pixbuf to the return value
-    auto useablePixbuf = std::move(frame_data[exportBufferID]);
-
-    // if a pixbuf was given copy the data into it
-    if (pixbuf != nullptr) {
-        useablePixbuf->copy_area(0, 0, w, h, pixbuf, 0, 0);
-    }
+    auto useableTexture = frame_data[exportBufferID];
 
     // mark the buffer as exported
     bufferExported = true;
 
     //if the pixbuf was not given return the usablePixbuf otherwise return the given pixbuf
-    return pixbuf == nullptr ? std::move(useablePixbuf) : std::move(pixbuf);
+    return std::move(useableTexture);
 }
 
-bool libtrainsim::Video::videoDecoderBase::hasNewPixbuf() {
+bool libtrainsim::Video::videoDecoderBase::hasNewTexture() {
     return !bufferExported;
 }
 
 bool libtrainsim::Video::videoDecoderBase::hasNewFramebuffer() {
-    return hasNewPixbuf();
+    return hasNewTexture();
 }
 
 const std::filesystem::path& libtrainsim::Video::videoDecoderBase::getLoadedFile() const {

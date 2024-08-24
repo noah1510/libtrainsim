@@ -171,10 +171,10 @@ void libtrainsim::Video::videoDecoderVlc::seekFrame(uint64_t framenumber) {
 #endif
 }
 
-void libtrainsim::Video::videoDecoderVlc::copyToBuffer(std::shared_ptr<Gdk::Pixbuf>& pixbuf) {
+void libtrainsim::Video::videoDecoderVlc::copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) {
     std::scoped_lock lock{renderSurfaceMutex};
 
-    pixbuf = renderSurface;
+    texture = Gdk::Texture::create_for_pixbuf(renderSurface);
     renderSurface = nullptr;
 }
 

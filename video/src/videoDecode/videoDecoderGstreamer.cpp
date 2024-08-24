@@ -202,12 +202,14 @@ void libtrainsim::Video::videoDecoderGstreamer::pad_added_handler(GstElement* sr
     gst_object_unref(sink_pad);
 }
 
-void libtrainsim::Video::videoDecoderGstreamer::copyToBuffer(std::shared_ptr<Gdk::Pixbuf>& pixbuf) {
+void libtrainsim::Video::videoDecoderGstreamer::copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) {
     GdkPixbuf* c_pixbuf = nullptr;
     g_object_get(G_OBJECT(sink), "last-pixbuf", &c_pixbuf, nullptr);
 
-    pixbuf = Glib::wrap(c_pixbuf, true);
+    auto pixbuf = Glib::wrap(c_pixbuf, true);
+    texture = Gdk::Texture::create_for_pixbuf(pixbuf);
 }
+
 bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstMessage* msg) {
 
     if (GST_MESSAGE_TYPE(msg) != GST_MESSAGE_TAG) {

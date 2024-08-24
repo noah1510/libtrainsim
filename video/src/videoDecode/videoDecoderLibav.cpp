@@ -150,8 +150,9 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
 
     // Find the first valid video stream inside the file
     video_stream_index = -1;
-    AVCodecParameters* av_codec_params;
-    AVCodec*           av_codec;
+    AVCodecParameters* av_codec_params = nullptr;
+    AVCodec*           av_codec = nullptr;
+    std::vector<int> available_decoders {};
 
     for (unsigned int i = 0; i < av_format_ctx->nb_streams; ++i) {
         av_codec_params = av_format_ctx->streams[i]->codecpar;
@@ -159,16 +160,29 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
         if (!av_codec) {
             continue;
         }
-        if (av_codec_params->codec_type == AVMEDIA_TYPE_VIDEO) {
-            video_stream_index = static_cast<int>(i);
-            renderSize         = dimensions{av_codec_params->width, av_codec_params->height};
-            auto framerate_tmp = av_format_ctx->streams[i]->avg_frame_rate;
-            framerate          = static_cast<double>(framerate_tmp.num) / static_cast<double>(framerate_tmp.den);
-            *LOGGER << SimpleGFX::loggingLevel::normal << "video average framerate:" << framerate << " fps";
-            break;
+
+        if (av_codec_params->codec_type != AVMEDIA_TYPE_VIDEO) {
+            continue;
         }
+
+        int decoder_index = 0;
+        while (const auto hw_decoder = avcodec_get_hw_config(av_codec, decoder_index)) {
+            *LOGGER << SimpleGFX::loggingLevel::normal << "Found hw decoder at index " << decoder_index << ": " << av_hwdevice_get_type_name(hw_decoder->device_type);
+            available_decoders.emplace_back(decoder_index);
+            decoder_index++;
+        }
+
+        video_stream_index = static_cast<int>(i);
+        renderSize         = dimensions{av_codec_params->width, av_codec_params->height};
+        auto framerate_tmp = av_format_ctx->streams[i]->avg_frame_rate;
+        framerate          = static_cast<double>(framerate_tmp.num) / static_cast<double>(framerate_tmp.den);
+        *LOGGER << SimpleGFX::loggingLevel::normal << "video average framerate:" << framerate << " fps";
+        
+
+        break;
     }
-    if (video_stream_index == -1) {
+
+    if (video_stream_index < 0) {
         throw std::invalid_argument("Couldn't find valid video stream inside file");
     }
 
@@ -198,14 +212,35 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
     av_codec_ctx->thread_type  = FF_THREAD_SLICE;
     *LOGGER << SimpleGFX::loggingLevel::normal << "video decode on " << threadCount << " threads.";
 
+    if (!available_decoders.empty()) {
+        for (const auto& decoder_index : available_decoders) {
+            const auto hw_decoder = avcodec_get_hw_config(av_codec, decoder_index);
+            std::string decoder_name = av_hwdevice_get_type_name(hw_decoder->device_type);
+            *LOGGER << SimpleGFX::loggingLevel::normal << "Creating hw decode context (" << decoder_index << "): " << decoder_name;
+
+            if (av_hwdevice_ctx_create(&(av_codec_ctx->hw_device_ctx), hw_decoder->device_type, nullptr, nullptr, 0) < 0) {
+                av_codec_ctx->hw_device_ctx = nullptr;
+                has_hw_decoding = false;
+                *LOGGER << SimpleGFX::loggingLevel::error << "Can't initialize AVHWDeviceContext (" << decoder_index << "): " << decoder_name;
+                continue;
+            }
+
+            has_hw_decoding = true;
+            break;
+        }
+    }
+
     if (avcodec_open2(av_codec_ctx, av_codec, nullptr) < 0) {
         throw std::runtime_error("Couldn't open codec");
     }
 
-    av_frame = av_frame_alloc();
-    if (!av_frame) {
-        throw std::runtime_error("Couldn't allocate AVFrame");
+    for (auto& frame: av_frames) {
+        frame = av_frame_alloc();
+        if (!frame) {
+            throw std::runtime_error("Couldn't allocate AVFrame");
+        }
     }
+
     av_packet = av_packet_alloc();
     if (!av_packet) {
         throw std::runtime_error("Couldn't allocate AVPacket");
@@ -234,13 +269,18 @@ libtrainsim::Video::videoDecoderLibav::~videoDecoderLibav() {
     sws_freeContext(sws_scaler_ctx);
     avformat_close_input(&av_format_ctx);
     avformat_free_context(av_format_ctx);
-    av_frame_free(&av_frame);
+    for (auto& frame:av_frames) {
+        av_frame_free(&frame);
+    }
     av_packet_free(&av_packet);
     avcodec_free_context(&av_codec_ctx);
 }
 
 
 void libtrainsim::Video::videoDecoderLibav::readNextFrame() {
+    size_t back_buffer_index = (current_av_frame + 1) % AV_FRAME_BUFFER_COUNT;
+    auto& av_frame = av_frames[back_buffer_index];
+
     // Decode one frame
     int response;
     while (av_read_frame(av_format_ctx, av_packet) >= 0) {
@@ -268,9 +308,17 @@ void libtrainsim::Video::videoDecoderLibav::readNextFrame() {
             throw std::runtime_error("Failed to decode packet" + makeAVError(response));
         }
 
+        static constexpr const int error_flags = AV_FRAME_FLAG_CORRUPT | AV_FRAME_FLAG_DISCARD | AV_FRAME_FLAG_INTERLACED;
+        if (av_packet->flags & error_flags) {
+            av_packet_unref(av_packet);
+            continue;
+        }
+
         av_packet_unref(av_packet);
         break;
     }
+
+    current_av_frame = back_buffer_index;
 }
 
 void libtrainsim::Video::videoDecoderLibav::seekFrame(uint64_t framenumber) {
@@ -289,34 +337,106 @@ void libtrainsim::Video::videoDecoderLibav::seekFrame(uint64_t framenumber) {
     }
 }
 
-void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Pixbuf>& pixbuf) {
+void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) {
+    //std::shared_lock<std::shared_mutex> lock{contextMutex};
+    auto& av_frame = av_frames[current_av_frame];
+    AVFrame* cpu_av_frame = nullptr;
+    auto pixel_format = av_codec_ctx->pix_fmt;
+    if (has_hw_decoding) {
+        cpu_av_frame = av_frame_alloc();
+        cpu_av_frame->width = av_frame->width;
+        cpu_av_frame->height = av_frame->height;
 
-    std::vector<uint8_t> rawBuffer;
+        if (av_hwframe_transfer_data(cpu_av_frame, av_frame, 0) < 0) {
+            std::cout << "Could not transfer_data from hw frame" << std::endl;
+            return;
+        }
+
+        if (cpu_av_frame->format >= 0) {
+            pixel_format = static_cast<AVPixelFormat>(cpu_av_frame->format);
+        }
+
+    }else {
+        cpu_av_frame = av_frame;
+    }
+
     auto [w, h] = renderSize.getCasted<int>();
-    rawBuffer.resize(w * h * 4);
+    auto source_pix_fmt = correctForDeprecatedPixelFormat(pixel_format);
 
-    std::shared_lock<std::shared_mutex> lock{contextMutex};
-
-    auto source_pix_fmt = correctForDeprecatedPixelFormat(av_codec_ctx->pix_fmt);
+    #ifdef LIBTRAINSIM_HAS_DMABUF_SUPPORT
+    /*
     sws_scaler_ctx      = sws_getCachedContext(sws_scaler_ctx,
                                           w,
                                           h,
                                           source_pix_fmt,
-                                          av_frame->width,
-                                          av_frame->height,
-                                          AV_PIX_FMT_RGB0,
+                                          cpu_av_frame->width,
+                                          cpu_av_frame->height,
+                                          AV_PIX_FMT_DRM_PRIME,
+                                          scalingContextParams,
+                                          nullptr,
+                                          nullptr,
+                                          nullptr);
+
+    AVDRMFrameDescriptor hw_fd{};
+
+    uint8_t* dma_dest[4]          = {(uint8_t*)&hw_fd, nullptr, nullptr, nullptr};
+    int      dma_dest_linesize[4] = {1, 0, 0, 0};
+    auto     dma_hnew             = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, cpu_av_frame->height, dma_dest, dma_dest_linesize);
+    if (dma_hnew != cpu_av_frame->height) {
+        throw std::runtime_error("Got a wrong size after scaling.");
+    }
+
+    if (hw_fd.nb_objects > 0 && hw_fd.nb_layers > 0) {
+        auto dma_tex_builder =  Gdk::DmabufTextureBuilder::create();
+        dma_tex_builder->set_width(w);
+        dma_tex_builder->set_height(h);
+        dma_tex_builder->set_n_planes(hw_fd.nb_objects);
+
+        for (int layer_i = 0; layer_i < hw_fd.nb_layers; layer_i++) {
+            AVDRMLayerDescriptor layer = hw_fd.layers[layer_i];
+            for (int plane_i = 0; plane_i < layer.nb_planes; plane_i++) {
+                AVDRMPlaneDescriptor plane = layer.planes[plane_i];
+                AVDRMObjectDescriptor dma_obj = hw_fd.objects[plane.object_index];
+
+                dma_tex_builder->set_fd(plane.object_index, dma_obj.fd);
+                dma_tex_builder->set_modifier(dma_obj.format_modifier);
+
+                dma_tex_builder->set_offset(plane.object_index, plane.offset);
+                dma_tex_builder->set_stride(plane.object_index, plane.pitch);
+
+            }
+        }
+
+        texture = dma_tex_builder->build();
+    }
+    */
+
+    #endif
+
+    std::vector<uint8_t> rawBuffer;
+    rawBuffer.resize(w * h * 4);
+
+    sws_scaler_ctx      = sws_getCachedContext(sws_scaler_ctx,
+                                          cpu_av_frame->width,
+                                          cpu_av_frame->height,
+                                          source_pix_fmt,
+                                          cpu_av_frame->width,
+                                          cpu_av_frame->height,
+                                          AV_PIX_FMT_RGBA,
                                           scalingContextParams,
                                           nullptr,
                                           nullptr,
                                           nullptr);
 
     uint8_t* dest[4]          = {rawBuffer.data(), nullptr, nullptr, nullptr};
-    int      dest_linesize[4] = {static_cast<int>(renderSize.x()) * 4, 0, 0, 0};
-    auto     hnew             = sws_scale(sws_scaler_ctx, av_frame->data, av_frame->linesize, 0, av_frame->height, dest, dest_linesize);
-    if (hnew != av_frame->height) {
+    int      dest_linesize[4] = {cpu_av_frame->width * 4, 0, 0, 0};
+    auto     hnew          = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, cpu_av_frame->height, dest, dest_linesize);
+    if (hnew != cpu_av_frame->height) {
         throw std::runtime_error("Got a wrong size after scaling.");
     }
 
-    pixbuf = Gdk::Pixbuf::create_from_data(rawBuffer.data(), Gdk::Colorspace::RGB, true, 8, w, h, w * 4);
+    auto pixbuf = Gdk::Pixbuf::create_from_data(rawBuffer.data(), Gdk::Colorspace::RGB, true, 8, w, h, w * 4);
+    texture = Gdk::Texture::create_for_pixbuf(pixbuf);
+
 }
 

@@ -66,7 +66,7 @@ namespace libtrainsim {
              * @brief the number of frame data buffers.
              * This has to be at least 2 and the default will be 3
              */
-            static const size_t FRAME_BUFFER_COUNT = 3;
+            static constexpr size_t FRAME_BUFFER_COUNT = 3;
 
             /**
              * The raw pixel data of the decoded frame
@@ -74,7 +74,7 @@ namespace libtrainsim {
              * @note this is a double buffer implementation. This way the time
              * copy operation can be done while a frame is being drawn
              */
-            std::array<std::shared_ptr<Gdk::Pixbuf>, FRAME_BUFFER_COUNT> frame_data;
+            std::array<std::shared_ptr<Gdk::Texture>, FRAME_BUFFER_COUNT> frame_data;
 
             /**
              * @brief The index of the active buffer.
@@ -146,7 +146,7 @@ namespace libtrainsim {
              *
              * @param frame_buffer The frame buffer the frame data should be copied into
              */
-            virtual void copyToBuffer(std::shared_ptr<Gdk::Pixbuf>& pixbuf) = 0;
+            virtual void copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) = 0;
 
             /**
              * @brief the main render loop of the video decoder
@@ -186,14 +186,14 @@ namespace libtrainsim {
              * @return The usable framebuffer as pixbuf
              */
             [[maybe_unused]] [[nodiscard]]
-            std::shared_ptr<Gdk::Pixbuf> getUsablePixbuf(std::shared_ptr<Gdk::Pixbuf> pixbuf = nullptr);
+            std::shared_ptr<Gdk::Texture> getUsableTexture(std::shared_ptr<Gdk::Texture> texture = nullptr);
 
             /**
              * Returns true if a new frame is available using getUsableFramebuffer
              * @return true if a new frame is available false otherwise
              */
             [[nodiscard]]
-            bool hasNewPixbuf();
+            bool hasNewTexture();
 
             /**
              * Returns true if a new frame is available using getUsableFramebuffer

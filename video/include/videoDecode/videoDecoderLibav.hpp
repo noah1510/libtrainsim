@@ -44,12 +44,16 @@ namespace libtrainsim {
             AVCodecContext* av_codec_ctx = nullptr;
             // the id of the video stream
             int video_stream_index;
-            // The most recently decoded frame
-            AVFrame* av_frame = nullptr;
+            static constexpr size_t AV_FRAME_BUFFER_COUNT = 2;
+            // The front and back av_frame;
+            std::array<AVFrame*, AV_FRAME_BUFFER_COUNT> av_frames;
+            std::atomic<size_t> current_av_frame = 0;
             // the most recent packet
             AVPacket* av_packet = nullptr;
             // the SwsContext for scaling and color space conversion
             SwsContext* sws_scaler_ctx = nullptr;
+
+            bool has_hw_decoding = false;
 
             // The params for the scaling context
             int scalingContextParams = SWS_SINC;
@@ -82,7 +86,7 @@ namespace libtrainsim {
              *
              * @param frame_buffer The frame buffer the frame data should be copied into
              */
-            void copyToBuffer(std::shared_ptr<Gdk::Pixbuf>& pixbuf) override;
+            void copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) override;
 
           public:
             /**

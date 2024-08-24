@@ -233,8 +233,8 @@ namespace libtrainsim::Video {
                 this->LOGGER->logCurrrentException(true);
             }
 
-            if (this->decode.hasNewPixbuf()) {
-                displayTextures[0]->updateImage(context, this->decode.getUsablePixbuf());
+            if (this->decode.hasNewTexture()) {
+                displayTextures[0]->updateImage(context, this->decode.getUsableTexture());
             }
 
             glClearColor(0, 0, 0, 1);

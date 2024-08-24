@@ -87,6 +87,7 @@ video_conf_data = configuration_data()
 video_conf_data.set('HAS_FFMPEG_SUPPORT', has_libav)
 video_conf_data.set('HAS_GSTREAMER_SUPPORT', has_gstreamer)
 video_conf_data.set('HAS_VLC_SUPPORT', has_vlc)
+video_conf_data.set('LIBTRAINSIM_HAS_DMABUF_SUPPORT', target_machine.system() == 'linux')
 configure_file(output : 'video_config.hpp', configuration : video_conf_data, install: true, install_dir: 'include/libtrainsim')
 
 #include all headers including the video configuration

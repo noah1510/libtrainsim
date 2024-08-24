@@ -13,8 +13,8 @@ namespace libtrainsim {
             unsigned int interval_ms = 10;
 
             bool updateImage() {
-                if (this->decode.hasNewPixbuf()) {
-                    mainPicture.set_pixbuf(this->decode.getUsablePixbuf());
+                if (this->decode.hasNewTexture()) {
+                    mainPicture.set_paintable(this->decode.getUsableTexture());
                 }
 
                 return true;
