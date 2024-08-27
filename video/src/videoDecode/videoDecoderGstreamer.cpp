@@ -90,7 +90,7 @@ libtrainsim::Video::videoDecoderGstreamer::videoDecoderGstreamer(std::filesystem
 
         *LOGGER << SimpleGFX::loggingLevel::debug << "There are " << format_count << " formats supported by this stream.";
 
-        for (uint i = 0; i < format_count; i++) {
+        for (uint64_t i = 0; i < format_count; i++) {
             GstFormat format;
             gst_query_parse_nth_format(query, i, &format);
             *LOGGER << SimpleGFX::loggingLevel::debug << "Format " << i << " is " << gst_format_get_name(format);
