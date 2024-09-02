@@ -23,12 +23,6 @@ libtrainsim::Video::videoDecoderBase::videoDecoderBase(std::filesystem::path    
 }
 
 void libtrainsim::Video::videoDecoderBase::startRendering() {
-    auto [w, h] = renderSize.getCasted<int>();
-    for (auto& tex : frame_data) {
-        auto buf = Gdk::Pixbuf::create(Gdk::Colorspace::RGB, true, 8, w, h);
-        tex = Gdk::Texture::create_for_pixbuf(buf);
-    }
-
     renderThread = std::async(std::launch::async, sigc::mem_fun(*this, &videoDecoderBase::renderLoopCaller));
 }
 
@@ -81,12 +75,9 @@ bool libtrainsim::Video::videoDecoderBase::renderRequestedFrame() {
             seekFrame(nextF);
         }
 
-        // update the back buffer
-        copyToBuffer(frame_data[backBuffer]);
-
         // switch to the next framebuffer
-        if (bufferExported) {
-            activeBuffer   = incrementFramebuffer(activeBuffer);
+        if (!isExporting) {
+            activeBuffer   = backBuffer;
             bufferExported = false;
         }
 
@@ -137,15 +128,15 @@ std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderBase::getUsableTex
     if (bufferExported && texture != nullptr) {
         return texture;
     }
-
-    //move the pixbuf to the return value
-    auto useableTexture = frame_data[exportBufferID];
+    
+    // copy the decoded frame into the given texture
+    copyToBuffer(texture);
 
     // mark the buffer as exported
     bufferExported = true;
 
     //if the pixbuf was not given return the usablePixbuf otherwise return the given pixbuf
-    return std::move(useableTexture);
+    return texture;
 }
 
 bool libtrainsim::Video::videoDecoderBase::hasNewTexture() {

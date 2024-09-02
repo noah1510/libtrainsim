@@ -29,8 +29,8 @@ namespace libtrainsim::Video {
         void initVlc();
 
         // the render surface
-        std::shared_ptr<Gdk::Pixbuf> renderSurface;
-        std::shared_mutex            renderSurfaceMutex;
+        std::array<std::shared_ptr<Gdk::Pixbuf>, FRAME_BUFFER_COUNT> renderSurfaces;
+        std::array<std::shared_mutex, FRAME_BUFFER_COUNT> renderSurfaceMutexes;
 
         // The callbacks to render into the surface instead of windows
         void* lockBuffer(void** p_pixels);

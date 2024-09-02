@@ -172,17 +172,21 @@ void libtrainsim::Video::videoDecoderVlc::seekFrame(uint64_t framenumber) {
 }
 
 void libtrainsim::Video::videoDecoderVlc::copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) {
-    std::scoped_lock lock{renderSurfaceMutex};
+    isExporting = true;
+    std::scoped_lock lock{renderSurfaceMutexes[activeBuffer]};
 
-    texture = Gdk::Texture::create_for_pixbuf(renderSurface);
-    renderSurface = nullptr;
+    texture = Gdk::Texture::create_for_pixbuf(renderSurfaces[activeBuffer]);
+    isExporting = false;
 }
 
 //bool libtrainsim::Video::videoDecoderVlc::renderLoop() {}
 
 void* libtrainsim::Video::videoDecoderVlc::lockBuffer(void** p_pixels) {
-    renderSurfaceMutex.lock();
+    size_t back_buffer_index = incrementFramebuffer(activeBuffer);
+    renderSurfaceMutexes[back_buffer_index].lock();
 
+    auto& renderSurface = renderSurfaces[back_buffer_index];
+    
     auto [w,h] = renderSize.getCasted<int>();
     if (renderSurface == nullptr || renderSurface->get_width() != w || renderSurface->get_height() != h) {
         renderSurface = Gdk::Pixbuf::create(Gdk::Colorspace::RGB, false, 8, w, h);
@@ -193,7 +197,8 @@ void* libtrainsim::Video::videoDecoderVlc::lockBuffer(void** p_pixels) {
 }
 
 void libtrainsim::Video::videoDecoderVlc::unlockBuffer(void* id, void* const* p_pixels) {
-    renderSurfaceMutex.unlock();
+    size_t back_buffer_index = incrementFramebuffer(activeBuffer);
+    renderSurfaceMutexes[back_buffer_index].unlock();
 }
 
 void libtrainsim::Video::videoDecoderVlc::displayBuffer(void* id) {}

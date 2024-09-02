@@ -69,14 +69,6 @@ namespace libtrainsim {
             static constexpr size_t FRAME_BUFFER_COUNT = 3;
 
             /**
-             * The raw pixel data of the decoded frame
-             *
-             * @note this is a double buffer implementation. This way the time
-             * copy operation can be done while a frame is being drawn
-             */
-            std::array<std::shared_ptr<Gdk::Texture>, FRAME_BUFFER_COUNT> frame_data;
-
-            /**
              * @brief The index of the active buffer.
              * By defualt there are 3 buffers.
              * To make sure this variable always has a valid value only use
@@ -91,6 +83,8 @@ namespace libtrainsim {
              * This also prevents the front buffer being overwritten while it is read.
              */
             std::atomic<bool> bufferExported = false;
+            
+            std::atomic<bool> isExporting = false;
 
             /**
              * @brief increment a framebuffer number to the next buffer in line

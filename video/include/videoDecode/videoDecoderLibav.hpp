@@ -44,10 +44,8 @@ namespace libtrainsim {
             AVCodecContext* av_codec_ctx = nullptr;
             // the id of the video stream
             int video_stream_index;
-            static constexpr size_t AV_FRAME_BUFFER_COUNT = 2;
             // The front and back av_frame;
-            std::array<AVFrame*, AV_FRAME_BUFFER_COUNT> av_frames;
-            std::atomic<size_t> current_av_frame = 0;
+            std::array<AVFrame*, FRAME_BUFFER_COUNT> av_frames;
             // the most recent packet
             AVPacket* av_packet = nullptr;
             // the SwsContext for scaling and color space conversion

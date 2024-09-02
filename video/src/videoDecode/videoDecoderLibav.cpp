@@ -179,7 +179,7 @@ libtrainsim::Video::videoDecoderLibav::~videoDecoderLibav() {
 
 
 void libtrainsim::Video::videoDecoderLibav::readNextFrame() {
-    size_t back_buffer_index = (current_av_frame + 1) % AV_FRAME_BUFFER_COUNT;
+    size_t back_buffer_index = incrementFramebuffer(activeBuffer);
     auto& av_frame = av_frames[back_buffer_index];
 
     // Decode one frame
@@ -219,7 +219,7 @@ void libtrainsim::Video::videoDecoderLibav::readNextFrame() {
         break;
     }
 
-    current_av_frame = back_buffer_index;
+    activeBuffer = back_buffer_index;
 }
 
 void libtrainsim::Video::videoDecoderLibav::seekFrame(uint64_t framenumber) {
@@ -240,7 +240,8 @@ void libtrainsim::Video::videoDecoderLibav::seekFrame(uint64_t framenumber) {
 
 void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) {
     //std::shared_lock<std::shared_mutex> lock{contextMutex};
-    auto& av_frame = av_frames[current_av_frame];
+    isExporting = true;
+    auto& av_frame = av_frames[activeBuffer];
     AVFrame* cpu_av_frame = nullptr;
     auto pixel_format = av_codec_ctx->pix_fmt;
     if (has_hw_decoding) {
@@ -249,7 +250,8 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Te
         cpu_av_frame->height = av_frame->height;
 
         if (av_hwframe_transfer_data(cpu_av_frame, av_frame, 0) < 0) {
-            std::cout << "Could not transfer_data from hw frame" << std::endl;
+            *LOGGER << SimpleGFX::loggingLevel::error << "Could not transfer_data from hw frame" << std::endl;
+            isExporting = false;
             return;
         }
 
@@ -338,6 +340,6 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Te
 
     auto pixbuf = Gdk::Pixbuf::create_from_data(rawBuffer.data(), Gdk::Colorspace::RGB, true, 8, w, h, w * 4);
     texture = Gdk::Texture::create_for_pixbuf(pixbuf);
-
+    isExporting = false;
 }
 
