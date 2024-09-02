@@ -124,7 +124,7 @@ sakurajin::Baudrate libtrainsim::control::serialcontrol::read_config(const std::
 libtrainsim::control::serial_channel libtrainsim::control::serialcontrol::decodeTelegram(const std::string& telegram) {
 
     if (!std::regex_match(telegram, telegramRegex)) {
-        throw std::invalid_argument("invalid telegram");
+        throw std::invalid_argument("invalid telegram: " + telegram);
     }
 
     // decode the type of the telegram
@@ -135,7 +135,7 @@ libtrainsim::control::serial_channel libtrainsim::control::serialcontrol::decode
     } else if (type == 'U') {
         isDigital = true;
     } else {
-        throw std::invalid_argument("invalid type of telegram");
+        throw std::invalid_argument("invalid type of telegram: "s + type);
     }
 
     // decode the port number of the telegram
@@ -149,7 +149,7 @@ libtrainsim::control::serial_channel libtrainsim::control::serialcontrol::decode
     } else {
         auto val = hex2int(telegram.substr(6, 2));
         if (val < 0) {
-            throw std::invalid_argument("invalid value of telegram");
+            throw std::invalid_argument("invalid value of telegram: " + telegram);
         }
         value = static_cast<uint8_t>(val);
     }
@@ -162,7 +162,7 @@ libtrainsim::control::serial_channel libtrainsim::control::serialcontrol::decode
         }
     }
 
-    throw std::invalid_argument("somehow got an unidentified channel");
+    throw std::invalid_argument("somehow got an unidentified channel: " + telegram);
 }
 
 libtrainsim::control::serialcontrol::~serialcontrol() {
