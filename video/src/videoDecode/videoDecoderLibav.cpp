@@ -244,6 +244,8 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Te
     auto& av_frame = av_frames[activeBuffer];
     AVFrame* cpu_av_frame = nullptr;
     auto pixel_format = av_codec_ctx->pix_fmt;
+    auto [w, h] = renderSize.getCasted<int>();
+    
     if (has_hw_decoding) {
         cpu_av_frame = av_frame_alloc();
         cpu_av_frame->width = av_frame->width;
@@ -261,9 +263,10 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Te
 
     }else {
         cpu_av_frame = av_frame;
+        cpu_av_frame->width = w;
+        cpu_av_frame->height = h;
     }
 
-    auto [w, h] = renderSize.getCasted<int>();
     auto source_pix_fmt = correctForDeprecatedPixelFormat(pixel_format);
 
     #ifdef LIBTRAINSIM_HAS_DMABUF_SUPPORT
@@ -335,7 +338,9 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Te
     int      dest_linesize[4] = {w * 4, 0, 0, 0};
     auto     hnew          = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, h, dest, dest_linesize);
     if (hnew != cpu_av_frame->height) {
-        throw std::runtime_error("Got a wrong size after scaling.");
+        *LOGGER << SimpleGFX::loggingLevel::error << "Got a wrong size after scaling." << std::endl;
+        isExporting = false;
+        return;
     }
 
     auto pixbuf = Gdk::Pixbuf::create_from_data(rawBuffer.data(), Gdk::Colorspace::RGB, true, 8, w, h, w * 4);
