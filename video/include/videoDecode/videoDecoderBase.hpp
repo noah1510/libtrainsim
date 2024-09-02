@@ -180,7 +180,7 @@ namespace libtrainsim {
              * @return The usable framebuffer as pixbuf
              */
             [[maybe_unused]] [[nodiscard]]
-            std::shared_ptr<Gdk::Texture> getUsableTexture(std::shared_ptr<Gdk::Texture> texture = nullptr);
+            virtual std::shared_ptr<Gdk::Texture> getUsableTexture(std::shared_ptr<Gdk::Texture> texture = nullptr);
 
             /**
              * Returns true if a new frame is available using getUsableFramebuffer

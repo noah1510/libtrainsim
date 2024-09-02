@@ -426,6 +426,29 @@ bool libtrainsim::Video::videoDecoderGstreamer::renderLoop() {
     return true;
 }
 
+
+std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderGstreamer::getUsableTexture(std::shared_ptr<Gdk::Texture> texture) {
+    const auto exportBufferID = activeBuffer.load();
+    auto [w, h]               = renderSize.getCasted<int>();
+
+    // if a pixbuf was given and the buffer already exported
+    // it is assumed that the pixbuf is already up-to-date
+    if (bufferExported && texture != nullptr) {
+        return texture;
+    }
+
+    //move the pixbuf to the return value
+    auto useableTexture = frame_data[exportBufferID];
+
+    // mark the buffer as exported
+    bufferExported = true;
+
+    //if the pixbuf was not given return the usablePixbuf otherwise return the given pixbuf
+    return useableTexture;
+}
+
+
+
 /*
 void libtrainsim::Video::videoDecoderGstreamer::readNextFrame() {}
 

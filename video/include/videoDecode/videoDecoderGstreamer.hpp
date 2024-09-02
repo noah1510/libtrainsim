@@ -37,6 +37,8 @@ namespace libtrainsim {
             static int handleMessages_connector(GstBus* bus, GstMessage* message, gpointer data) {
                 return static_cast<videoDecoderGstreamer*>(data)->handleMessages(bus, message);
             }
+            
+            std::array<std::shared_ptr<Gdk::Texture>, FRAME_BUFFER_COUNT> frame_data;
 
           protected:
             /**
@@ -81,6 +83,9 @@ namespace libtrainsim {
              * @brief destroys the video decoder
              */
             ~videoDecoderGstreamer();
+            
+            [[maybe_unused]] [[nodiscard]]
+            std::shared_ptr<Gdk::Texture> getUsableTexture(std::shared_ptr<Gdk::Texture> texture = nullptr) override;
         };
     } // namespace Video
 } // namespace libtrainsim
