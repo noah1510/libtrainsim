@@ -30,111 +30,12 @@ static inline AVPixelFormat correctForDeprecatedPixelFormat(AVPixelFormat pix_fm
     }
 }
 
-/*
-libtrainsim::Video::videoDecodeSettings::videoDecodeSettings ( libtrainsim::Video::videoDecoderLibav& VR ) : tabPage{"decodeSettings"},
-decoder{VR}, AlgorithmOptions{{
-    {"fast bilinear", SWS_FAST_BILINEAR},
-    {"bilinear", SWS_BILINEAR},
-    {"bicubic", SWS_BICUBIC},
-    {"experimental", SWS_X},
-    {"point (nearest neighbor)", SWS_POINT},
-    {"area", SWS_AREA},
-    {"bicubic luma, bilinear chroma", SWS_BICUBLIN},
-    {"gauss", SWS_GAUSS},
-    {"sinc", SWS_SINC},
-    {"lanczos", SWS_LANCZOS},
-    {"spline", SWS_SPLINE}
-}},AlgorithmDetailsOptions{{
-    {"Print SWS Info", SWS_PRINT_INFO},
-    {"accurate rounding", SWS_ACCURATE_RND},
-    {"Bite exact output", SWS_BITEXACT},
-    {"error diffusion", SWS_ERROR_DIFFUSION},
-    {"Enable direct BGR", SWS_DIRECT_BGR},
-    {"Enable full chorma interpolation", SWS_FULL_CHR_H_INT},
-    {"Enable full chroma input", SWS_FULL_CHR_H_INP}
-}}{};
-
-void libtrainsim::Video::videoDecodeSettings::content() {
-    //get the current flags
-    decoder.contextMutex.lock_shared();
-    auto currentFlags = decoder.scalingContextParams;
-    decoder.contextMutex.unlock_shared();
-
-    decoder.frameNumberMutex.lock_shared();
-    auto currentCutoff = decoder.seekCutoff;
-    decoder.frameNumberMutex.unlock_shared();
-
-    //selection for the scaling algorithm
-    static size_t comboAlgorithmIndex = 9;
-    if(ImGui::BeginCombo("Select the scaling algorithm", AlgorithmOptions.at(comboAlgorithmIndex).first.c_str() )){
-        for(size_t i = 0; i < AlgorithmOptions.size();i++){
-            if(ImGui::Selectable(AlgorithmOptions.at(i).first.c_str(), comboAlgorithmIndex == i)){
-                comboAlgorithmIndex = i;
-            }
-        }
-
-        ImGui::EndCombo();
-    }
-
-    //selection for all of the algorithm details
-    static std::array<bool,7> algorithmDetailSelections {false, false, false, false, false, false, false};
-    if(ImGui::BeginCombo("Select algorithm details", "expand here")){
-        for(size_t i = 0; i < AlgorithmDetailsOptions.size();i++){
-            ImGui::Checkbox(std::get<0>(AlgorithmDetailsOptions.at(i)).c_str(), &algorithmDetailSelections[i]);
-        }
-        ImGui::EndCombo();
-    }
-
-    //a slider for the seek cutoff
-    int cutoff = static_cast<int>(currentCutoff);
-    ImGui::SliderInt("Change the Cutoff for when to seek frames", &cutoff, 2*decoder.framerate, 20*decoder.framerate);
-
-    //display detailed video stats
-    ImGui::Text("Detailed Video Information: ");
-    ImGui::Text("    average framerate: %f", decoder.framerate);
-    ImGui::Text("    frame number: %d", decoder.av_codec_ctx->frame_number);
-
-    //apply the selected flags
-    int newFlags = 0;
-
-    newFlags |= AlgorithmOptions[comboAlgorithmIndex].second;
-    for(size_t i = 0; i < AlgorithmDetailsOptions.size();i++){
-        if(algorithmDetailSelections[i]){
-            newFlags |= std::get<1>(AlgorithmDetailsOptions[i]);
-        }
-    }
-
-    //update the scaling flags if they are different
-    if(newFlags != currentFlags){
-        std::scoped_lock<std::shared_mutex> lock{decoder.contextMutex};
-        decoder.scalingContextParams = newFlags;
-    }
-
-    //update the cutoff if it is changed
-    if(cutoff != static_cast<int>(currentCutoff)){
-        std::scoped_lock<std::shared_mutex> lock{decoder.frameNumberMutex};
-        decoder.seekCutoff = cutoff;
-    }
-}
-*/
 
 libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path              _videoFile,
                                                        std::shared_ptr<SimpleGFX::logger> _logger,
                                                        uint64_t                           _seekCutoff,
                                                        uint64_t                           threadCount)
     : videoDecoderBase{std::move(_videoFile), std::move(_logger), _seekCutoff} {
-    /*
-    //find all of the hardware devices
-    std::vector<AVHWDeviceType> deviceTypes;
-    AVHWDeviceType lastType = AV_HWDEVICE_TYPE_NONE;
-    while ((lastType = av_hwdevice_iterate_types(lastType)) != AV_HWDEVICE_TYPE_NONE){
-        deviceTypes.emplace_back(lastType);
-    }
-
-    for(size_t i = 0; i < deviceTypes.size(); i++){
-        std::cout << "Supported HWDevice: " << av_hwdevice_get_type_name(deviceTypes[i]) << std::endl;
-    }
-    */
 
     // Open the file using libavformat
     av_format_ctx = avformat_alloc_context();
@@ -420,8 +321,8 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Te
                                           cpu_av_frame->width,
                                           cpu_av_frame->height,
                                           source_pix_fmt,
-                                          cpu_av_frame->width,
-                                          cpu_av_frame->height,
+                                          w,
+                                          h,
                                           AV_PIX_FMT_RGBA,
                                           scalingContextParams,
                                           nullptr,
@@ -429,8 +330,8 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Te
                                           nullptr);
 
     uint8_t* dest[4]          = {rawBuffer.data(), nullptr, nullptr, nullptr};
-    int      dest_linesize[4] = {cpu_av_frame->width * 4, 0, 0, 0};
-    auto     hnew          = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, cpu_av_frame->height, dest, dest_linesize);
+    int      dest_linesize[4] = {w * 4, 0, 0, 0};
+    auto     hnew          = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, h, dest, dest_linesize);
     if (hnew != cpu_av_frame->height) {
         throw std::runtime_error("Got a wrong size after scaling.");
     }
