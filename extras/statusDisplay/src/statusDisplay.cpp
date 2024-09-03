@@ -4,36 +4,36 @@ using namespace sakurajin::unit_system;
 using namespace sakurajin::unit_system::literals;
 using namespace std::literals;
 
-/*
-libtrainsim::extras::statusDisplaySettings::statusDisplaySettings(statusDisplay& disp):tabPage{"statusDisplay"}, display{disp}{}
-
-void libtrainsim::extras::statusDisplaySettings::content() {
-
-    ImGui::Checkbox("Display Latest Values", &display.displayLatestValue);
-    ImGui::Checkbox("Display Graphs", &display.displayGraphs);
-    ImGui::Checkbox("Display progress bar", &display.displayProgress);
-
-    ImGui::Text("Graph visibility:");
-    for(auto& graph:display.graphs){
-        std::stringstream ss;
-        ss << "Show Graph: " << graph.first.getName();
-        ImGui::Checkbox(ss.str().c_str(), &graph.second);
-        if(ImGui::IsItemHovered()){
-            ImGui::SetTooltip("Change if a graph should be visible on the statusDisplay");
-        }
-    }
-}
-
-*/
-
-libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings)
-    : Gtk::Window{},
-      manageSettings{_manageSettings} {
-    set_title("Status Window");
-
+libtrainsim::extras::statusDisplay::statusDisplay(std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> _mainAppLauncher)
+    : Gtk::Box{},
+      mainAppLauncher{std::move(_mainAppLauncher)} {
+    
+    hide();
+    set_can_focus(false);
+    set_can_target(false);
+    
+    set_hexpand(true);
+    set_vexpand(true);
+    
     graphsList = Gtk::make_managed<Gtk::ListBox>();
-    set_child(*graphsList);
-
+    
+    graphsList->set_hexpand(true);
+    graphsList->set_vexpand(true);
+    
+    append(*graphsList);
+    
+    Glib::ustring data = ".invis_bg {background-color: rgba(255, 255, 255, 0);}";
+    auto provider = Gtk::CssProvider::create();
+    provider->load_from_string(data);
+    
+    auto ctx = get_style_context();
+    ctx->add_class("invis_bg");
+    ctx->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    
+    ctx = graphsList->get_style_context();
+    ctx->add_class("invis_bg");
+    ctx->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    
     defaultGraphNames = {"frametimes", "rendertimes", "acceleration", "velocity", "speedLevel"};
 
     beginPosition   = 0_m;
@@ -49,23 +49,13 @@ libtrainsim::extras::statusDisplay::statusDisplay(bool _manageSettings)
     changeGraphRange("acceleration", -2.0, 2.0);
     changeGraphRange("velocity", 0.0, 60.0);
     changeGraphRange("speedLevel", -1.0, 1.0);
-
-    set_hide_on_close();
-
-    if (manageSettings) {
-        // SimpleGFX::SimpleGL::imguiHandler::addSettingsTab(std::make_shared<statusDisplaySettings>(*this));
-    }
 }
 
 
-libtrainsim::extras::statusDisplay::~statusDisplay() {
-    if (manageSettings) {
-        // SimpleGFX::SimpleGL::imguiHandler::removeSettingsTab("statusDisplay");
-    }
-}
+libtrainsim::extras::statusDisplay::~statusDisplay() {}
 
 void libtrainsim::extras::statusDisplay::on_unrealize() {
-    Gtk::Window::on_unrealize();
+    Gtk::Box::on_unrealize();
     graphs.clear();
 }
 
@@ -164,7 +154,7 @@ void libtrainsim::extras::statusDisplay::redrawGraphs() {
 }
 
 void libtrainsim::extras::statusDisplay::operator()(const SimpleGFX::inputEvent& event, bool& handled) {
-    static auto app        = get_application();
+    //static auto app        = get_application();
     static bool showLatest = true;
 
     if (event.inputType != SimpleGFX::inputAction::press) {
@@ -174,12 +164,14 @@ void libtrainsim::extras::statusDisplay::operator()(const SimpleGFX::inputEvent&
     const auto actionCases = {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"};
     switch (SimpleGFX::TSwitch(event.name, actionCases)) {
         case (0):
-            if (is_visible()) {
-                hide();
-            } else {
-                app->add_window(*this);
-                set_visible(true);
-            }
+            mainAppLauncher->callDeffered([this]() {
+                if (is_visible()) {
+                    hide();
+                } else {
+                    show();
+                }
+            });
+            
             handled = true;
             return;
         case (1):

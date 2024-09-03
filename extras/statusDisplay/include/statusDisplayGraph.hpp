@@ -80,6 +80,7 @@ namespace libtrainsim::extras {
         double getLatest() const;
 
         void on_unrealize() override;
+        void on_resize (int width, int height) override;
     };
 } // namespace libtrainsim::extras
 
@@ -94,11 +95,26 @@ libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::statusDisplayGraph(std::st
         val = 0.0;
     }
 
-    set_draw_func(sigc::mem_fun(*this, &libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_draw));
     set_content_width(1280);
     set_content_height(150);
+    
+    set_can_focus(false);
+    set_can_target(false);
+    
+    set_hexpand(true);
+    set_vexpand(true);
+    
+    Glib::ustring data = ".invis_bg {background-color: rgba(255, 255, 255, 0);}";
+    auto provider = Gtk::CssProvider::create();
+    provider->load_from_string(data);
+    
+    auto ctx = get_style_context();
+    ctx->add_class("invis_bg");
+    ctx->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     set_tooltip_text(tooltip_txt);
+    
+    set_draw_func(sigc::mem_fun(*this, &libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_draw));
 }
 
 
@@ -152,15 +168,20 @@ void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_draw(const Cairo::
 
     std::shared_lock lock{dataMutex};
 
-    get_style_context()->render_background(cr, 0, 0, width, height);
+    //get_style_context()->render_background(cr, 0, 0, width, height);
+    cr->set_source_rgba(0.0, 0.0, 0.0, 0.1);
+    cr->rectangle(0, 0, width, height);
+    cr->fill();
 
     std::stringstream ss;
     ss << name;
     if (showLatest) {
         ss << ": " << getLatest();
     }
+    
+    Gdk::Cairo::set_source_rgba(cr, get_style_context()->get_color());
 
-    double widthScale = 1.0;
+    double widthScale = 1.0 - margin;
     if (showLatest) {
         widthScale = 0.7;
     }
@@ -214,3 +235,11 @@ template <size_t VALUE_COUNT>
 double libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::getLatest() const {
     return latestVal;
 }
+
+template <size_t VALUE_COUNT>
+    requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
+void libtrainsim::extras::statusDisplayGraph<VALUE_COUNT>::on_resize (int width, int height){
+    set_content_width(width);
+}
+
+

@@ -4,24 +4,12 @@
 
 namespace libtrainsim {
     namespace extras {
-        /*
-        class statusDisplay;
-
-        //a class to change the settings of the status display
-        class LIBTRAINSIM_EXPORT_MACRO statusDisplaySettings : public SimpleGFX::SimpleGL::tabPage{
-          private:
-            void content() override;
-            statusDisplay& display;
-          public:
-            statusDisplaySettings(statusDisplay& disp);
-        };
-        */
 
         /**
          * @brief a window to display real time stats for the simulator
          *
          */
-        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] statusDisplay : public Gtk::Window, public SimpleGFX::tracked_eventHandle {
+        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] statusDisplay : public Gtk::Box, public SimpleGFX::tracked_eventHandle {
             // friend class statusDisplaySettings;
 
           private:
@@ -33,9 +21,6 @@ namespace libtrainsim {
 
             // control if the progress along the track should be shown
             bool displayProgress = true;
-
-            // checks if a settings tab should be created and destroyed by this class
-            bool manageSettings;
 
             /**
              * @brief a vector with all of graphs that are displayed and if they should be displayed
@@ -57,6 +42,13 @@ namespace libtrainsim {
             sakurajin::unit_system::length endPosition;
 
             Gtk::ListBox* graphsList;
+            
+            /**
+             * @brief The appLauncher used by this class.
+             * It is needed to queue api calls to happen in the main thread.
+             * This allows gotoFrame to be called from any thread without crashing the program.
+             */
+            std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> mainAppLauncher;
 
           public:
             /**
@@ -64,7 +56,7 @@ namespace libtrainsim {
              *
              * @param _manageSettings if false is passed this class will not create a settings tab
              */
-            explicit statusDisplay(bool _manageSettings = true);
+            explicit statusDisplay(std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> mainAppLauncher);
 
             /**
              * @brief destroy the status display

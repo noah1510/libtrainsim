@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gtkmm/object.h"
+#include "overlay.h"
 #include "renderWidget/renderWidgetBase.hpp"
 #include "videoDecode/videoDecoderLibav.hpp"
 
@@ -21,6 +23,8 @@ namespace libtrainsim::Video {
         std::shared_ptr<SimpleGFX::logger> LOGGER;
 
         std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> mainAppLauncher;
+        
+        Gtk::Overlay* render_overlay;
 
       protected:
         bool on_close_request() override {
@@ -70,9 +74,24 @@ namespace libtrainsim::Video {
             set_title(simSettings->getCurrentTrack().getName());
             set_default_size(1280, 720);
             set_cursor("none");
+            
+            render_overlay = Gtk::make_managed<Gtk::Overlay>();
+
+            render_overlay->set_hexpand(true);
+            render_overlay->set_vexpand(true);
+    
+            Glib::ustring data = ".invis_bg {background-color: rgba(255, 255, 255, 0);}";
+            auto provider = Gtk::CssProvider::create();
+            provider->load_from_string(data);
+            
+            auto ctx = render_overlay->get_style_context();
+            ctx->add_class("invis_bg");
+            ctx->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
             mainRenderer = Gtk::make_managed<widgetClass>(simSettings, mainAppLauncher, &_args...);
-            set_child(*mainRenderer);
+            render_overlay->set_child(*mainRenderer);
+            
+            set_child(*render_overlay);
             //fullscreen();
         }
 
@@ -103,6 +122,11 @@ namespace libtrainsim::Video {
             }catch(...){
                 return {};
             }
+        }
+        
+        [[maybe_unused]] [[nodiscard]]
+        Gtk::Overlay& getOverlayContainer(){
+            return *render_overlay;
         }
 
         void operator()(const SimpleGFX::inputEvent& event, bool& handled) override {
