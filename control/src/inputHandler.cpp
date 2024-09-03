@@ -10,6 +10,8 @@ libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::
     } catch (...) {
         std::throw_with_nested(std::runtime_error("Error initializing the serial control"));
     }
+    
+    last_sifa_push = SimpleGFX::chrono::now();
 
 #ifdef HAS_VIDEO_SUPPORT
     keyboardPoller = std::make_shared<SimpleGFX::SimpleGL::eventPollerGtkKeyboard>();
@@ -27,6 +29,8 @@ libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::
     keyboardPoller->addKey(GDK_KEY_W, "ACCELERATE");
     keyboardPoller->addKey(GDK_KEY_S, "BREAK");
     keyboardPoller->addKey(GDK_KEY_P, "EMERGENCY_BREAK");
+    
+    keyboardPoller->addKey(GDK_KEY_space, "SIFA");
 
     conf->getInputManager()->registerPoller(*keyboardPoller);
 #endif
@@ -86,14 +90,24 @@ bool libtrainsim::control::input_handler::closingFlag() noexcept {
 bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
     std::shared_lock lock{dataMutex};
     if (shouldEmergencyBreak) {
-        shouldEmergencyBreak = false;
+        if (currentInputAxis <= 0.0){
+            shouldEmergencyBreak = false;
+        }
         return true;
+    }else{
+        if (sifa_pressed){
+            last_sifa_push = SimpleGFX::chrono::now();
+        }
+
+        if (SimpleGFX::chrono::now() - last_sifa_push > 3s){
+            shouldEmergencyBreak = true;
+            return true;
+        }
     }
     return false;
 }
 
 void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent& event, bool& handled) {
-
     std::scoped_lock lock{dataMutex};
     auto             eventName       = event.name;
     bool             serialConnected = serial && serial->IsConnected();
@@ -118,8 +132,8 @@ void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent
                 break;
         }
     }
-
-    const auto actionCases = {"TERMINATE", "CLOSE", "EMERGENCY_BREAK", "ACCELERATE", "BREAK"};
+    
+    const auto actionCases = {"TERMINATE", "CLOSE", "EMERGENCY_BREAK", "ACCELERATE", "BREAK", "SIFA"};
     const auto selectedCase = SimpleGFX::TSwitch(eventName, actionCases);
     switch (selectedCase) {
         case (0):
@@ -150,7 +164,16 @@ void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent
                 handled = true;
             };
             return;
-        default:
+        case(5):
+            if (event.inputType == SimpleGFX::inputAction::release){
+                sifa_pressed = false;
+            }else{
+                sifa_pressed = true;
+                last_sifa_push = SimpleGFX::chrono::now();
+            }
+            
             return;
+        default:
+            break;
     }
 }

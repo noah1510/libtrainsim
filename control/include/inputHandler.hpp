@@ -63,6 +63,10 @@ namespace libtrainsim {
              * @brief a bool to set if the simulator is running
              */
             bool running = false;
+            
+            decltype(SimpleGFX::chrono::now()) last_sifa_push;
+            
+            bool sifa_pressed = false;
 
             /**
              * @brief the serial interface to the connected hardware input
