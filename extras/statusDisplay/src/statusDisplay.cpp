@@ -164,13 +164,7 @@ void libtrainsim::extras::statusDisplay::operator()(const SimpleGFX::inputEvent&
     const auto actionCases = {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"};
     switch (SimpleGFX::TSwitch(event.name, actionCases)) {
         case (0):
-            mainAppLauncher->callDeffered([this]() {
-                if (is_visible()) {
-                    hide();
-                } else {
-                    show();
-                }
-            });
+            mainAppLauncher->callDeffered([this]() {if (is_visible()) {hide();} else {show();}}, sec_getID());
             
             handled = true;
             return;

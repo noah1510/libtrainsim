@@ -137,7 +137,7 @@ namespace libtrainsim::Video {
             const auto actionCases = {"CLOSE", "MAXIMIZE"};
             switch (SimpleGFX::TSwitch(event.name, actionCases)) {
                 case (0):
-                    mainAppLauncher->callDeffered(sigc::mem_fun(*this, &outputWindow::close));
+                    mainAppLauncher->callDeffered([this](){this->close();}, sec_getID());
                     handled = true;
                     return;
                 case (1):
@@ -145,13 +145,16 @@ namespace libtrainsim::Video {
                         return;
                     }
 
-                    mainAppLauncher->callDeffered([this]() {
-                        if (is_fullscreen()) {
-                            unfullscreen();
-                        } else {
-                            fullscreen();
-                        }
-                    });
+                    mainAppLauncher->callDeffered(
+                        [this]() {
+                            if (is_fullscreen()) {
+                                unfullscreen();
+                            } else {
+                                fullscreen();
+                            }
+                        },
+                        sec_getID()
+                    );
                     handled = true;
                     return;
                 default:

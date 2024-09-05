@@ -5,7 +5,7 @@
 namespace libtrainsim {
     namespace Video {
         template <videoDecoderClass decoderClass>
-        class renderWidgetBase : public Gtk::AspectFrame {
+        class renderWidgetBase : public Gtk::AspectFrame, public sec_sigc::sec_trackable {
           protected:
             /**
              * The settings used by the simulator.
@@ -67,10 +67,7 @@ namespace libtrainsim {
              * @param frame_num the number of the frame that should be displayed next
              */
             virtual void gotoFrame(uint64_t frame_num){
-                // queue a redraw if the requested frame is newer than the currently displayed one.
-                if (decode.requestFrame(frame_num)) {
-                    mainAppLauncher->callDeffered(sigc::mem_fun(*this, &renderWidgetBase::queue_draw));
-                }
+                decode.requestFrame(frame_num);
             }
 
             /**
