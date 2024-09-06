@@ -49,6 +49,8 @@ bool libtrainsim::Video::videoDecoderBase::renderRequestedFrame() {
     const uint64_t currF       = currentFrameNumber;
     const uint64_t _seekCutoff = seekCutoff;
 
+    static bool export_skipped = false;
+
     // select the next buffer from the active buffer as back buffer
     const auto backBuffer = incrementFramebuffer(activeBuffer);
 
@@ -58,27 +60,53 @@ bool libtrainsim::Video::videoDecoderBase::renderRequestedFrame() {
     // until the difference is 0
     uint64_t diff = nextF - currF;
 
+    // If no new frame is requested just wait and check again
+    // in case an export was skipped a buffer swap is performed when possible
+    if (diff == 0) {
+        if (export_skipped) {
+            if (!isExporting) {
+                activeBuffer   = backBuffer;
+                bufferExported = false;
+                export_skipped = false;
+                return true;
+            }
+        }
+
+        // no new frame to render so just wait and check again
+        std::this_thread::sleep_for(10us);
+
+        if (export_skipped) {
+            if (!isExporting) {
+                activeBuffer   = backBuffer;
+                bufferExported = false;
+                export_skipped = false;
+                return true;
+            }
+        }
+
+        return true;
+    }
+
     try {
-        if (diff == 0) {
-            // no new frame to render so just wait and check again
-            std::this_thread::sleep_for(1ms);
-            return true;
-        } else if (diff < _seekCutoff) {
+        if (diff < _seekCutoff) {
             // for these small skips it is faster to simply decode frame by frame
             while (diff > 0) {
-                readNextFrame();
+                readNextFrame(backBuffer);
                 diff--;
             }
         } else {
             // the next frame is more than 4 seconds in the future
             // in this case av_seek is used to jump to that frame
-            seekFrame(nextF);
+            seekFrame(backBuffer, nextF);
         }
 
         // switch to the next framebuffer
-        if (!isExporting) {
+        if (isExporting) {
+            export_skipped = true;
+        }else{
             activeBuffer   = backBuffer;
             bufferExported = false;
+            export_skipped = false;
         }
 
         // update the number of the current frame
@@ -115,10 +143,6 @@ libtrainsim::Video::videoDecoderBase::~videoDecoderBase() {
 }
 
 
-void libtrainsim::Video::videoDecoderBase::readNextFrame() {}
-
-void libtrainsim::Video::videoDecoderBase::seekFrame(uint64_t framenumber) {}
-
 std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderBase::getUsableTexture(std::shared_ptr<Gdk::Texture> texture) {
     const auto exportBufferID = activeBuffer.load();
     auto [w, h]               = renderSize.getCasted<int>();
@@ -130,13 +154,17 @@ std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderBase::getUsableTex
     }
     
     // copy the decoded frame into the given texture
-    copyToBuffer(texture);
+    copyToBuffer(exportBufferID, texture);
 
     // mark the buffer as exported
     bufferExported = true;
 
     //if the pixbuf was not given return the usablePixbuf otherwise return the given pixbuf
     return texture;
+}
+
+std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderBase::getUsableTexture(){
+    return getUsableTexture(nullptr);
 }
 
 bool libtrainsim::Video::videoDecoderBase::hasNewTexture() {

@@ -31,7 +31,7 @@ libtrainsim::Video::videoDecoderVlc::videoDecoderVlc(std::filesystem::path      
     player->play();
     player->pause();
 
-    readNextFrame();
+    readNextFrame(incrementFramebuffer(activeBuffer));
 
     reachedEOF = false;
     startRendering();
@@ -153,11 +153,11 @@ void libtrainsim::Video::videoDecoderVlc::initVlc() {
 }
 #endif
 
-void libtrainsim::Video::videoDecoderVlc::readNextFrame() {
+void libtrainsim::Video::videoDecoderVlc::readNextFrame(uint8_t buffer_index) {
     player->nextFrame();
 }
 
-void libtrainsim::Video::videoDecoderVlc::seekFrame(uint64_t framenumber) {
+void libtrainsim::Video::videoDecoderVlc::seekFrame(uint8_t buffer_index, uint64_t framenumber) {
     //This calculates the timestamp in ms for the given frame number
     //The formula is based on the assumption that the framerate is constant
     //It is calculated using framenumber * 1000 / fps
@@ -171,11 +171,11 @@ void libtrainsim::Video::videoDecoderVlc::seekFrame(uint64_t framenumber) {
 #endif
 }
 
-void libtrainsim::Video::videoDecoderVlc::copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) {
+void libtrainsim::Video::videoDecoderVlc::copyToBuffer(uint8_t buffer_index, std::shared_ptr<Gdk::Texture>& texture) {
     isExporting = true;
-    std::scoped_lock lock{renderSurfaceMutexes[activeBuffer]};
+    std::scoped_lock lock{renderSurfaceMutexes[buffer_index]};
 
-    texture = Gdk::Texture::create_for_pixbuf(renderSurfaces[activeBuffer]);
+    texture = Gdk::Texture::create_for_pixbuf(renderSurfaces[buffer_index]);
     isExporting = false;
 }
 

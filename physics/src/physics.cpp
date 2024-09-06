@@ -53,7 +53,6 @@ acceleration libtrainsim::physics::getAcceleration() {
 
 void libtrainsim::physics::setSpeedlevel(const core::input_axis& slvl) {
     doAutoTick();
-    std::scoped_lock<std::shared_mutex> lock(mutex_data);
     speedlevel = slvl.get();
 }
 
@@ -102,6 +101,7 @@ void libtrainsim::physics::tick() {
     sakurajin::unit_system::mass  mass;
     long double                   air_drag   = 0.0;
     long double                   train_drag = 0.0;
+    auto current_slvel = speedlevel.load();
 
     // defining the needed variables
     mass       = config.train().getMass();
@@ -111,17 +111,17 @@ void libtrainsim::physics::tick() {
     MaxPower = config.train().getMaxPower();
 
     if (isEmergencyBreaking) {
-        speedlevel = -1.0;
+        current_slvel = -1.0;
         if (velocity < 0.007_mps) {
             isEmergencyBreaking = false;
         }
     }
 
-    currPower = speedlevel * MaxPower;
+    currPower = current_slvel * MaxPower;
 
-    // Handling the different possibilities for Speedlevel
+    // Handling the different possibilities for current_slvel
     // only calculating the current Force
-    if (speedlevel > 0.007) {
+    if (current_slvel > 0.007) {
         if (std::abs(velocity) < 0.007_mps) {
             currTraction = MaxForce;
         } else {
@@ -131,8 +131,8 @@ void libtrainsim::physics::tick() {
         if (currTraction > MaxForce) {
             currTraction = MaxForce;
         }
-    } else if (speedlevel < -0.007) {
-        currTraction = speedlevel * MaxForce;
+    } else if (current_slvel < -0.007) {
+        currTraction = current_slvel * MaxForce;
     } else {
         currTraction = 0_N;
         if (velocity > 0.0_mps) {

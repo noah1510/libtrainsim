@@ -148,6 +148,10 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
     }
 
     reachedEOF = false;
+    for (size_t i = 0; i < FRAME_BUFFER_COUNT; i++) {
+        readNextFrame(i);
+    }
+
     startRendering();
 
     // auto settingsTab = std::make_shared<videoDecodeSettings>(*this);
@@ -178,9 +182,8 @@ libtrainsim::Video::videoDecoderLibav::~videoDecoderLibav() {
 }
 
 
-void libtrainsim::Video::videoDecoderLibav::readNextFrame() {
-    size_t back_buffer_index = incrementFramebuffer(activeBuffer);
-    auto& av_frame = av_frames[back_buffer_index];
+void libtrainsim::Video::videoDecoderLibav::readNextFrame(uint8_t buffer_index) {
+    auto& av_frame = av_frames[buffer_index];
 
     // Decode one frame
     int response;
@@ -219,10 +222,10 @@ void libtrainsim::Video::videoDecoderLibav::readNextFrame() {
         break;
     }
 
-    activeBuffer = back_buffer_index;
+    activeBuffer = buffer_index;
 }
 
-void libtrainsim::Video::videoDecoderLibav::seekFrame(uint64_t framenumber) {
+void libtrainsim::Video::videoDecoderLibav::seekFrame(uint8_t buffer_index, uint64_t framenumber) {
     auto* stream = av_format_ctx->streams[video_stream_index];
     auto  ts     = (int64_t(framenumber) * stream->r_frame_rate.den * stream->time_base.den) /
               (int64_t(stream->r_frame_rate.num) * stream->time_base.num);
@@ -232,16 +235,16 @@ void libtrainsim::Video::videoDecoderLibav::seekFrame(uint64_t framenumber) {
     }
 
     try {
-        readNextFrame();
+        readNextFrame(buffer_index);
     } catch (...) {
         std::throw_with_nested(std::runtime_error("Could not retreive the seeked frame"));
     }
 }
 
-void libtrainsim::Video::videoDecoderLibav::copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) {
+void libtrainsim::Video::videoDecoderLibav::copyToBuffer(uint8_t buffer_index, std::shared_ptr<Gdk::Texture>& texture) {
     //std::shared_lock<std::shared_mutex> lock{contextMutex};
     isExporting = true;
-    auto& av_frame = av_frames[activeBuffer];
+    auto av_frame = av_frames[buffer_index];
     AVFrame* cpu_av_frame = nullptr;
     auto pixel_format = av_codec_ctx->pix_fmt;
     auto [w, h] = renderSize.getCasted<int>();

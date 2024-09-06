@@ -202,7 +202,7 @@ void libtrainsim::Video::videoDecoderGstreamer::pad_added_handler(GstElement* sr
     gst_object_unref(sink_pad);
 }
 
-void libtrainsim::Video::videoDecoderGstreamer::copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) {
+void libtrainsim::Video::videoDecoderGstreamer::copyToBuffer(uint8_t buffer_index, std::shared_ptr<Gdk::Texture>& texture) {
     GdkPixbuf* c_pixbuf = nullptr;
     g_object_get(G_OBJECT(sink), "last-pixbuf", &c_pixbuf, nullptr);
 
@@ -323,7 +323,7 @@ bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstM
 
         const auto backBuffer = incrementFramebuffer(activeBuffer);
         // select the next buffer from the active buffer as back buffer
-        copyToBuffer(frame_data[backBuffer]);
+        copyToBuffer(backBuffer, frame_data[backBuffer]);
 
         // switch to the next framebuffer in case the old one was exported
         if (bufferExported) {

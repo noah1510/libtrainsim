@@ -82,7 +82,7 @@ namespace libtrainsim {
              * This allows the Back Buffer to be updated more than once before being displayed.
              * This also prevents the front buffer being overwritten while it is read.
              */
-            std::atomic<bool> bufferExported = false;
+            std::atomic<bool> bufferExported = true;
             
             std::atomic<bool> isExporting = false;
 
@@ -122,7 +122,7 @@ namespace libtrainsim {
              * @brief reads the next frame in the video file into av_frame.
              * @note this function does not update the currentFrameNumber variable
              */
-            virtual void readNextFrame();
+            virtual void readNextFrame(uint8_t buffer_index) = 0;
 
             /**
              * @brief jump directly to a given frame number
@@ -130,7 +130,7 @@ namespace libtrainsim {
              * converted to a timestamp based on the assumption that the framerate is constant).
              * @param framenumber the number of the frame the decode should seek.
              */
-            virtual void seekFrame(uint64_t framenumber);
+            virtual void seekFrame(uint8_t buffer_index, uint64_t framenumber) = 0;
 
             /**
              * @brief copy the av_frame to the given frame_buffer
@@ -140,7 +140,7 @@ namespace libtrainsim {
              *
              * @param frame_buffer The frame buffer the frame data should be copied into
              */
-            virtual void copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) = 0;
+            virtual void copyToBuffer(uint8_t buffer_index, std::shared_ptr<Gdk::Texture>& texture) = 0;
 
             /**
              * @brief the main render loop of the video decoder
@@ -180,7 +180,9 @@ namespace libtrainsim {
              * @return The usable framebuffer as pixbuf
              */
             [[maybe_unused]] [[nodiscard]]
-            virtual std::shared_ptr<Gdk::Texture> getUsableTexture(std::shared_ptr<Gdk::Texture> texture = nullptr);
+            virtual std::shared_ptr<Gdk::Texture> getUsableTexture(std::shared_ptr<Gdk::Texture> texture);
+
+            std::shared_ptr<Gdk::Texture> getUsableTexture();
 
             /**
              * Returns true if a new frame is available using getUsableFramebuffer

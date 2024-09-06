@@ -44,7 +44,7 @@ namespace libtrainsim {
          */
         std::atomic<long double> speedlevel = 0.0;
 
-        const libtrainsim::core::Track config;
+        const libtrainsim::core::Track& config;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> last_update;
 

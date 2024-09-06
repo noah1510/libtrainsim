@@ -42,7 +42,7 @@ namespace libtrainsim::Video {
          * @brief reads the next frame in the video file into av_frame.
          * @note this function does not update the currentFrameNumber variable
          */
-        void readNextFrame() override;
+        void readNextFrame(uint8_t buffer_index) override;
 
         /**
          * @brief jump directly to a given frame number
@@ -50,7 +50,7 @@ namespace libtrainsim::Video {
          * converted to a timestamp based on the assumption that the framerate is constant).
          * @param framenumber the number of the frame the decode should seek.
          */
-        void seekFrame(uint64_t framenumber) override;
+        void seekFrame(uint8_t buffer_index, uint64_t framenumber) override;
 
         /**
          * @brief copy the av_frame to the given frame_buffer
@@ -60,7 +60,7 @@ namespace libtrainsim::Video {
          *
          * @param frame_buffer The frame buffer the frame data should be copied into
          */
-        void copyToBuffer(std::shared_ptr<Gdk::Texture>& texture) override;
+        void copyToBuffer(uint8_t buffer_index, std::shared_ptr<Gdk::Texture>& texture) override;
 
         //bool renderLoop() override;
 
