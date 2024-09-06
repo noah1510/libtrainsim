@@ -42,31 +42,31 @@ namespace libtrainsim {
             /**
              * @brief the current speed level for keyboard controls
              */
-            libtrainsim::core::input_axis currentInputAxis = 0.0;
+            std::atomic<libtrainsim::core::input_axis> currentInputAxis{0.0};
 
             /**
              * @brief a bool to indicate if the window should be closed
              */
-            bool shouldClose = false;
+            std::atomic<bool> shouldClose = false;
 
             /**
              * @brief a bool to indicate if all windows need to be closed
              */
-            bool shouldTeminate = false;
+            std::atomic<bool> shouldTeminate = false;
 
             /**
              * @brief a bool to indicate if the emergency break should activate
              */
-            bool shouldEmergencyBreak = false;
+            std::atomic<bool> shouldEmergencyBreak = false;
 
             /**
              * @brief a bool to set if the simulator is running
              */
-            bool running = false;
+            std::atomic<bool> running = false;
             
-            decltype(SimpleGFX::chrono::now()) last_sifa_push;
+            std::atomic<decltype(SimpleGFX::chrono::now())> last_sifa_push;
             
-            bool sifa_pressed = false;
+            std::atomic<bool> sifa_pressed = false;
 
             /**
              * @brief the serial interface to the connected hardware input
@@ -101,7 +101,7 @@ namespace libtrainsim {
             /**
              * @brief return true if getSpeedAxis came across a emergency break command
              */
-            bool emergencyFlag() noexcept;
+            bool emergencyFlag(bool keepBreakActive = false) noexcept;
 
             /**
              * @brief Get the Speed Axis of the current input.

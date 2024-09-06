@@ -3,7 +3,7 @@
 using namespace std::literals;
 
 libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _conf) noexcept(false)
-    : conf{_conf} {
+    : conf{std::move(_conf)} {
 
     try {
         serial = std::make_unique<serialcontrol>(conf);
@@ -73,7 +73,6 @@ std::shared_ptr<SimpleGFX::SimpleGL::eventPollerGtkKeyboard> libtrainsim::contro
 #endif
 
 libtrainsim::core::input_axis libtrainsim::control::input_handler::getSpeedAxis() noexcept {
-    std::shared_lock lock{dataMutex};
     return currentInputAxis;
 }
 
@@ -87,11 +86,10 @@ bool libtrainsim::control::input_handler::closingFlag() noexcept {
     return false;
 }
 
-bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
-    std::shared_lock lock{dataMutex};
+bool libtrainsim::control::input_handler::emergencyFlag(bool keepBreakActive) noexcept {
     if (shouldEmergencyBreak) {
-        if (currentInputAxis <= 0.0){
-            shouldEmergencyBreak = false;
+        if (currentInputAxis.load() <= 0.0){
+            shouldEmergencyBreak = keepBreakActive;
         }
         return true;
     }else{
@@ -99,7 +97,7 @@ bool libtrainsim::control::input_handler::emergencyFlag() noexcept {
             last_sifa_push = SimpleGFX::chrono::now();
         }
 
-        if (SimpleGFX::chrono::now() - last_sifa_push > 3s){
+        if (SimpleGFX::chrono::now() - last_sifa_push.load() > 3s){
             shouldEmergencyBreak = true;
             return true;
         }
@@ -153,14 +151,17 @@ void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent
         case (3):
         case (4):
             if (running && !serialConnected) {
+                auto axis = currentInputAxis.load();
                 if (selectedCase == 3) {
-                    currentInputAxis += 0.1;
+                    axis += 0.1;
                 } else {
-                    currentInputAxis -= 0.1;
+                    axis -= 0.1;
                 }
-                if (abs(currentInputAxis.get()) < 0.07) {
-                    currentInputAxis = 0.0;
+                if (abs(axis.get()) < 0.07) {
+                    axis = 0.0;
                 }
+
+                currentInputAxis = axis;
                 handled = true;
             };
             return;

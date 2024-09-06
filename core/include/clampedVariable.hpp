@@ -11,12 +11,10 @@ namespace libtrainsim {
          *
          * @tparam T the type that should be clamped between two values
          */
-        template <typename T>
+        template <typename T, T lower, T higher>
         class LIBTRAINSIM_EXPORT_MACRO clampedVariable {
           private:
-            T       value = 0.0;
-            const T lower;
-            const T higher;
+            T value = 0.0;
 
           public:
             /**
@@ -24,28 +22,32 @@ namespace libtrainsim {
              *
              * @param _val A default value can be passed to the contructor.
              */
-            clampedVariable(T _lower, T _higher, T _val = 0.0) noexcept;
+            clampedVariable(auto _val) noexcept{
+                set(static_cast<T>(_val));
+            }
 
             /**
              * @brief Just assign other axis to it and the value will be automatically clamped.
              *
              * @param other the value the axis should have now.
              */
-            clampedVariable(const clampedVariable<T>& other) noexcept;
+            clampedVariable(const clampedVariable<T, lower, higher>& other) = default;
 
             /**
              * @brief Just assign any double to it and the value will be automatically clamped.
              *
              * @param newVal the value the axis should have now.
              */
-            void operator=(T newVal) noexcept;
+            void operator=(auto newVal) noexcept{
+                set(static_cast<T>(newVal));
+            }
 
             /**
              * @brief Just assign other axis to it and the value will be automatically clamped.
              *
              * @param other the value the axis should have now.
              */
-            void operator=(const clampedVariable<T>& other) noexcept;
+            clampedVariable<T, lower, higher>& operator=(const clampedVariable<T, lower, higher>& other) noexcept = default;
 
             /**
              * @brief This functions is used to set the value to a given value.
@@ -61,222 +63,118 @@ namespace libtrainsim {
              */
             T get() const noexcept;
 
-            bool isRoughly(const T& val) const noexcept;
-            bool isRoughly(const clampedVariable<T>& other) const noexcept;
+            bool isRoughly(auto val) const noexcept{
+                return SimpleGFX::numbers::isRoughly<T>(value, static_cast<T>(val));
+            }
+            bool isRoughly(const clampedVariable<T, lower, higher>& other) const noexcept;
 
-            void operator+=(T val) noexcept;
-            void operator-=(T val) noexcept;
+            void operator+=(auto val) noexcept {
+                set(get() + static_cast<T>(val));
+            }
+            void operator-=(auto val) noexcept {
+                set(get() - static_cast<T>(val));
+            }
+
             void operator+=(const clampedVariable& other) noexcept;
             void operator-=(const clampedVariable& other) noexcept;
 
 
-            auto operator+(T val) const noexcept -> clampedVariable;
-            auto operator-(T val) const noexcept -> clampedVariable;
+            auto operator+(auto val) const noexcept -> clampedVariable {
+                return clampedVariable(this->value + static_cast<T>(val));
+            }
+            auto operator-(auto val) const noexcept -> clampedVariable{
+                return clampedVariable(this->value - static_cast<T>(val));
+            }
             auto operator+(const clampedVariable& other) const noexcept -> clampedVariable;
             auto operator-(const clampedVariable& other) const noexcept -> clampedVariable;
 
 
-            void operator*=(T val) noexcept;
-            void operator/=(T val) noexcept;
+            void operator*=(auto val) noexcept{
+                set(get() * static_cast<T>(val));
+            }
+            void operator/=(auto val) noexcept{
+                set(get() / static_cast<T>(val));
+            }
             void operator*=(const clampedVariable& other) noexcept;
             void operator/=(const clampedVariable& other) noexcept;
 
 
-            auto operator*(T val) const noexcept -> clampedVariable;
-            auto operator/(T val) const noexcept -> clampedVariable;
+            auto operator*(auto val) const noexcept -> clampedVariable{
+                return clampedVariable(this->value * static_cast<T>(val));
+            }
+            auto operator/(auto val) const noexcept -> clampedVariable{
+                return clampedVariable(this->value / static_cast<T>(val));
+            }
             auto operator*(const clampedVariable& other) const noexcept -> clampedVariable;
             auto operator/(const clampedVariable& other) const noexcept -> clampedVariable;
 
+            auto operator<=>(auto rhs) const {
+                return value <=> static_cast<T>(rhs);
+            }
 
-            bool operator<(T val) const noexcept;
-            bool operator>(T val) const noexcept;
-            bool operator<=(T val) const noexcept;
-            bool operator>=(T val) const noexcept;
-            bool operator==(T val) const noexcept;
-
-            bool operator<(const clampedVariable& other) const noexcept;
-            bool operator>(const clampedVariable& other) const noexcept;
-            bool operator<=(const clampedVariable& other) const noexcept;
-            bool operator>=(const clampedVariable& other) const noexcept;
-            bool operator==(const clampedVariable& other) const noexcept;
+            auto operator<=>(const clampedVariable& rhs) const {
+                return value <=> rhs.value;
+            }
         };
     } // namespace core
 } // namespace libtrainsim
 
-template <typename T>
-libtrainsim::core::clampedVariable<T>::clampedVariable(T _lower, T _higher, T _val) noexcept
-    : lower{_lower},
-      higher{_higher} {
-    set(_val);
-}
 
-template <typename T>
-libtrainsim::core::clampedVariable<T>::clampedVariable(const clampedVariable<T>& other) noexcept
-    : clampedVariable<T>{other.lower, other.higher, other.get()} {}
-
-
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator=(T newVal) noexcept {
-    set(newVal);
-}
-
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator=(const clampedVariable<T>& other) noexcept {
-    set(other.get());
-}
-
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::isRoughly(const T& val) const noexcept {
-    return SimpleGFX::numbers::isRoughly<T>(value, val);
-}
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::isRoughly(const clampedVariable<T>& other) const noexcept {
+template <typename T, T lower, T higher>
+bool libtrainsim::core::clampedVariable<T, lower, higher>::isRoughly(const clampedVariable<T, lower, higher>& other) const noexcept {
     return isRoughly(other.get());
 }
 
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::set(T newVal) noexcept {
+template <typename T, T lower, T higher>
+void libtrainsim::core::clampedVariable<T, lower, higher>::set(T newVal) noexcept {
     value = std::clamp(newVal, lower, higher);
 }
 
-template <typename T>
-T libtrainsim::core::clampedVariable<T>::get() const noexcept {
+template <typename T, T lower, T higher>
+T libtrainsim::core::clampedVariable<T, lower, higher>::get() const noexcept {
     return value;
 }
 
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator+=(T val) noexcept {
-    set(get() + val);
-}
 
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator-=(T val) noexcept {
-    set(get() - val);
-}
-
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator+=(const clampedVariable& other) noexcept {
+template <typename T, T lower, T higher>
+void libtrainsim::core::clampedVariable<T, lower, higher>::operator+=(const clampedVariable& other) noexcept {
     set(get() + other.get());
 }
 
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator-=(const clampedVariable& other) noexcept {
+template <typename T, T lower, T higher>
+void libtrainsim::core::clampedVariable<T, lower, higher>::operator-=(const clampedVariable& other) noexcept {
     set(get() - other.get());
 }
 
 
-template <typename T>
-auto libtrainsim::core::clampedVariable<T>::operator+(T val) const noexcept -> clampedVariable {
-    return clampedVariable(this->lower, this->higher, this->value + val);
+template <typename T, T lower, T higher>
+auto libtrainsim::core::clampedVariable<T, lower, higher>::operator+(const clampedVariable& other) const noexcept -> clampedVariable {
+    return clampedVariable(this->value + other.value);
 }
 
-template <typename T>
-auto libtrainsim::core::clampedVariable<T>::operator-(T val) const noexcept -> clampedVariable {
-    return clampedVariable(this->lower, this->higher, this->value - val);
-}
-
-template <typename T>
-auto libtrainsim::core::clampedVariable<T>::operator+(const clampedVariable& other) const noexcept -> clampedVariable {
-    return clampedVariable(this->lower, this->higher, this->value + other.value);
-}
-
-template <typename T>
-auto libtrainsim::core::clampedVariable<T>::operator-(const clampedVariable& other) const noexcept -> clampedVariable {
-    return clampedVariable(this->lower, this->higher, this->value - other.value);
+template <typename T, T lower, T higher>
+auto libtrainsim::core::clampedVariable<T, lower, higher>::operator-(const clampedVariable& other) const noexcept -> clampedVariable {
+    return clampedVariable(this->value - other.value);
 }
 
 
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator*=(T val) noexcept {
-    set(get() * val);
-}
-
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator/=(T val) noexcept {
-    set(get() / val);
-}
-
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator*=(const clampedVariable& other) noexcept {
+template <typename T, T lower, T higher>
+void libtrainsim::core::clampedVariable<T, lower, higher>::operator*=(const clampedVariable& other) noexcept {
     set(get() * other.get());
 }
 
-template <typename T>
-void libtrainsim::core::clampedVariable<T>::operator/=(const clampedVariable& other) noexcept {
+template <typename T, T lower, T higher>
+void libtrainsim::core::clampedVariable<T, lower, higher>::operator/=(const clampedVariable& other) noexcept {
     set(get() / other.get());
 }
 
 
-template <typename T>
-auto libtrainsim::core::clampedVariable<T>::operator*(T val) const noexcept -> clampedVariable {
-    return clampedVariable(this->lower, this->higher, this->value * val);
+template <typename T, T lower, T higher>
+auto libtrainsim::core::clampedVariable<T, lower, higher>::operator*(const clampedVariable& other) const noexcept -> clampedVariable {
+    return clampedVariable(this->value * other.value);
 }
 
-template <typename T>
-auto libtrainsim::core::clampedVariable<T>::operator/(T val) const noexcept -> clampedVariable {
-    return clampedVariable(this->lower, this->higher, this->value / val);
-}
-
-template <typename T>
-auto libtrainsim::core::clampedVariable<T>::operator*(const clampedVariable& other) const noexcept -> clampedVariable {
-    return clampedVariable(this->lower, this->higher, this->value * other.value);
-}
-
-template <typename T>
-auto libtrainsim::core::clampedVariable<T>::operator/(const clampedVariable& other) const noexcept -> clampedVariable {
-    return clampedVariable(this->lower, this->higher, this->value / other.value);
-}
-
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator<(T val) const noexcept {
-    return this->value < val;
-}
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator>(T val) const noexcept {
-    return this->value > val;
-}
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator<=(T val) const noexcept {
-    return this->value <= val;
-}
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator>=(T val) const noexcept {
-    return this->value >= val;
-}
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator==(T val) const noexcept {
-    return this->value == val;
-}
-
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator<(const clampedVariable& other) const noexcept {
-    return this->value < other.value;
-}
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator>(const clampedVariable& other) const noexcept {
-    return this->value > other.value;
-}
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator<=(const clampedVariable& other) const noexcept {
-    return this->value <= other.value;
-}
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator>=(const clampedVariable& other) const noexcept {
-    return this->value >= other.value;
-}
-
-template <typename T>
-bool libtrainsim::core::clampedVariable<T>::operator==(const clampedVariable& other) const noexcept {
-    return this->value == other.value;
+template <typename T, T lower, T higher>
+auto libtrainsim::core::clampedVariable<T, lower, higher>::operator/(const clampedVariable& other) const noexcept -> clampedVariable {
+    return clampedVariable(this->value / other.value);
 }

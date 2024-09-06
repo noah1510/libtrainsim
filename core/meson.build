@@ -5,7 +5,6 @@ sources = [
     'src/train_properties.cpp',
     'src/track_configuration.cpp',
     'src/version.cpp',
-    'src/input_axis.cpp',
     'src/simulator_config.cpp',
 ]
 

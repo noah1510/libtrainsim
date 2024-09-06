@@ -42,14 +42,13 @@ namespace libtrainsim {
         /**
          * @brief The current Speedlevel of the Train. This variable is set by playerinput, the default value is 0.0
          */
-        long double speedlevel = 0.0;
+        std::atomic<long double> speedlevel = 0.0;
 
         const libtrainsim::core::Track config;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> last_update;
 
-        std::shared_mutex mutex_error;
-        bool              hasError = true;
+        std::atomic<bool> hasError = true;
 
         const bool autoTick;
 
@@ -72,7 +71,7 @@ namespace libtrainsim {
 
         // true if the emergency break is activated.
         // the train has to break full until it is stopped, after that it is allowed to accellerate again.
-        bool isEmergencyBreaking = false;
+        std::atomic<bool> isEmergencyBreaking = false;
 
         /**
          * @brief Calls the tick function if autoTick is enabled.
@@ -136,6 +135,9 @@ namespace libtrainsim {
          */
         [[maybe_unused]]
         void emergencyBreak();
+
+        [[maybe_unused]] [[nodiscard]]
+        bool emergencyBreaking();
 
         [[maybe_unused]] [[nodiscard]]
         bool reachedEnd();

@@ -14,7 +14,6 @@ libtrainsim::physics::physics(const libtrainsim::core::Track& conf, bool _autoTi
     current_acceleration = 0.0_mps2;
     last_update          = SimpleGFX::chrono::now();
 
-    std::scoped_lock<std::shared_mutex> lock2(mutex_error);
     hasError = false;
 }
 
@@ -27,8 +26,11 @@ void libtrainsim::physics::doAutoTick() {
 }
 
 void libtrainsim::physics::emergencyBreak() {
-    std::scoped_lock<std::shared_mutex> lock(mutex_data);
     isEmergencyBreaking = true;
+}
+
+bool libtrainsim::physics::emergencyBreaking(){
+    return isEmergencyBreaking;
 }
 
 speed libtrainsim::physics::getVelocity() {
@@ -77,7 +79,6 @@ force libtrainsim::physics::calcDrag() {
 }
 
 bool libtrainsim::physics::isValid() {
-    std::shared_lock<std::shared_mutex> lock(mutex_error);
     return !hasError;
 }
 
