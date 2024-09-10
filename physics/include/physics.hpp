@@ -6,17 +6,15 @@ namespace libtrainsim {
 
     class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] physics {
       private:
-        std::shared_mutex mutex_data;
-
         /**
          * @brief The current acceleration of the train in ms^-2.
          */
-        sakurajin::unit_system::acceleration current_acceleration;
+        std::atomic<sakurajin::unit_system::acceleration> current_acceleration;
 
         /**
          * @brief The current velocity of the train in ms^-1.
          */
-        sakurajin::unit_system::speed velocity;
+        std::atomic<sakurajin::unit_system::speed> velocity;
 
         /**
          * @brief The highest possible velocity of train.The value can be changed to any other value which makes sense.
@@ -27,17 +25,17 @@ namespace libtrainsim {
         /**
          * @brief The current location of the train at the track.
          */
-        sakurajin::unit_system::length location;
+        std::atomic<sakurajin::unit_system::length> location;
 
         /**
          * @brief The current Traction of the Train
          */
-        sakurajin::unit_system::force currTraction;
+        std::atomic<sakurajin::unit_system::force> currTraction;
 
         /**
          * @brief The current Power of the Train. This variable is calculated and therefore not a const variable
          */
-        sakurajin::unit_system::power currPower;
+        std::atomic<sakurajin::unit_system::power> currPower;
 
         /**
          * @brief The current Speedlevel of the Train. This variable is set by playerinput, the default value is 0.0
@@ -46,7 +44,7 @@ namespace libtrainsim {
 
         const libtrainsim::core::Track& config;
 
-        std::chrono::time_point<std::chrono::high_resolution_clock> last_update;
+        std::atomic<std::chrono::time_point<std::chrono::high_resolution_clock>> last_update;
 
         std::atomic<bool> hasError = true;
 

@@ -16,6 +16,5 @@
 //core trainsim classes
 #include "simulator_config.hpp"
 #include "track_configuration.hpp"
-#include "track_data.hpp"
 #include "train_properties.hpp"
 

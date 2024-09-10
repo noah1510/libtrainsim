@@ -97,7 +97,8 @@ void train_properties::loadJsonData(const nlohmann::json& data_json) {
     }
 
     try {
-        maxPower = sakurajin::unit_system::power{json::getJsonField<double>(data_json, "maxPower"), powerUnit};
+        auto raw_power = json::getJsonField<double>(data_json, "maxPower");
+        maxPower = sakurajin::unit_system::power{raw_power, powerUnit};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading max power"));
     }
@@ -161,15 +162,6 @@ mass train_properties::getMass() const {
 power train_properties::getMaxPower() const {
     return maxPower;
 }
-
-std::optional<double> train_properties::getAirDrag() const {
-    return {};
-}
-
-double train_properties::getTrackDrag() const {
-    return 0.2;
-}
-
 
 sakurajin::unit_system::length libtrainsim::core::train_properties::getDriverLength() const {
     return driverLength;

@@ -1,7 +1,6 @@
 cxx = meson.get_compiler('cpp')
 
 sources = [
-    'src/track_data.cpp',
     'src/train_properties.cpp',
     'src/track_configuration.cpp',
     'src/version.cpp',

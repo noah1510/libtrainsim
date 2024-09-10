@@ -4,19 +4,31 @@ using namespace libtrainsim::core;
 using namespace SimpleGFX;
 using namespace sakurajin::unit_system;
 
-const length& libtrainsim::core::undergorundDataPoint::begin() const {
+Track_data_point::Track_data_point(uint64_t              _frame,
+                                   length                _location,
+                                   double                _radius,
+                                   double                _slope,
+                                   std::optional<double> _frictionMultiplier)
+    : Frame{_frame},
+      Location{_location},
+      Radius{_radius},
+      Slope{_slope},
+      FrictionMultiplier{_frictionMultiplier} {}
+
+
+const length& libtrainsim::core::undergroundDataPoint::begin() const {
     return std::get<0>(*this);
 }
 
-const length& libtrainsim::core::undergorundDataPoint::end() const {
+const length& libtrainsim::core::undergroundDataPoint::end() const {
     return std::get<1>(*this);
 }
 
-const sakurajin::unit_system::area& libtrainsim::core::undergorundDataPoint::area() const {
+const sakurajin::unit_system::area& libtrainsim::core::undergroundDataPoint::area() const {
     return std::get<2>(*this);
 }
 
-libtrainsim::core::undergorundDataPoint::undergorundDataPoint(sakurajin::unit_system::length _begin,
+libtrainsim::core::undergroundDataPoint::undergroundDataPoint(sakurajin::unit_system::length _begin,
                                                               sakurajin::unit_system::length _end,
                                                               sakurajin::unit_system::area   _area)
     : tuple{_begin, _end, _area} {}
@@ -34,7 +46,7 @@ const libtrainsim::core::stopTypes& libtrainsim::core::stopDataPoint::type() con
     return std::get<2>(*this);
 }
 
-libtrainsim::core::stopDataPoint::stopDataPoint(std::string                    _name,
+libtrainsim::core::stopDataPoint::stopDataPoint(const std::string&             _name,
                                                 sakurajin::unit_system::length _position,
                                                 libtrainsim::core::stopTypes   _type)
     : tuple{_name, _position, _type} {}
@@ -73,7 +85,6 @@ Track::Track(const std::filesystem::path& URI, bool lazyLoad) {
 }
 
 Track::Track(const nlohmann::json& _data_json, const std::filesystem::path& _parentPath, bool lazyLoad) {
-
     parentPath = _parentPath;
     data_json  = _data_json;
 
@@ -97,32 +108,66 @@ void libtrainsim::core::Track::parseTrack() {
         throw std::invalid_argument("the given data is not a json object");
     }
 
+    auto track_data = json::getJsonField(data_json.value(), "data");
+
+    if (track_data.is_string()) {
+        std::filesystem::path URI = parentPath / track_data.get<std::string>();
+        if (!std::filesystem::exists(URI)) {
+            throw std::invalid_argument("The Data file location is empty:" + URI.string());
+        }
+
+        if (URI.extension() != ".json") {
+            throw std::invalid_argument("the file has no json extention");
+        }
+
+        nlohmann::json track_data_json;
+
+        try {
+            auto in = std::ifstream(URI);
+            in >> track_data_json;
+        } catch (...) {
+            std::throw_with_nested(std::runtime_error("Error reading file into json structure"));
+        }
+
+        track_data = track_data_json;
+    }
+
+    if (!track_data.is_array()) {
+        throw std::invalid_argument("json data is not an array");
+    }
+
+    if (track_data.empty()) {
+        throw std::invalid_argument("The array is empty");
+    }
+
+    data.reserve(track_data.size());
     try {
-        auto dat = json::getJsonField(data_json.value(), "data");
-        if (dat.is_string()) {
-            std::filesystem::path da = parentPath / dat.get<std::string>();
-            track_dat                = std::make_optional<Track_data>(da);
-        } else if (dat.is_array()) {
-            track_dat = std::make_optional<Track_data>(dat);
-        } else {
-            throw std::runtime_error("invalid track data format");
+        for (const auto& dat : track_data) {
+            length location{json::getJsonField<double>(dat, "location")};
+            auto   frame              = json::getJsonField<uint64_t>(dat, "frame");
+            auto   slope              = json::getOptionalJsonField<double>(dat, "slope", 0);
+            auto   radius             = json::getOptionalJsonField<double>(dat, "radius", std::numeric_limits<double>::infinity());
+            auto   frictionMultiplier = json::getOptionalJsonField<double>(dat, "frictionMultiplier");
+
+            libtrainsim::core::Track_data_point point{frame, location, radius, slope, frictionMultiplier};
+            data.emplace_back(point);
         }
     } catch (...) {
-        std::throw_with_nested(std::runtime_error("Error constructing the track object"));
+        std::throw_with_nested(std::runtime_error("error reading track data values"));
     }
 
     try {
-        startingPoint.value = json::getJsonField<double>(data_json.value(), "startingPoint");
-        startingPoint       = std::clamp(startingPoint, track_dat->firstLocation(), track_dat->lastLocation());
+        startingPoint.val() = json::getJsonField<double>(data_json.value(), "startingPoint");
+        startingPoint       = std::clamp(startingPoint,  data.front().Location, data.back().Location);
     } catch (...) {
-        startingPoint = track_dat->firstLocation();
+        startingPoint =  data.front().Location;
     }
 
     try {
-        endPoint.value = json::getJsonField<double>(data_json.value(), "endPoint");
-        endPoint       = std::clamp(endPoint, track_dat->firstLocation(), track_dat->lastLocation());
+        endPoint.val() = json::getJsonField<double>(data_json.value(), "endPoint");
+        endPoint       = std::clamp(endPoint,  data.front().Location, data.back().Location);
     } catch (...) {
-        endPoint = track_dat->lastLocation();
+        endPoint = data.back().Location;
     }
 
     if (startingPoint > endPoint) {
@@ -132,7 +177,6 @@ void libtrainsim::core::Track::parseTrack() {
 
 
 void Track::parseJsonData() {
-
     if (!data_json.has_value()) {
         return;
     }
@@ -207,7 +251,7 @@ void Track::parseJsonData() {
                     area = sakurajin::unit_system::square(3.5_m) * std::acos(0);
                 }
 
-                undergroundData.emplace_back(undergorundDataPoint{start, end, area});
+                undergroundData.emplace_back(start, end, area);
             }
         }
     } catch (...) {
@@ -235,7 +279,7 @@ void Track::parseJsonData() {
                     throw std::runtime_error("Invalid stop type:" + _ty);
                 }
 
-                stopsData.emplace_back(stopDataPoint{_name, _location, _type});
+                stopsData.emplace_back(_name, _location, _type);
             }
         }
 
@@ -248,10 +292,9 @@ void Track::parseJsonData() {
         if (!excludeTrackBounds || stopsData.size() < 2) {
             stopsData.reserve(stopsData.size() + 2);
             stopsData.insert(stopsData.begin(), {"begin", 0_m, station});
-            stopsData.insert(stopsData.end(),
-                             {
-                                 "end", {std::numeric_limits<long double>::infinity(), 1},
-                                  station
+            stopsData.insert(stopsData.end(),{
+                 "end", sakurajin::unit_system::length{std::numeric_limits<long double>::infinity(), 1},
+                  station
             });
         }
 
@@ -267,14 +310,55 @@ void Track::parseJsonData() {
     }
 }
 
-const Track_data& Track::data() const {
-    if (stopsData.size() < 2) {
-        throw std::runtime_error("stops data not fully initialized. There are not enugh stops defined");
+uint64_t Track::getFrame_c(length location) const {
+    uint64_t index = data.size() / 2;
+    uint64_t lower = 0;
+    uint64_t upper = data.size();
+
+    location = sakurajin::unit_system::unit_cast(location, 1);
+
+    while (true) {
+        auto loc = data[index].Location;
+
+        // if it is an exact match return the current index
+        if (loc == location) {
+            return index;
+        }
+
+        // if the current location is larger adjust the upper bound, otherwise correct the lower bound.
+        if (loc > location) {
+            upper = index;
+        } else {
+            lower = index;
+        }
+
+        // get the next index
+        index = (upper + lower) / 2;
+
+        // if the algorithm cannot continue exit
+        if (upper == index || lower == index) {
+            break;
+        }
     }
-    if (!track_dat.has_value()) {
-        throw std::runtime_error("Track not loaded yet");
+
+    return index;
+}
+
+const Track_data_point& Track::getDataPointAt(sakurajin::unit_system::length location) const {
+    return data[getFrame_c(location)];
+}
+
+double Track::get_frictionMultiplier(sakurajin::unit_system::length location) const{
+    const auto& point = getDataPointAt(location);
+    if(point.FrictionMultiplier.has_value()) {
+        return point.FrictionMultiplier.value();
     }
-    return track_dat.value();
+
+    return defaultTrackFrictionMultiplier;
+}
+
+uint64_t Track::getFrame(length location) const {
+    return getDataPointAt(location).Frame;
 }
 
 const train_properties& Track::train() const {
@@ -344,7 +428,7 @@ void libtrainsim::core::Track::ensure() {
 void libtrainsim::core::Track::setFirstLocation(sakurajin::unit_system::length pos) {
     try {
         ensure();
-        startingPoint = sakurajin::unit_system::clamp(pos, track_dat->firstLocation(), track_dat->lastLocation());
+        startingPoint = sakurajin::unit_system::clamp(pos, data.front().Location, data.back().Location);
     } catch (...) {
         std::throw_with_nested(std::runtime_error("Could not update start position"));
     }
@@ -353,7 +437,7 @@ void libtrainsim::core::Track::setFirstLocation(sakurajin::unit_system::length p
 void libtrainsim::core::Track::setLastLocation(sakurajin::unit_system::length pos) {
     try {
         ensure();
-        endPoint = sakurajin::unit_system::clamp(pos, track_dat->firstLocation(), track_dat->lastLocation());
+        endPoint = sakurajin::unit_system::clamp(pos, data.front().Location, data.back().Location);
     } catch (...) {
         std::throw_with_nested(std::runtime_error("Could not update start position"));
     }

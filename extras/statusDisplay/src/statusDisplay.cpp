@@ -61,11 +61,11 @@ void libtrainsim::extras::statusDisplay::on_unrealize() {
 
 
 void libtrainsim::extras::statusDisplay::appendFrametime(sakurajin::unit_system::time_si frametime) {
-    appendToGraph("frametimes", static_cast<double>(frametime.convert_like(1_ms).value));
+    appendToGraph("frametimes", static_cast<double>(frametime.convert_like(1_ms).val()));
 }
 
 void libtrainsim::extras::statusDisplay::appendRendertime(sakurajin::unit_system::time_si rendertime) {
-    appendToGraph("rendertimes", static_cast<double>(rendertime.convert_like(1_ms).value));
+    appendToGraph("rendertimes", static_cast<double>(rendertime.convert_like(1_ms).val()));
 }
 
 
@@ -83,12 +83,12 @@ void libtrainsim::extras::statusDisplay::changeEndPosition(sakurajin::unit_syste
 
 void libtrainsim::extras::statusDisplay::setAcceleration(sakurajin::unit_system::acceleration newAcceleration) {
     auto acc = sakurajin::unit_system::unit_cast(newAcceleration, 1);
-    appendToGraph("acceleration", static_cast<double>(acc.value));
+    appendToGraph("acceleration", static_cast<double>(acc.val()));
 }
 
 void libtrainsim::extras::statusDisplay::setVelocity(sakurajin::unit_system::speed newVelocity) {
     auto vel = sakurajin::unit_system::unit_cast(newVelocity, 1);
-    appendToGraph("velocity", static_cast<double>(vel.value));
+    appendToGraph("velocity", static_cast<double>(vel.val()));
 }
 
 void libtrainsim::extras::statusDisplay::setSpeedLevel(const core::input_axis& newSpeedLevel) {

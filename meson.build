@@ -17,6 +17,9 @@ if target_machine.system() == 'windows'
     else
         add_project_arguments('-DLIBTRAINSIM_EXPORT_MACRO=__declspec(dllimport)', language: 'cpp')
     endif
+else
+    add_project_link_arguments('-latomic', language : 'c')
+    add_project_link_arguments('-latomic', language : 'cpp')
 endif
 
 #set the configuration

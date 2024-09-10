@@ -7,8 +7,6 @@ libtrainsim::physics::physics(const libtrainsim::core::Track& conf, bool _autoTi
     : config(conf),
       autoTick(_autoTick) {
 
-    std::scoped_lock<std::shared_mutex> lock1(mutex_data);
-
     velocity             = 0.0_mps;
     location             = config.firstLocation();
     current_acceleration = 0.0_mps2;
@@ -35,20 +33,17 @@ bool libtrainsim::physics::emergencyBreaking(){
 
 speed libtrainsim::physics::getVelocity() {
     doAutoTick();
-    std::shared_lock<std::shared_mutex> lock(mutex_data);
-    return velocity;
+    return velocity.load();
 }
 
 length libtrainsim::physics::getLocation() {
     doAutoTick();
-    std::shared_lock<std::shared_mutex> lock(mutex_data);
-    return location;
+    return location.load();
 }
 
 acceleration libtrainsim::physics::getAcceleration() {
     doAutoTick();
-    std::shared_lock<std::shared_mutex> lock(mutex_data);
-    return current_acceleration;
+    return current_acceleration.load();
 }
 
 void libtrainsim::physics::setSpeedlevel(const core::input_axis& slvl) {
@@ -58,19 +53,16 @@ void libtrainsim::physics::setSpeedlevel(const core::input_axis& slvl) {
 
 force libtrainsim::physics::getTraction() {
     doAutoTick();
-    std::shared_lock<std::shared_mutex> lock(mutex_data);
-    return currTraction;
+    return currTraction.load();
 }
 
 power libtrainsim::physics::getCurrPower() {
     doAutoTick();
-    std::shared_lock<std::shared_mutex> lock(mutex_data);
-    return currPower;
+    return currPower.load();
 }
 
 force libtrainsim::physics::calcMaxForce(mass mass, acceleration g, long double train_drag) const {
-    force maxforce = mass * g * train_drag;
-    return maxforce;
+    return mass * g * train_drag;
 }
 
 force libtrainsim::physics::calcDrag() {
@@ -83,36 +75,38 @@ bool libtrainsim::physics::isValid() {
 
 bool libtrainsim::physics::reachedEnd() {
     doAutoTick();
-    std::scoped_lock<std::shared_mutex> lock(mutex_data);
-    return std::abs((location - config.lastLocation()).value) < 0.1;
+    return std::abs((location.load() - config.lastLocation()).val()) < 0.1;
 }
 
 void libtrainsim::physics::tick() {
+    static std::atomic<bool> is_ticking = false;
+    if (is_ticking) {
+        return;
+    }
 
-    std::scoped_lock<std::shared_mutex> lock(mutex_data);
+    is_ticking = true;
 
     auto new_time = SimpleGFX::chrono::now();
-
-    time_si dt = unit_cast(new_time - last_update);
+    time_si dt = unit_cast(new_time - last_update.load());
+    last_update = new_time;
 
     // all Variables needed to caclulate the physics
-    sakurajin::unit_system::power MaxPower;
-    sakurajin::unit_system::force MaxForce;
-    sakurajin::unit_system::mass  mass;
     long double                   air_drag   = 0.0;
     long double                   train_drag = 0.0;
     auto current_slvel = speedlevel.load();
 
     // defining the needed variables
-    mass       = config.train().getMass();
-    train_drag = config.train().getTrackDrag();
+    auto mass       = config.train().getMass();
+    train_drag = 0.2 * config.get_frictionMultiplier(location);
 
-    MaxForce = calcMaxForce(mass, 1_G, train_drag);
-    MaxPower = config.train().getMaxPower();
+    auto MaxForce = calcMaxForce(mass, 1_G, train_drag);
+    auto MaxPower = config.train().getMaxPower();
+
+    auto current_velocity = velocity.load();
 
     if (isEmergencyBreaking) {
         current_slvel = -1.0;
-        if (velocity < 0.007_mps) {
+        if (current_velocity < 0.007_mps) {
             isEmergencyBreaking = false;
         }
     }
@@ -122,10 +116,10 @@ void libtrainsim::physics::tick() {
     // Handling the different possibilities for current_slvel
     // only calculating the current Force
     if (current_slvel > 0.007) {
-        if (std::abs(velocity) < 0.007_mps) {
+        if (std::abs(current_velocity) < 0.007_mps) {
             currTraction = MaxForce;
         } else {
-            currTraction = currPower / velocity;
+            currTraction = currPower.load() / current_velocity;
         }
 
         if (currTraction > MaxForce) {
@@ -135,18 +129,19 @@ void libtrainsim::physics::tick() {
         currTraction = current_slvel * MaxForce;
     } else {
         currTraction = 0_N;
-        if (velocity > 0.0_mps) {
-            currTraction = currPower / velocity;
+        if (current_velocity > 0.0_mps) {
+            currTraction = currPower.load() / current_velocity;
         }
     }
 
     // calculating parameters of movement by current Traction
-    current_acceleration = currTraction / mass;
-    velocity += current_acceleration * dt;
-    location += velocity * dt + 0.5 * (current_acceleration * dt * dt);
+    current_acceleration = currTraction.load() / mass;
+    current_velocity += current_acceleration.load() * dt;
 
-    location = clamp(location, config.firstLocation(), config.lastLocation());
-    velocity = clamp(velocity, 0_mps, MaxVelocity);
+    auto location_delta = current_velocity * dt + 0.5 * (current_acceleration.load() * dt * dt);
 
-    last_update = new_time;
+    location = clamp(location.load() + location_delta, config.firstLocation(), config.lastLocation());
+    velocity = clamp(current_velocity, 0_mps, MaxVelocity);
+
+    is_ticking = false;
 }
