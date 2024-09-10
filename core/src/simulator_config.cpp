@@ -78,7 +78,7 @@ void libtrainsim::core::simulatorConfiguration::loadFile(const std::filesystem::
     }
 }
 
-void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::filesystem::path& URI, bool lazyLoad) {
+void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::filesystem::path& URI, bool _lazyLoad) {
 
     if (!std::filesystem::exists(URI)) {
         throw std::invalid_argument("The simulator config file location is empty:" + URI.string());
@@ -92,6 +92,8 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
     nlohmann::json data_json;
 
     in >> data_json;
+
+    lazyLoad = _lazyLoad;
 
     try {
         auto str = json::getOptionalJsonField<std::string>(data_json, "formatVersion");
@@ -164,9 +166,9 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
         for (const auto& _dat : dat) {
             if (_dat.is_string()) {
                 std::filesystem::path loc{_dat.get<std::string>()};
-                tracks.emplace_back(libtrainsim::core::Track(p / loc, lazyLoad));
+                tracks.emplace_back(coreLogger, p / loc, lazyLoad);
             } else if (_dat.is_object()) {
-                tracks.emplace_back(libtrainsim::core::Track(_dat, p, lazyLoad));
+                tracks.emplace_back(coreLogger, _dat, p, lazyLoad);
             } else {
                 coreLogger->logCurrrentException(true);
                 throw std::runtime_error("not a valid track format");
@@ -191,9 +193,9 @@ void libtrainsim::core::simulatorConfiguration::loadFileInternal(const std::file
         for (const auto& _dat : dat) {
             if (_dat.is_string()) {
                 std::filesystem::path loc{_dat.get<std::string>()};
-                extraTrains.emplace_back(libtrainsim::core::train_properties(p / loc));
+                extraTrains.emplace_back(p / loc);
             } else if (_dat.is_object()) {
-                extraTrains.emplace_back(libtrainsim::core::train_properties(_dat));
+                extraTrains.emplace_back(_dat);
             } else {
                 coreLogger->logCurrrentException(true);
                 throw std::runtime_error("not a valid track format");
@@ -257,10 +259,10 @@ bool libtrainsim::core::simulatorConfiguration::loadLastFile() noexcept {
             file >> j;
 
             auto filePath = std::filesystem::path{json::getJsonField<std::string>(j, "lastConfigFile")};
-            auto lazyLoad = json::getJsonField<bool>(j, "lazyLoad");
+            auto _lazyLoad = json::getJsonField<bool>(j, "lazyLoad");
 
-            *coreLogger << detail << "Loading last configuration from " << filePath << " with lazyLoad = " << lazyLoad;
-            loadFileInternal(filePath, lazyLoad);
+            *coreLogger << detail << "Loading last configuration from " << filePath << " with lazyLoad = " << _lazyLoad;
+            loadFileInternal(filePath, _lazyLoad);
 
 
             auto loadedTrack = json::getJsonField<uint64_t>(j, "loadedTrack");

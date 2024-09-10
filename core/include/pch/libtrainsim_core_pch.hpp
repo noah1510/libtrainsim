@@ -5,6 +5,9 @@
 #include "simplegfx.hpp"
 #include "unit_system.hpp"
 
+#include <SQLiteCpp/SQLiteCpp.h>
+#include <SQLiteCpp/VariadicBind.h>
+
 // standard libraries
 #include <algorithm>
 #include <cmath>

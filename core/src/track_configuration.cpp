@@ -52,7 +52,8 @@ libtrainsim::core::stopDataPoint::stopDataPoint(const std::string&             _
     : tuple{_name, _position, _type} {}
 
 
-Track::Track(const std::filesystem::path& URI, bool lazyLoad) {
+Track::Track(std::shared_ptr<SimpleGFX::logger> _logger, const std::filesystem::path& URI, bool lazyLoad)
+    : logger(std::move(_logger)) {
 
     if (!std::filesystem::exists(URI)) {
         throw std::invalid_argument("The Track file location is empty:" + URI.string());
@@ -84,7 +85,11 @@ Track::Track(const std::filesystem::path& URI, bool lazyLoad) {
     }
 }
 
-Track::Track(const nlohmann::json& _data_json, const std::filesystem::path& _parentPath, bool lazyLoad) {
+Track::Track(std::shared_ptr<SimpleGFX::logger> _logger,
+             const nlohmann::json&              _data_json,
+             const std::filesystem::path&       _parentPath,
+             bool                               lazyLoad)
+    : logger(std::move(_logger)) {
     parentPath = _parentPath;
     data_json  = _data_json;
 
@@ -99,7 +104,7 @@ Track::Track(const nlohmann::json& _data_json, const std::filesystem::path& _par
     }
 }
 
-void libtrainsim::core::Track::parseTrack() {
+void Track::parseTrack() {
     if (!data_json.has_value()) {
         return;
     }
@@ -116,33 +121,71 @@ void libtrainsim::core::Track::parseTrack() {
             throw std::invalid_argument("The Data file location is empty:" + URI.string());
         }
 
-        if (URI.extension() != ".json") {
-            throw std::invalid_argument("the file has no json extention");
+        if (URI.extension() == ".json") {
+            nlohmann::json track_data_json;
+
+            try {
+                auto begin_time = SimpleGFX::chrono::now();
+
+                auto in = std::ifstream(URI);
+                in >> track_data_json;
+
+                auto end_time = SimpleGFX::chrono::now();
+                auto diff     = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1>>>(end_time - begin_time);
+                *logger << SimpleGFX::loggingLevel::debug << "Time to load json track data for " << name << ": " << diff;
+            } catch (...) {
+                std::throw_with_nested(std::runtime_error("Error reading file into json structure"));
+            }
+            parseTrackJson(track_data_json);
+        } else if (URI.extension() == ".sqlite") {
+            // Open a database file in read-only mode
+            SQLite::Database db(URI);
+            *logger << SimpleGFX::loggingLevel::debug << "SQLite database file '" << db.getFilename() << "' opened successfully";
+
+            if (!db.tableExists("data")) {
+                throw std::invalid_argument("sqlite file does not contain a table named 'data'");
+            }
+
+            parseTrackSqlite(db);
+        } else {
+            throw std::invalid_argument("not a supported track data format");
         }
-
-        nlohmann::json track_data_json;
-
-        try {
-            auto in = std::ifstream(URI);
-            in >> track_data_json;
-        } catch (...) {
-            std::throw_with_nested(std::runtime_error("Error reading file into json structure"));
-        }
-
-        track_data = track_data_json;
     }
 
-    if (!track_data.is_array()) {
+    try {
+        startingPoint.val() = json::getJsonField<double>(data_json.value(), "startingPoint");
+        startingPoint       = std::clamp(startingPoint, data.front().Location, data.back().Location);
+    } catch (...) {
+        startingPoint = data.front().Location;
+    }
+
+    try {
+        endPoint.val() = json::getJsonField<double>(data_json.value(), "endPoint");
+        endPoint       = std::clamp(endPoint, data.front().Location, data.back().Location);
+    } catch (...) {
+        endPoint = data.back().Location;
+    }
+
+    if (startingPoint > endPoint) {
+        throw std::runtime_error("the last location was smaller than the first position");
+    }
+}
+
+
+void Track::parseTrackJson(const nlohmann::json& raw_data) {
+    if (!raw_data.is_array()) {
         throw std::invalid_argument("json data is not an array");
     }
 
-    if (track_data.empty()) {
+    if (raw_data.empty()) {
         throw std::invalid_argument("The array is empty");
     }
 
-    data.reserve(track_data.size());
+    data.reserve(raw_data.size());
     try {
-        for (const auto& dat : track_data) {
+        auto begin_time = SimpleGFX::chrono::now();
+
+        for (const auto& dat : raw_data) {
             length location{json::getJsonField<double>(dat, "location")};
             auto   frame              = json::getJsonField<uint64_t>(dat, "frame");
             auto   slope              = json::getOptionalJsonField<double>(dat, "slope", 0);
@@ -152,27 +195,84 @@ void libtrainsim::core::Track::parseTrack() {
             libtrainsim::core::Track_data_point point{frame, location, radius, slope, frictionMultiplier};
             data.emplace_back(point);
         }
+
+        auto end_time = SimpleGFX::chrono::now();
+        auto diff     = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1>>>(end_time - begin_time);
+        *logger << SimpleGFX::loggingLevel::debug << "Time to parse track data for " << name << ": " << diff;
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading track data values"));
     }
+}
+
+
+void Track::parseTrackSqlite(SQLite::Database& db) {
+    auto begin_time = SimpleGFX::chrono::now();
+
+    SQLite::Statement query{db, "SELECT * FROM data"};
+    if (!query.executeStep()) {
+        throw std::invalid_argument("The data table is empty");
+    }
+
+    int frame_index;
+    int location_index;
 
     try {
-        startingPoint.val() = json::getJsonField<double>(data_json.value(), "startingPoint");
-        startingPoint       = std::clamp(startingPoint,  data.front().Location, data.back().Location);
+        frame_index    = query.getColumnIndex("frame");
+        location_index = query.getColumnIndex("location");
     } catch (...) {
-        startingPoint =  data.front().Location;
+        std::throw_with_nested(std::runtime_error("could not find the required columns in the data table"));
     }
 
+    int slope_index;
     try {
-        endPoint.val() = json::getJsonField<double>(data_json.value(), "endPoint");
-        endPoint       = std::clamp(endPoint,  data.front().Location, data.back().Location);
+        slope_index = query.getColumnIndex("slope");
     } catch (...) {
-        endPoint = data.back().Location;
+        slope_index = -1;
     }
 
-    if (startingPoint > endPoint) {
-        throw std::runtime_error("the last location was smaller than the first position");
+    int radius_index;
+    try {
+        radius_index = query.getColumnIndex("radius");
+    } catch (...) {
+        radius_index = -1;
     }
+
+    int friction_index;
+    try {
+        friction_index = query.getColumnIndex("frictionMultiplier");
+    } catch (...) {
+        friction_index = -1;
+    }
+
+    do {
+        auto frame        = static_cast<uint64_t>(query.getColumn(frame_index).getInt64());
+        auto raw_location = query.getColumn(location_index).getDouble();
+
+        length location{raw_location};
+
+        double                slope              = 0;
+        double                radius             = std::numeric_limits<double>::infinity();
+        std::optional<double> frictionMultiplier = {};
+
+        if (slope_index >= 0) {
+            slope = query.getColumn(slope_index).getDouble();
+        }
+
+        if (radius_index >= 0) {
+            radius = query.getColumn(radius_index).getDouble();
+        }
+
+        if (friction_index >= 0) {
+            frictionMultiplier = query.getColumn(friction_index).getDouble();
+        }
+
+        libtrainsim::core::Track_data_point point{frame, location, radius, slope, frictionMultiplier};
+        data.emplace_back(point);
+    } while (query.executeStep());
+
+    auto end_time = SimpleGFX::chrono::now();
+    auto diff     = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1>>>(end_time - begin_time);
+    *logger << SimpleGFX::loggingLevel::debug << "Time to parse sqlite track data for " << name << ": " << diff;
 }
 
 
@@ -292,9 +392,10 @@ void Track::parseJsonData() {
         if (!excludeTrackBounds || stopsData.size() < 2) {
             stopsData.reserve(stopsData.size() + 2);
             stopsData.insert(stopsData.begin(), {"begin", 0_m, station});
-            stopsData.insert(stopsData.end(),{
-                 "end", sakurajin::unit_system::length{std::numeric_limits<long double>::infinity(), 1},
-                  station
+            stopsData.insert(stopsData.end(),
+                             {
+                                 "end", sakurajin::unit_system::length{std::numeric_limits<long double>::infinity(), 1},
+                                  station
             });
         }
 
@@ -348,9 +449,9 @@ const Track_data_point& Track::getDataPointAt(sakurajin::unit_system::length loc
     return data[getFrame_c(location)];
 }
 
-double Track::get_frictionMultiplier(sakurajin::unit_system::length location) const{
+double Track::get_frictionMultiplier(sakurajin::unit_system::length location) const {
     const auto& point = getDataPointAt(location);
-    if(point.FrictionMultiplier.has_value()) {
+    if (point.FrictionMultiplier.has_value()) {
         return point.FrictionMultiplier.value();
     }
 

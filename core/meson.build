@@ -36,6 +36,7 @@ incdir = include_directories('include','..')
 core_deps = [
     dependency('threads'),
     dependency('unit-system', required: true, fallback: 'unit-system'),
+    dependency('sqlitecpp', required: true, fallback: 'sqlitecpp'),
     dependency('simplegfx', required: true, fallback: 'simplegfx', version : '>=0.1.0'),
 ]
 
