@@ -40,10 +40,10 @@ namespace libtrainsim {
             template <typename... decoderArgs>
             explicit renderWidgetBase(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
                                       std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
-                                      decoderArgs&&... decoder_args)
+                                      decoderArgs... decoder_args)
                 : Gtk::AspectFrame{},
                   simSettings{std::move(_simSettings)},
-                  decode{simSettings->getCurrentTrack().getVideoFilePath(), simSettings->getLogger(), &decoder_args...},
+                  decode{simSettings->getCurrentTrack().getVideoFilePath(), simSettings->getLogger(), decoder_args...},
                   LOGGER{simSettings->getLogger()},
                   mainAppLauncher{std::move(_mainAppLauncher)} {
 

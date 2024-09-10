@@ -63,9 +63,9 @@ namespace libtrainsim::Video {
                                              std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>,
                                              args...>
         [[maybe_unused]]
-        explicit outputWindow(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
+        outputWindow(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
                               std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
-                              args&&... _args)
+                              args... _args)
             : Gtk::Window{},
               simSettings{std::move(_simSettings)},
               LOGGER{simSettings->getLogger()},
@@ -88,7 +88,7 @@ namespace libtrainsim::Video {
             ctx->add_class("invis_bg");
             ctx->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
-            mainRenderer = Gtk::make_managed<widgetClass>(simSettings, mainAppLauncher, &_args...);
+            mainRenderer = Gtk::make_managed<widgetClass>(simSettings, mainAppLauncher, _args...);
             render_overlay->set_child(*mainRenderer);
             
             set_child(*render_overlay);

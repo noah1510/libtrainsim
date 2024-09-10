@@ -32,9 +32,10 @@ static inline AVPixelFormat correctForDeprecatedPixelFormat(AVPixelFormat pix_fm
 
 
 libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path              _videoFile,
-                                                       std::shared_ptr<SimpleGFX::logger> _logger,
-                                                       uint64_t                           _seekCutoff,
-                                                       uint64_t                           threadCount)
+                                                         std::shared_ptr<SimpleGFX::logger> _logger,
+                                                         uint64_t                           _start_frame,
+                                                         uint64_t                           _seekCutoff,
+                                                         uint64_t                           threadCount)
     : videoDecoderBase{std::move(_videoFile), std::move(_logger), _seekCutoff} {
 
     // Open the file using libavformat
@@ -50,10 +51,10 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
     *LOGGER << SimpleGFX::loggingLevel::normal << "opened video file: " << uri;
 
     // Find the first valid video stream inside the file
-    video_stream_index = -1;
+    video_stream_index                 = -1;
     AVCodecParameters* av_codec_params = nullptr;
-    AVCodec*           av_codec = nullptr;
-    std::vector<int> available_decoders {};
+    AVCodec*           av_codec        = nullptr;
+    std::vector<int>   available_decoders{};
 
     for (unsigned int i = 0; i < av_format_ctx->nb_streams; ++i) {
         av_codec_params = av_format_ctx->streams[i]->codecpar;
@@ -68,7 +69,8 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
 
         int decoder_index = 0;
         while (const auto hw_decoder = avcodec_get_hw_config(av_codec, decoder_index)) {
-            *LOGGER << SimpleGFX::loggingLevel::normal << "Found hw decoder at index " << decoder_index << ": " << av_hwdevice_get_type_name(hw_decoder->device_type);
+            *LOGGER << SimpleGFX::loggingLevel::normal << "Found hw decoder at index " << decoder_index << ": "
+                    << av_hwdevice_get_type_name(hw_decoder->device_type);
             available_decoders.emplace_back(decoder_index);
             decoder_index++;
         }
@@ -78,7 +80,7 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
         auto framerate_tmp = av_format_ctx->streams[i]->avg_frame_rate;
         framerate          = static_cast<double>(framerate_tmp.num) / static_cast<double>(framerate_tmp.den);
         *LOGGER << SimpleGFX::loggingLevel::normal << "video average framerate:" << framerate << " fps";
-        
+
 
         break;
     }
@@ -115,14 +117,15 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
 
     if (!available_decoders.empty()) {
         for (const auto& decoder_index : available_decoders) {
-            const auto hw_decoder = avcodec_get_hw_config(av_codec, decoder_index);
+            const auto  hw_decoder   = avcodec_get_hw_config(av_codec, decoder_index);
             std::string decoder_name = av_hwdevice_get_type_name(hw_decoder->device_type);
             *LOGGER << SimpleGFX::loggingLevel::normal << "Creating hw decode context (" << decoder_index << "): " << decoder_name;
 
             if (av_hwdevice_ctx_create(&(av_codec_ctx->hw_device_ctx), hw_decoder->device_type, nullptr, nullptr, 0) < 0) {
                 av_codec_ctx->hw_device_ctx = nullptr;
-                has_hw_decoding = false;
-                *LOGGER << SimpleGFX::loggingLevel::error << "Can't initialize AVHWDeviceContext (" << decoder_index << "): " << decoder_name;
+                has_hw_decoding             = false;
+                *LOGGER << SimpleGFX::loggingLevel::error << "Can't initialize AVHWDeviceContext (" << decoder_index
+                        << "): " << decoder_name;
                 continue;
             }
 
@@ -135,7 +138,7 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
         throw std::runtime_error("Couldn't open codec");
     }
 
-    for (auto& frame: av_frames) {
+    for (auto& frame : av_frames) {
         frame = av_frame_alloc();
         if (!frame) {
             throw std::runtime_error("Couldn't allocate AVFrame");
@@ -148,7 +151,11 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
     }
 
     reachedEOF = false;
-    for (size_t i = 0; i < FRAME_BUFFER_COUNT; i++) {
+
+    nextFrameToGet = _start_frame;
+    seekFrame(0, _start_frame);
+
+    for (size_t i = 1; i < FRAME_BUFFER_COUNT; i++) {
         readNextFrame(i);
     }
 
@@ -174,7 +181,7 @@ libtrainsim::Video::videoDecoderLibav::~videoDecoderLibav() {
     sws_freeContext(sws_scaler_ctx);
     avformat_close_input(&av_format_ctx);
     avformat_free_context(av_format_ctx);
-    for (auto& frame:av_frames) {
+    for (auto& frame : av_frames) {
         av_frame_free(&frame);
     }
     av_packet_free(&av_packet);
@@ -242,16 +249,16 @@ void libtrainsim::Video::videoDecoderLibav::seekFrame(uint8_t buffer_index, uint
 }
 
 void libtrainsim::Video::videoDecoderLibav::copyToBuffer(uint8_t buffer_index, std::shared_ptr<Gdk::Texture>& texture) {
-    //std::shared_lock<std::shared_mutex> lock{contextMutex};
-    isExporting = true;
-    auto av_frame = av_frames[buffer_index];
+    // std::shared_lock<std::shared_mutex> lock{contextMutex};
+    isExporting           = true;
+    auto     av_frame     = av_frames[buffer_index];
     AVFrame* cpu_av_frame = nullptr;
-    auto pixel_format = av_codec_ctx->pix_fmt;
-    auto [w, h] = renderSize.getCasted<int>();
-    
+    auto     pixel_format = av_codec_ctx->pix_fmt;
+    auto [w, h]           = renderSize.getCasted<int>();
+
     if (has_hw_decoding) {
-        cpu_av_frame = av_frame_alloc();
-        cpu_av_frame->width = av_frame->width;
+        cpu_av_frame         = av_frame_alloc();
+        cpu_av_frame->width  = av_frame->width;
         cpu_av_frame->height = av_frame->height;
 
         if (av_hwframe_transfer_data(cpu_av_frame, av_frame, 0) < 0) {
@@ -264,15 +271,15 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(uint8_t buffer_index, s
             pixel_format = static_cast<AVPixelFormat>(cpu_av_frame->format);
         }
 
-    }else {
-        cpu_av_frame = av_frame;
-        cpu_av_frame->width = w;
+    } else {
+        cpu_av_frame         = av_frame;
+        cpu_av_frame->width  = w;
         cpu_av_frame->height = h;
     }
 
     auto source_pix_fmt = correctForDeprecatedPixelFormat(pixel_format);
 
-    #ifdef LIBTRAINSIM_HAS_DMABUF_SUPPORT
+#ifdef LIBTRAINSIM_HAS_DMABUF_SUPPORT
     /*
     sws_scaler_ctx      = sws_getCachedContext(sws_scaler_ctx,
                                           w,
@@ -290,9 +297,8 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(uint8_t buffer_index, s
 
     uint8_t* dma_dest[4]          = {(uint8_t*)&hw_fd, nullptr, nullptr, nullptr};
     int      dma_dest_linesize[4] = {1, 0, 0, 0};
-    auto     dma_hnew             = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, cpu_av_frame->height, dma_dest, dma_dest_linesize);
-    if (dma_hnew != cpu_av_frame->height) {
-        throw std::runtime_error("Got a wrong size after scaling.");
+    auto     dma_hnew             = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, cpu_av_frame->height, dma_dest,
+    dma_dest_linesize); if (dma_hnew != cpu_av_frame->height) { throw std::runtime_error("Got a wrong size after scaling.");
     }
 
     if (hw_fd.nb_objects > 0 && hw_fd.nb_layers > 0) {
@@ -320,12 +326,12 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(uint8_t buffer_index, s
     }
     */
 
-    #endif
+#endif
 
     std::vector<uint8_t> rawBuffer;
     rawBuffer.resize(w * h * 4);
 
-    sws_scaler_ctx      = sws_getCachedContext(sws_scaler_ctx,
+    sws_scaler_ctx = sws_getCachedContext(sws_scaler_ctx,
                                           cpu_av_frame->width,
                                           cpu_av_frame->height,
                                           source_pix_fmt,
@@ -339,7 +345,7 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(uint8_t buffer_index, s
 
     uint8_t* dest[4]          = {rawBuffer.data(), nullptr, nullptr, nullptr};
     int      dest_linesize[4] = {w * 4, 0, 0, 0};
-    auto     hnew          = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, h, dest, dest_linesize);
+    auto     hnew             = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, h, dest, dest_linesize);
     if (hnew != cpu_av_frame->height) {
         *LOGGER << SimpleGFX::loggingLevel::error << "Got a wrong size after scaling." << std::endl;
         isExporting = false;
@@ -347,7 +353,6 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(uint8_t buffer_index, s
     }
 
     auto pixbuf = Gdk::Pixbuf::create_from_data(rawBuffer.data(), Gdk::Colorspace::RGB, true, 8, w, h, w * 4);
-    texture = Gdk::Texture::create_for_pixbuf(pixbuf);
+    texture     = Gdk::Texture::create_for_pixbuf(pixbuf);
     isExporting = false;
 }
-

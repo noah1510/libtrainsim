@@ -7,6 +7,7 @@ using namespace std::literals;
 
 libtrainsim::Video::videoDecoderGstreamer::videoDecoderGstreamer(std::filesystem::path              _videoFile,
                                                                  std::shared_ptr<SimpleGFX::logger> _logger,
+                                                                 uint64_t                           _start_frame,
                                                                  uint64_t                           _seekCutoff,
                                                                  uint64_t                           threadCount)
     // set the seek cutoff to 1 since gstreamer does not support advancing by one frame
@@ -112,6 +113,8 @@ libtrainsim::Video::videoDecoderGstreamer::videoDecoderGstreamer(std::filesystem
         throw std::runtime_error("Default format is not supported");
     }
 
+    requestFrame(_start_frame);
+
     // start the rendering thread
     startRendering();
 }
@@ -207,7 +210,7 @@ void libtrainsim::Video::videoDecoderGstreamer::copyToBuffer(uint8_t buffer_inde
     g_object_get(G_OBJECT(sink), "last-pixbuf", &c_pixbuf, nullptr);
 
     auto pixbuf = Glib::wrap(c_pixbuf, true);
-    texture = Gdk::Texture::create_for_pixbuf(pixbuf);
+    texture     = Gdk::Texture::create_for_pixbuf(pixbuf);
 }
 
 bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstMessage* msg) {
@@ -309,13 +312,13 @@ bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstM
     if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_SEGMENT_DONE) {
 
         GstFormat stepFormat = GST_FORMAT_UNDEFINED;
-        int64_t  position   = 0;
+        int64_t   position   = 0;
         gst_message_parse_segment_done(msg, &stepFormat, &position);
 
         *LOGGER << SimpleGFX::loggingLevel::debug << "segment done: format: " << stepFormat << " position: " << position;
 
         currentFrameNumber = static_cast<uint64_t>(position);
-        isStepping = false;
+        isStepping         = false;
     } // End of GST_MESSAGE_SEGMENT_DONE
 
     if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ASYNC_DONE) {
@@ -437,16 +440,15 @@ std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderGstreamer::getUsab
         return texture;
     }
 
-    //move the pixbuf to the return value
+    // move the pixbuf to the return value
     auto useableTexture = frame_data[exportBufferID];
 
     // mark the buffer as exported
     bufferExported = true;
 
-    //if the pixbuf was not given return the usablePixbuf otherwise return the given pixbuf
+    // if the pixbuf was not given return the usablePixbuf otherwise return the given pixbuf
     return useableTexture;
 }
-
 
 
 /*

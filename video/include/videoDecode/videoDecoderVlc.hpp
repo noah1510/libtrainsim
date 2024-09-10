@@ -19,9 +19,9 @@ namespace libtrainsim::Video {
         // friend class videoDecodeSettings;
       private:
         // all the libvlc stuff
-        std::unique_ptr<VLC::MediaPlayer> player = nullptr;
-        uint32_t fps_num = 0;
-        uint32_t fps_den = 0;
+        std::unique_ptr<VLC::MediaPlayer> player  = nullptr;
+        uint32_t                          fps_num = 0;
+        uint32_t                          fps_den = 0;
 
         int videoTrackID = -1;
 
@@ -30,12 +30,12 @@ namespace libtrainsim::Video {
 
         // the render surface
         std::array<std::shared_ptr<Gdk::Pixbuf>, FRAME_BUFFER_COUNT> renderSurfaces;
-        std::array<std::shared_mutex, FRAME_BUFFER_COUNT> renderSurfaceMutexes;
+        std::array<std::shared_mutex, FRAME_BUFFER_COUNT>            renderSurfaceMutexes;
 
         // The callbacks to render into the surface instead of windows
         void* lockBuffer(void** p_pixels);
-        void unlockBuffer(void* id, void* const* p_pixels);
-        void displayBuffer(void* id);
+        void  unlockBuffer(void* id, void* const* p_pixels);
+        void  displayBuffer(void* id);
 
       protected:
         /**
@@ -62,7 +62,7 @@ namespace libtrainsim::Video {
          */
         void copyToBuffer(uint8_t buffer_index, std::shared_ptr<Gdk::Texture>& texture) override;
 
-        //bool renderLoop() override;
+        // bool renderLoop() override;
 
       public:
         /**
@@ -73,6 +73,7 @@ namespace libtrainsim::Video {
          */
         explicit videoDecoderVlc(std::filesystem::path              videoFile,
                                  std::shared_ptr<SimpleGFX::logger> _logger,
+                                 uint64_t                           start_frame = 0,
                                  uint64_t                           _seekCutoff = 200,
                                  uint64_t                           threadCount = 0);
 

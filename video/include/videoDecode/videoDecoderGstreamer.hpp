@@ -17,11 +17,11 @@ namespace libtrainsim {
          */
         class LIBTRAINSIM_EXPORT_MACRO videoDecoderGstreamer : public videoDecoderBase {
           private:
-            GstElement* pipeline = nullptr;
-            GstElement* source   = nullptr;
+            GstElement* pipeline  = nullptr;
+            GstElement* source    = nullptr;
             GstElement* videorate = nullptr;
-            GstElement* convert = nullptr;
-            GstElement* sink    = nullptr;
+            GstElement* convert   = nullptr;
+            GstElement* sink      = nullptr;
 
             unsigned int      bus_watch_id = 0;
             std::atomic<bool> isStepping   = false;
@@ -37,7 +37,7 @@ namespace libtrainsim {
             static int handleMessages_connector(GstBus* bus, GstMessage* message, gpointer data) {
                 return static_cast<videoDecoderGstreamer*>(data)->handleMessages(bus, message);
             }
-            
+
             std::array<std::shared_ptr<Gdk::Texture>, FRAME_BUFFER_COUNT> frame_data;
 
           protected:
@@ -76,6 +76,7 @@ namespace libtrainsim {
              */
             explicit videoDecoderGstreamer(std::filesystem::path              videoFile,
                                            std::shared_ptr<SimpleGFX::logger> _logger,
+                                           uint64_t                           start_frame = 0,
                                            uint64_t                           _seekCutoff = 200,
                                            uint64_t                           threadCount = 0);
 
@@ -83,7 +84,7 @@ namespace libtrainsim {
              * @brief destroys the video decoder
              */
             ~videoDecoderGstreamer();
-            
+
             [[maybe_unused]] [[nodiscard]]
             std::shared_ptr<Gdk::Texture> getUsableTexture(std::shared_ptr<Gdk::Texture> texture = nullptr) override;
         };

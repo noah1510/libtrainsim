@@ -24,10 +24,10 @@ namespace libtrainsim {
             template <typename... decoderArgs>
             explicit renderWidgetPicture(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
                                          std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
-                                         decoderArgs&&... decoder_args)
+                                         decoderArgs... decoder_args)
                 : libtrainsim::Video::renderWidgetBase<decoderClass>{std::move(_simSettings),
                                                                      std::move(_mainAppLauncher),
-                                                                     &decoder_args...},
+                                                                     decoder_args...},
                   graphics_offloader{}, mainPicture{} {
 
                 this->set_child(graphics_offloader);      

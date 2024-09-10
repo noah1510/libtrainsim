@@ -5,14 +5,15 @@ using namespace SimpleGFX::SimpleGL;
 using namespace std::literals;
 
 libtrainsim::Video::videoDecoderVlc::videoDecoderVlc(std::filesystem::path              _videoFile,
-                                                       std::shared_ptr<SimpleGFX::logger> _logger,
-                                                       uint64_t                           _seekCutoff,
-                                                       uint64_t                           threadCount)
+                                                     std::shared_ptr<SimpleGFX::logger> _logger,
+                                                     uint64_t                           _start_frame,
+                                                     uint64_t                           _seekCutoff,
+                                                     uint64_t                           threadCount)
     : videoDecoderBase{std::move(_videoFile), std::move(_logger), _seekCutoff} {
 
-    try{
+    try {
         initVlc();
-    }catch(...){
+    } catch (...) {
         LOGGER->logCurrrentException(true);
         std::throw_with_nested(std::runtime_error("Failed to create video decoder"));
     }
@@ -21,16 +22,15 @@ libtrainsim::Video::videoDecoderVlc::videoDecoderVlc(std::filesystem::path      
 
     auto [w, h] = renderSize.getCasted<int>();
     player->setVideoFormat("RV24", w, h, w * 3);
-    player->setVideoCallbacks(
-        sigc::mem_fun(*this, &videoDecoderVlc::lockBuffer),
-        sigc::mem_fun(*this, &videoDecoderVlc::unlockBuffer),
-        sigc::mem_fun(*this, &videoDecoderVlc::displayBuffer)
-    );
+    player->setVideoCallbacks(sigc::mem_fun(*this, &videoDecoderVlc::lockBuffer),
+                              sigc::mem_fun(*this, &videoDecoderVlc::unlockBuffer),
+                              sigc::mem_fun(*this, &videoDecoderVlc::displayBuffer));
 
     player->setRate(5.0);
     player->play();
     player->pause();
 
+    requestFrame(_start_frame);
     readNextFrame(incrementFramebuffer(activeBuffer));
 
     reachedEOF = false;
@@ -53,14 +53,14 @@ libtrainsim::Video::videoDecoderVlc::~videoDecoderVlc() {
 #elifdef LIBTRAINSIM_VLC3_MODE
     player->stop();
 #else
-#error "No VLC version defined"
+    #error "No VLC version defined"
 #endif
     player.reset();
     player = nullptr;
 }
 
 #ifdef LIBTRAINSIM_VLC4_MODE
-#warning "VLC 4 mode is not tested"
+    #warning "VLC 4 mode is not tested"
 void libtrainsim::Video::videoDecoderVlc::initVlc() {
     auto instance = VLC::Instance(0, nullptr);
 
@@ -71,34 +71,32 @@ void libtrainsim::Video::videoDecoderVlc::initVlc() {
     player = std::make_unique<VLC::MediaPlayer>(instance, media);
 
     // make sure the media is parsed
-    do{
+    do {
         auto parsedStatus = media.parsedStatus(instance);
-        if(parsedStatus == VLC::Media::ParsedStatus::Failed){
+        if (parsedStatus == VLC::Media::ParsedStatus::Failed) {
             throw std::runtime_error("Error parsing media");
         }
-        if(parsedStatus == VLC::Media::ParsedStatus::Done){
+        if (parsedStatus == VLC::Media::ParsedStatus::Done) {
             break;
         }
-    }while(true);
+    } while (true);
 
     auto tracks = player->tracks(VLC::MediaTrack::Type::Video, false);
     if (tracks.empty()) {
         throw std::runtime_error("No video track found in file");
     }
 
-    auto& selectedTrack = std::find_if(tracks.begin(), tracks.end(), [](const auto& track) {
-        return track->selected();
-    });
+    auto& selectedTrack = std::find_if(tracks.begin(), tracks.end(), [](const auto& track) { return track->selected(); });
 
-    if(selectedTrack == tracks.end()){
+    if (selectedTrack == tracks.end()) {
         throw std::runtime_error("Somehow no video track is selected");
     }
 
     fps_num = selectedTrack->fps_num;
     fps_den = selectedTrack->fps_den;
 
-    int x = static_cast<int>(selectedTrack->width());
-    int y = static_cast<int>(selectedTrack->height());
+    int x      = static_cast<int>(selectedTrack->width());
+    int y      = static_cast<int>(selectedTrack->height());
     renderSize = {x, y};
 }
 
@@ -111,15 +109,15 @@ void libtrainsim::Video::videoDecoderVlc::initVlc() {
     media.parseWithOptions(VLC::Media::ParseFlags::Local | VLC::Media::ParseFlags::FetchLocal, 0);
 
     // make sure the media is parsed
-    do{
+    do {
         auto parsedStatus = media.parsedStatus();
-        if(parsedStatus == VLC::Media::ParsedStatus::Failed){
+        if (parsedStatus == VLC::Media::ParsedStatus::Failed) {
             throw std::runtime_error("Error parsing media");
         }
-        if(parsedStatus == VLC::Media::ParsedStatus::Done){
+        if (parsedStatus == VLC::Media::ParsedStatus::Done) {
             break;
         }
-    }while(true);
+    } while (true);
 
     // get the tracks from the media object
     auto trackList = media.tracks();
@@ -127,29 +125,28 @@ void libtrainsim::Video::videoDecoderVlc::initVlc() {
         throw std::runtime_error("No track found in file");
     }
 
-    //select the first video track
-    auto selectedTrack = std::find_if(trackList.begin(), trackList.end(), [](const auto& track) {
-        return track.type() == VLC::MediaTrack::Type::Video;
-    });
+    // select the first video track
+    auto selectedTrack =
+        std::find_if(trackList.begin(), trackList.end(), [](const auto& track) { return track.type() == VLC::MediaTrack::Type::Video; });
 
     if (selectedTrack == trackList.end()) {
         throw std::runtime_error("No video Track found in file");
     }
     videoTrackID = selectedTrack->id();
 
-    //get the framerate and the size of the video
+    // get the framerate and the size of the video
     fps_num = selectedTrack->fpsNum();
     fps_den = selectedTrack->fpsDen();
 
-    int x = static_cast<int>(selectedTrack->width());
-    int y = static_cast<int>(selectedTrack->height());
+    int x      = static_cast<int>(selectedTrack->width());
+    int y      = static_cast<int>(selectedTrack->height());
     renderSize = {x, y};
 
-    //create the media player and set the video track
+    // create the media player and set the video track
     player = std::make_unique<VLC::MediaPlayer>(media);
-    //if (player->setVideoTrack(videoTrackID) < 0) {
-    //    throw std::runtime_error("Selecting the track was not possible");
-    //}
+    // if (player->setVideoTrack(videoTrackID) < 0) {
+    //     throw std::runtime_error("Selecting the track was not possible");
+    // }
 }
 #endif
 
@@ -158,10 +155,10 @@ void libtrainsim::Video::videoDecoderVlc::readNextFrame(uint8_t buffer_index) {
 }
 
 void libtrainsim::Video::videoDecoderVlc::seekFrame(uint8_t buffer_index, uint64_t framenumber) {
-    //This calculates the timestamp in ms for the given frame number
-    //The formula is based on the assumption that the framerate is constant
-    //It is calculated using framenumber * 1000 / fps
-    //fps is calculated as fps_num / fps_den
+    // This calculates the timestamp in ms for the given frame number
+    // The formula is based on the assumption that the framerate is constant
+    // It is calculated using framenumber * 1000 / fps
+    // fps is calculated as fps_num / fps_den
 
     uint64_t ts_ms = (framenumber * fps_den * 1000) / fps_num;
 #ifdef LIBTRAINSIM_VLC4_MODE
@@ -175,19 +172,19 @@ void libtrainsim::Video::videoDecoderVlc::copyToBuffer(uint8_t buffer_index, std
     isExporting = true;
     std::scoped_lock lock{renderSurfaceMutexes[buffer_index]};
 
-    texture = Gdk::Texture::create_for_pixbuf(renderSurfaces[buffer_index]);
+    texture     = Gdk::Texture::create_for_pixbuf(renderSurfaces[buffer_index]);
     isExporting = false;
 }
 
-//bool libtrainsim::Video::videoDecoderVlc::renderLoop() {}
+// bool libtrainsim::Video::videoDecoderVlc::renderLoop() {}
 
 void* libtrainsim::Video::videoDecoderVlc::lockBuffer(void** p_pixels) {
     size_t back_buffer_index = incrementFramebuffer(activeBuffer);
     renderSurfaceMutexes[back_buffer_index].lock();
 
     auto& renderSurface = renderSurfaces[back_buffer_index];
-    
-    auto [w,h] = renderSize.getCasted<int>();
+
+    auto [w, h] = renderSize.getCasted<int>();
     if (renderSurface == nullptr || renderSurface->get_width() != w || renderSurface->get_height() != h) {
         renderSurface = Gdk::Pixbuf::create(Gdk::Colorspace::RGB, false, 8, w, h);
     }
@@ -202,4 +199,3 @@ void libtrainsim::Video::videoDecoderVlc::unlockBuffer(void* id, void* const* p_
 }
 
 void libtrainsim::Video::videoDecoderVlc::displayBuffer(void* id) {}
-

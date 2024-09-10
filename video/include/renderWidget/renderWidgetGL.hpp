@@ -32,8 +32,8 @@ namespace libtrainsim::Video {
         template <typename... decoderArgs>
         explicit renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
                                 std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
-                                decoderArgs&&... decoder_args)
-            : libtrainsim::Video::renderWidgetBase<decoderClass>{std::move(_simSettings), std::move(_mainAppLauncher), &decoder_args...},
+                                decoderArgs... decoder_args)
+            : libtrainsim::Video::renderWidgetBase<decoderClass>{std::move(_simSettings), std::move(_mainAppLauncher), decoder_args...},
               graphics_offloader{}, mainGLArea{} {
 
             SimpleGFX::SimpleGL::prepareGLArea(mainGLArea);
