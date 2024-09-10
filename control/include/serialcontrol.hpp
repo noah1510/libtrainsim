@@ -91,7 +91,6 @@ namespace libtrainsim {
 
                 int64_t val = 0;
                 int64_t position_value = 1;
-                uint64_t index = 0;
 
                 std::reverse(hex.begin(), hex.end());
 
@@ -109,7 +108,6 @@ namespace libtrainsim {
 
                     //bitshift by 4 equals multiplication by 16
                     position_value = position_value << 4;
-                    index++;
                 }
 
                 return val;

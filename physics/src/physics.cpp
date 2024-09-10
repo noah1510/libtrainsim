@@ -27,7 +27,7 @@ void libtrainsim::physics::emergencyBreak() {
     isEmergencyBreaking = true;
 }
 
-bool libtrainsim::physics::emergencyBreaking(){
+bool libtrainsim::physics::emergencyBreaking() {
     return isEmergencyBreaking;
 }
 
@@ -83,21 +83,13 @@ void libtrainsim::physics::tick() {
     if (is_ticking) {
         return;
     }
-
     is_ticking = true;
 
-    auto new_time = SimpleGFX::chrono::now();
-    time_si dt = unit_cast(new_time - last_update.load());
-    last_update = new_time;
-
     // all Variables needed to caclulate the physics
-    long double                   air_drag   = 0.0;
-    long double                   train_drag = 0.0;
-    auto current_slvel = speedlevel.load();
-
-    // defining the needed variables
-    auto mass       = config.train().getMass();
-    train_drag = 0.2 * config.get_frictionMultiplier(location);
+    long double train_drag    = 0.0;
+    auto        current_slvel = speedlevel.load();
+    auto        mass          = config.train().getMass();
+    train_drag                = 0.2 * config.get_frictionMultiplier(location);
 
     auto MaxForce = calcMaxForce(mass, 1_G, train_drag);
     auto MaxPower = config.train().getMaxPower();
@@ -133,6 +125,10 @@ void libtrainsim::physics::tick() {
             currTraction = currPower.load() / current_velocity;
         }
     }
+
+    auto    new_time = SimpleGFX::chrono::now();
+    time_si dt       = unit_cast(new_time - last_update.load());
+    last_update      = new_time;
 
     // calculating parameters of movement by current Traction
     current_acceleration = currTraction.load() / mass;

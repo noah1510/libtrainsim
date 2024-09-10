@@ -14,13 +14,13 @@ namespace libtrainsim {
 
           private:
             // control if the latest value should be displayed
-            bool displayLatestValue = true;
+            std::atomic<bool> displayLatestValue = true;
 
             // control if the graphs should be displayed
-            bool displayGraphs = false;
+            std::atomic<bool> displayGraphs = false;
 
             // control if the progress along the track should be shown
-            bool displayProgress = true;
+            std::atomic<bool> displayProgress = true;
 
             /**
              * @brief a vector with all of graphs that are displayed and if they should be displayed
@@ -33,13 +33,13 @@ namespace libtrainsim {
             std::vector<std::string> defaultGraphNames;
 
             // The position where the track begins
-            sakurajin::unit_system::length beginPosition;
+            std::atomic<sakurajin::unit_system::length> beginPosition;
 
             // the current position along the track
-            sakurajin::unit_system::length currentPosition;
+            std::atomic<sakurajin::unit_system::length> currentPosition;
 
             // the position where the track ends
-            sakurajin::unit_system::length endPosition;
+            std::atomic<sakurajin::unit_system::length> endPosition;
 
             Gtk::ListBox* graphsList;
             
@@ -63,7 +63,7 @@ namespace libtrainsim {
              *
              * @note if a settings tab was added it will be removed in here
              */
-            ~statusDisplay() override;
+            ~statusDisplay() override = default;
 
             /**
              * @brief add a new frametime which will be displayed as the latest value.
@@ -135,7 +135,16 @@ namespace libtrainsim {
              * @warning this throws an exception if the graph does not exist
              */
             [[maybe_unused]]
-            void appendToGraph(const std::string& graphName, double value);
+            void appendToGraph(const std::string& graphName, auto value){
+                for (auto& graph : graphs) {
+                    if (graph.first->getName() == graphName) {
+                        graph.first->appendValue(value);
+                        return;
+                    }
+                }
+
+                throw std::invalid_argument("no graph with this name exists");
+            }
 
             /**
              * change the data range for a given graph
@@ -143,13 +152,16 @@ namespace libtrainsim {
              * @warning this throws an exception if the graph does not exist
              */
             [[maybe_unused]]
-            void changeGraphRange(const std::string& graphName, double minVal, double maxVal);
+            void changeGraphRange(const std::string& graphName, auto minVal, auto maxVal){
+                for (auto& graph : graphs) {
+                    if (graph.first->getName() == graphName) {
+                        graph.first->setRange(minVal, maxVal);
+                        return;
+                    }
+                }
 
-            /**
-             * redraw all graphs
-             */
-            [[maybe_unused]]
-            void redrawGraphs();
+                throw std::invalid_argument("no graph with this name exists");
+            }
 
             void operator()(const SimpleGFX::inputEvent& event, bool& handled) override;
 
