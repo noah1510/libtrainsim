@@ -1,7 +1,7 @@
 #include "serialcontrol.hpp"
 
 using namespace std::literals;
-using namespace SimpleGFX;
+using namespace SimpleGFX::core;
 
 libtrainsim::control::serialcontrol::serialcontrol(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _config)
     : config(std::move(_config)) {
@@ -16,16 +16,16 @@ libtrainsim::control::serialcontrol::serialcontrol(std::shared_ptr<libtrainsim::
 
     config->getInputManager()->registerPoller(*this);
 
-    try{
+    try {
         auto rs232_log_stream = *config->getLogger() << error;
         rs232_obj             = std::make_unique<sakurajin::RS232>(baudrate, rs232_log_stream);
-    }catch(...){
+    } catch (...) {
         config->getLogger()->logCurrrentException();
         rs232_obj.reset();
         rs232_obj = nullptr;
     }
 
-    if(rs232_obj->getCurrentDevice() == nullptr){
+    if (rs232_obj->getCurrentDevice() == nullptr) {
         *config->getLogger() << error << "no serial port found";
         return;
     }
@@ -169,7 +169,7 @@ libtrainsim::control::serialcontrol::~serialcontrol() {
     rs232_obj.reset();
 }
 
-void libtrainsim::control::serialcontrol::operator()(SimpleGFX::eventManager& manager) {
+void libtrainsim::control::serialcontrol::operator()(eventManager& manager) {
     if (!IsConnected()) {
         return;
     }
@@ -183,18 +183,18 @@ void libtrainsim::control::serialcontrol::operator()(SimpleGFX::eventManager& ma
         try {
             auto channel = decodeTelegram(telegram);
 
-            SimpleGFX::inputEvent e;
+            inputEvent e;
             e.name       = channel.name;
             e.originName = "serialcontrol";
             e.amount     = static_cast<double>(channel.value);
 
             if (channel.isAnalog) {
-                e.inputType = SimpleGFX::inputAction::update;
+                e.inputType = inputAction::update;
             } else {
                 if (channel.value == 0) {
-                    e.inputType = SimpleGFX::inputAction::release;
+                    e.inputType = inputAction::release;
                 } else {
-                    e.inputType = SimpleGFX::inputAction::press;
+                    e.inputType = inputAction::press;
                 }
             }
 
@@ -208,11 +208,11 @@ void libtrainsim::control::serialcontrol::operator()(SimpleGFX::eventManager& ma
 
 bool libtrainsim::control::serialcontrol::connect() {
     if (rs232_obj == nullptr) {
-        try{
+        try {
             auto rs232_log_stream = *config->getLogger() << error;
             rs232_obj             = std::make_unique<sakurajin::RS232>(baudrate, rs232_log_stream);
             return rs232_obj->getCurrentDevice()->getConnectionStatus() == sakurajin::connectionStatus::connected;
-        }catch(...){
+        } catch (...) {
             config->getLogger()->logCurrrentException();
             rs232_obj.reset();
             rs232_obj = nullptr;

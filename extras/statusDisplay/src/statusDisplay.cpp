@@ -4,36 +4,36 @@ using namespace sakurajin::unit_system;
 using namespace sakurajin::unit_system::literals;
 using namespace std::literals;
 
-libtrainsim::extras::statusDisplay::statusDisplay(std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> _mainAppLauncher)
+libtrainsim::extras::statusDisplay::statusDisplay(std::shared_ptr<SimpleGFX::ui::appLauncher> _mainAppLauncher)
     : Gtk::Box{},
       mainAppLauncher{std::move(_mainAppLauncher)} {
-    
+
     hide();
     set_can_focus(false);
     set_can_target(false);
-    
+
     set_hexpand(true);
     set_vexpand(true);
-    
+
     graphsList = Gtk::make_managed<Gtk::ListBox>();
-    
+
     graphsList->set_hexpand(true);
     graphsList->set_vexpand(true);
-    
+
     append(*graphsList);
-    
-    Glib::ustring data = ".invis_bg {background-color: rgba(255, 255, 255, 0);}";
-    auto provider = Gtk::CssProvider::create();
+
+    Glib::ustring data     = ".invis_bg {background-color: rgba(255, 255, 255, 0);}";
+    auto          provider = Gtk::CssProvider::create();
     provider->load_from_string(data);
-    
+
     auto ctx = get_style_context();
     ctx->add_class("invis_bg");
     ctx->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
-    
+
     ctx = graphsList->get_style_context();
     ctx->add_class("invis_bg");
     ctx->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
-    
+
     defaultGraphNames = {"frametimes", "rendertimes", "acceleration", "velocity", "speedLevel"};
 
     beginPosition   = 0_m;
@@ -81,7 +81,7 @@ void libtrainsim::extras::statusDisplay::setSpeedLevel(const core::input_axis& n
 
 
 void libtrainsim::extras::statusDisplay::changeBeginPosition(sakurajin::unit_system::length newBeginPosition) {
-    beginPosition =  newBeginPosition.convert_like(1_m);
+    beginPosition = newBeginPosition.convert_like(1_m);
 }
 
 void libtrainsim::extras::statusDisplay::changePosition(sakurajin::unit_system::length newPosition) {
@@ -105,7 +105,7 @@ void libtrainsim::extras::statusDisplay::createCustomGraph(const std::string& gr
 }
 
 void libtrainsim::extras::statusDisplay::removeGraph(const std::string& graphName) {
-    if(std::ranges::contains(defaultGraphNames, graphName)){
+    if (std::ranges::contains(defaultGraphNames, graphName)) {
         throw std::invalid_argument("default graphs may not be removed!");
     }
 
@@ -120,19 +120,27 @@ void libtrainsim::extras::statusDisplay::removeGraph(const std::string& graphNam
     throw std::invalid_argument("no graph with this name exists");
 }
 
-void libtrainsim::extras::statusDisplay::operator()(const SimpleGFX::inputEvent& event, bool& handled) {
-    //static auto app        = get_application();
+void libtrainsim::extras::statusDisplay::operator()(const SimpleGFX::core::inputEvent& event, bool& handled) {
+    // static auto app        = get_application();
     static bool showLatest = true;
 
-    if (event.inputType != SimpleGFX::inputAction::press) {
+    if (event.inputType != SimpleGFX::core::inputAction::press) {
         return;
     }
 
     const auto actionCases = {"STATUS_WINDOW_TOGGLE_VISIBILITY", "STATUS_WINDOW_SHOW_LATEST"};
-    switch (SimpleGFX::TSwitch(event.name, actionCases)) {
+    switch (SimpleGFX::core::TSwitch(event.name, actionCases)) {
         case (0):
-            mainAppLauncher->callDeffered([this]() {if (is_visible()) {hide();} else {show();}}, sec_getID());
-            
+            mainAppLauncher->callDeffered(
+                [this]() {
+                    if (is_visible()) {
+                        hide();
+                    } else {
+                        show();
+                    }
+                },
+                sec_getID());
+
             handled = true;
             return;
         case (1):

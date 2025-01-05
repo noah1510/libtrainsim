@@ -10,7 +10,7 @@ libtrainsim::physics::physics(const libtrainsim::core::Track& conf, bool _autoTi
     velocity             = 0.0_mps;
     location             = config.firstLocation();
     current_acceleration = 0.0_mps2;
-    last_update          = SimpleGFX::chrono::now();
+    last_update          = SimpleGFX::core::now();
 
     hasError = false;
 }
@@ -126,7 +126,7 @@ void libtrainsim::physics::tick() {
         }
     }
 
-    auto    new_time = SimpleGFX::chrono::now();
+    auto    new_time = SimpleGFX::core::now();
     time_si dt       = unit_cast(new_time - last_update.load());
     last_update      = new_time;
 

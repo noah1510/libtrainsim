@@ -1,6 +1,6 @@
 #include "renderWidget/displayFragShader.hpp"
 
-using namespace SimpleGFX::SimpleGL;
+using namespace SimpleGFX::gl;
 
 static constexpr const shaderStage stage = shaderStage::FRAGMENT;
 

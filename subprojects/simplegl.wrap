@@ -1,6 +1,0 @@
-[wrap-git]
-url = https://git.thm.de/singlegfx/simplegl.git
-revision = gtk_port
-
-[provide]
-dependency_names = ['simplegl']

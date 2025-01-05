@@ -4,7 +4,8 @@
 #include <shared_mutex>
 
 using namespace libtrainsim::core;
-using namespace SimpleGFX;
+using namespace SimpleGFX::core;
+using namespace SimpleGFX::json;
 using namespace sakurajin::unit_system;
 using namespace sakurajin::unit_system::literals;
 using namespace std::literals;
@@ -48,7 +49,7 @@ void train_properties::loadJsonData(const nlohmann::json& data_json) {
     }
 
     try {
-        auto str = json::getOptionalJsonField<std::string>(data_json, "formatVersion");
+        auto str = getOptionalJsonField<std::string>(data_json, "formatVersion");
         if (str.has_value()) {
             version ver = str.value();
             if (version::compare(format_version, ver) < 0) {
@@ -61,20 +62,20 @@ void train_properties::loadJsonData(const nlohmann::json& data_json) {
     }
 
     try {
-        name = json::getJsonField<std::string>(data_json, "name");
+        name = getJsonField<std::string>(data_json, "name");
     } catch (...) {
         std::throw_with_nested(std::runtime_error("could not read name"));
     }
 
     try {
-        mass = sakurajin::unit_system::mass{json::getJsonField<double>(data_json, "mass")};
+        mass = sakurajin::unit_system::mass{getJsonField<double>(data_json, "mass")};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("could not read mass"));
     }
 
     long double powerUnit = 1.0;
     try {
-        auto unit = json::getOptionalJsonField<std::string>(data_json, "powerUnit");
+        auto unit = getOptionalJsonField<std::string>(data_json, "powerUnit");
         if (unit.has_value()) {
             auto cases = {"W", "kW"};
             switch (TSwitch(unit.value(), cases)) {
@@ -97,38 +98,38 @@ void train_properties::loadJsonData(const nlohmann::json& data_json) {
     }
 
     try {
-        auto raw_power = json::getJsonField<double>(data_json, "maxPower");
-        maxPower = sakurajin::unit_system::power{raw_power, powerUnit};
+        auto raw_power = getJsonField<double>(data_json, "maxPower");
+        maxPower       = sakurajin::unit_system::power{raw_power, powerUnit};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading max power"));
     }
 
     try {
-        surfaceArea = sakurajin::unit_system::area{json::getJsonField<double>(data_json, "surfaceArea"), 1.0};
+        surfaceArea = sakurajin::unit_system::area{getJsonField<double>(data_json, "surfaceArea"), 1.0};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading train surface area"));
     }
 
     try {
-        numberWagons = json::getJsonField<unsigned int>(data_json, "numberWagons");
+        numberWagons = getJsonField<unsigned int>(data_json, "numberWagons");
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading number of wagons"));
     }
 
     try {
-        wagonLength = sakurajin::unit_system::length{json::getJsonField<double>(data_json, "wagonLength"), 1.0};
+        wagonLength = sakurajin::unit_system::length{getJsonField<double>(data_json, "wagonLength"), 1.0};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading length of wagons"));
     }
 
     try {
-        driverLength = sakurajin::unit_system::length{json::getJsonField<double>(data_json, "driverLength"), 1.0};
+        driverLength = sakurajin::unit_system::length{getJsonField<double>(data_json, "driverLength"), 1.0};
     } catch (...) {
         std::throw_with_nested(std::runtime_error("error reading length of driver"));
     }
 
     try {
-        auto _type = json::getOptionalJsonField<std::string>(data_json, "trainType");
+        auto _type = getOptionalJsonField<std::string>(data_json, "trainType");
         if (_type.has_value()) {
             auto cases = {"passenger", "cargo"};
             switch (TSwitch(_type.value(), cases)) {

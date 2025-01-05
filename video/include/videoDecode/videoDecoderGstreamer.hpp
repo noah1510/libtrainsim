@@ -74,11 +74,11 @@ namespace libtrainsim {
              * @param filename the path to the file that should be played back by this object
              * @param threadCount the number of threads that should be used for video decode, 0 for autodetect
              */
-            explicit videoDecoderGstreamer(std::filesystem::path              videoFile,
-                                           std::shared_ptr<SimpleGFX::logger> _logger,
-                                           uint64_t                           start_frame = 0,
-                                           uint64_t                           _seekCutoff = 200,
-                                           uint64_t                           threadCount = 0);
+            explicit videoDecoderGstreamer(std::filesystem::path                    videoFile,
+                                           std::shared_ptr<SimpleGFX::core::logger> _logger,
+                                           uint64_t                                 start_frame = 0,
+                                           uint64_t                                 _seekCutoff = 200,
+                                           uint64_t                                 threadCount = 0);
 
             /**
              * @brief destroys the video decoder

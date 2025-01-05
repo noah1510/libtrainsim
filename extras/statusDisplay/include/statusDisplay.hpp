@@ -9,7 +9,7 @@ namespace libtrainsim {
          * @brief a window to display real time stats for the simulator
          *
          */
-        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] statusDisplay : public Gtk::Box, public SimpleGFX::tracked_eventHandle {
+        class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]] statusDisplay : public Gtk::Box, public SimpleGFX::core::tracked_eventHandle {
             // friend class statusDisplaySettings;
 
           private:
@@ -42,13 +42,13 @@ namespace libtrainsim {
             std::atomic<sakurajin::unit_system::length> endPosition;
 
             Gtk::ListBox* graphsList;
-            
+
             /**
              * @brief The appLauncher used by this class.
              * It is needed to queue api calls to happen in the main thread.
              * This allows gotoFrame to be called from any thread without crashing the program.
              */
-            std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> mainAppLauncher;
+            std::shared_ptr<SimpleGFX::ui::appLauncher> mainAppLauncher;
 
           public:
             /**
@@ -56,7 +56,7 @@ namespace libtrainsim {
              *
              * @param _manageSettings if false is passed this class will not create a settings tab
              */
-            explicit statusDisplay(std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> mainAppLauncher);
+            explicit statusDisplay(std::shared_ptr<SimpleGFX::ui::appLauncher> mainAppLauncher);
 
             /**
              * @brief destroy the status display
@@ -135,7 +135,7 @@ namespace libtrainsim {
              * @warning this throws an exception if the graph does not exist
              */
             [[maybe_unused]]
-            void appendToGraph(const std::string& graphName, auto value){
+            void appendToGraph(const std::string& graphName, auto value) {
                 for (auto& graph : graphs) {
                     if (graph.first->getName() == graphName) {
                         graph.first->appendValue(value);
@@ -152,7 +152,7 @@ namespace libtrainsim {
              * @warning this throws an exception if the graph does not exist
              */
             [[maybe_unused]]
-            void changeGraphRange(const std::string& graphName, auto minVal, auto maxVal){
+            void changeGraphRange(const std::string& graphName, auto minVal, auto maxVal) {
                 for (auto& graph : graphs) {
                     if (graph.first->getName() == graphName) {
                         graph.first->setRange(minVal, maxVal);
@@ -163,7 +163,7 @@ namespace libtrainsim {
                 throw std::invalid_argument("no graph with this name exists");
             }
 
-            void operator()(const SimpleGFX::inputEvent& event, bool& handled) override;
+            void operator()(const SimpleGFX::core::inputEvent& event, bool& handled) override;
 
             void on_unrealize() override;
         };

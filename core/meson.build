@@ -33,11 +33,19 @@ endforeach
 
 incdir = include_directories('include','..')
 
+simplegfx_project = subproject(
+    'simplegfx',
+    default_options: [
+        'require_gl_support=enabled',
+        'require_ui_support=enabled',
+    ]
+)
+
 core_deps = [
     dependency('threads'),
     dependency('unit-system', required: true, fallback: 'unit-system'),
     dependency('sqlitecpp', required: true, fallback: 'sqlitecpp'),
-    dependency('simplegfx', required: true, fallback: 'simplegfx', version : '>=0.1.0'),
+    simplegfx_project.get_variable('simplegfx_dep'),
 ]
 
 libtrainsim_core = library(

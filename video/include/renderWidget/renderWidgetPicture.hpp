@@ -8,7 +8,7 @@ namespace libtrainsim {
         class renderWidgetPicture : public renderWidgetBase<decoderClass> {
           private:
             Gtk::GraphicsOffload graphics_offloader;
-            Gtk::Picture mainPicture;
+            Gtk::Picture         mainPicture;
 
             unsigned int interval_ms = 10;
 
@@ -23,15 +23,14 @@ namespace libtrainsim {
           public:
             template <typename... decoderArgs>
             explicit renderWidgetPicture(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
-                                         std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
+                                         std::shared_ptr<SimpleGFX::ui::appLauncher>                _mainAppLauncher,
                                          decoderArgs... decoder_args)
-                : libtrainsim::Video::renderWidgetBase<decoderClass>{std::move(_simSettings),
-                                                                     std::move(_mainAppLauncher),
-                                                                     decoder_args...},
-                  graphics_offloader{}, mainPicture{} {
+                : libtrainsim::Video::renderWidgetBase<decoderClass>{std::move(_simSettings), std::move(_mainAppLauncher), decoder_args...},
+                  graphics_offloader{},
+                  mainPicture{} {
 
-                this->set_child(graphics_offloader);      
-                
+                this->set_child(graphics_offloader);
+
                 this->mainPicture.set_expand(true);
                 graphics_offloader.set_child(mainPicture);
 

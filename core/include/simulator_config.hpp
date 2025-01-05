@@ -103,7 +103,7 @@ namespace libtrainsim {
              * If additional logging interfaces should be used, they can be attached to the coreLogger using
              * the addExtraLogger function of the logger class.
              */
-            std::shared_ptr<SimpleGFX::logger> coreLogger = nullptr;
+            std::shared_ptr<SimpleGFX::core::logger> coreLogger = nullptr;
 
             /**
              * @brief the input manager provided by the simulatorConfiguration
@@ -113,7 +113,7 @@ namespace libtrainsim {
              *
              * All eventHandles and eventPoller should be attached to this input manager.
              */
-            std::shared_ptr<SimpleGFX::eventManager> inputManager = nullptr;
+            std::shared_ptr<SimpleGFX::core::eventManager> inputManager = nullptr;
 
             /**
              * @brief try loading the last config file that was loaded
@@ -155,7 +155,7 @@ namespace libtrainsim {
              */
             explicit simulatorConfiguration(const std::filesystem::path& URI,
                                             bool                         lazyLoad    = true,
-                                            std::string            _appID      = "thm.libtrainsim",
+                                            std::string                  _appID      = "thm.libtrainsim",
                                             bool                         tryLastFile = false) noexcept(false);
 
             /**
@@ -288,13 +288,13 @@ namespace libtrainsim {
              * @brief returns the common logging interface for the simulator
              * @return std::shared_ptr<SimpleGFX::logger> the logger
              */
-            std::shared_ptr<SimpleGFX::logger> getLogger() noexcept;
+            std::shared_ptr<SimpleGFX::core::logger> getLogger() noexcept;
 
             /**
              * @brief returns the common input manager for the simulator
              * @return std::shared_ptr<SimpleGFX::eventManager> the input manager
              */
-            std::shared_ptr<SimpleGFX::eventManager> getInputManager() noexcept;
+            std::shared_ptr<SimpleGFX::core::eventManager> getInputManager() noexcept;
 
             /**
              * @brief save the state of this object into the lastLaunch file

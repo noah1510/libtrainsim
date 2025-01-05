@@ -1,15 +1,16 @@
 #include "videoDecode/videoDecoderGstreamer.hpp"
 
 using namespace sakurajin::unit_system;
-using namespace SimpleGFX::SimpleGL;
+using namespace SimpleGFX::core;
+using namespace SimpleGFX::gl;
 using namespace std::literals;
 
 
-libtrainsim::Video::videoDecoderGstreamer::videoDecoderGstreamer(std::filesystem::path              _videoFile,
-                                                                 std::shared_ptr<SimpleGFX::logger> _logger,
-                                                                 uint64_t                           _start_frame,
-                                                                 uint64_t                           _seekCutoff,
-                                                                 uint64_t                           threadCount)
+libtrainsim::Video::videoDecoderGstreamer::videoDecoderGstreamer(std::filesystem::path                    _videoFile,
+                                                                 std::shared_ptr<SimpleGFX::core::logger> _logger,
+                                                                 uint64_t                                 _start_frame,
+                                                                 uint64_t                                 _seekCutoff,
+                                                                 uint64_t                                 threadCount)
     // set the seek cutoff to 1 since gstreamer does not support advancing by one frame
     : videoDecoderBase{std::move(_videoFile), std::move(_logger), 0} {
 
@@ -89,12 +90,12 @@ libtrainsim::Video::videoDecoderGstreamer::videoDecoderGstreamer(std::filesystem
         unsigned int format_count;
         gst_query_parse_n_formats(query, &format_count);
 
-        *LOGGER << SimpleGFX::loggingLevel::debug << "There are " << format_count << " formats supported by this stream.";
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "There are " << format_count << " formats supported by this stream.";
 
         for (uint64_t i = 0; i < format_count; i++) {
             GstFormat format;
             gst_query_parse_nth_format(query, i, &format);
-            *LOGGER << SimpleGFX::loggingLevel::debug << "Format " << i << " is " << gst_format_get_name(format);
+            *LOGGER << SimpleGFX::core::loggingLevel::debug << "Format " << i << " is " << gst_format_get_name(format);
 
             if (format == GST_FORMAT_DEFAULT) {
                 supports_default_format = true;
@@ -105,7 +106,7 @@ libtrainsim::Video::videoDecoderGstreamer::videoDecoderGstreamer(std::filesystem
             }
         }
     } else {
-        *LOGGER << SimpleGFX::loggingLevel::error << "formats query failed.";
+        *LOGGER << SimpleGFX::core::loggingLevel::error << "formats query failed.";
     }
     gst_query_unref(query);
 
@@ -125,7 +126,7 @@ libtrainsim::Video::videoDecoderGstreamer::~videoDecoderGstreamer() {
     }
 
     if (renderThread.valid()) {
-        *LOGGER << SimpleGFX::loggingLevel::debug << "waiting for render to finish";
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "waiting for render to finish";
         renderThread.wait();
         renderThread.get();
     }
@@ -145,11 +146,12 @@ void libtrainsim::Video::videoDecoderGstreamer::pad_added_handler(GstElement* sr
     GstPad* sink_pad = gst_element_get_static_pad(convert, "sink");
 #endif
 
-    *LOGGER << SimpleGFX::loggingLevel::normal << "Received new pad '" << GST_PAD_NAME(new_pad) << "' from '" << GST_ELEMENT_NAME(src);
+    *LOGGER << SimpleGFX::core::loggingLevel::normal << "Received new pad '" << GST_PAD_NAME(new_pad) << "' from '"
+            << GST_ELEMENT_NAME(src);
 
     /* If our converter is already linked, we have nothing to do here */
     if (gst_pad_is_linked(sink_pad)) {
-        *LOGGER << SimpleGFX::loggingLevel::error << "We are already linked. Ignoring.";
+        *LOGGER << SimpleGFX::core::loggingLevel::error << "We are already linked. Ignoring.";
 
         /* Unreference the sink pad */
         gst_object_unref(sink_pad);
@@ -168,7 +170,7 @@ void libtrainsim::Video::videoDecoderGstreamer::pad_added_handler(GstElement* sr
 
     // chcek if the new pad is a video pad
     if (!g_str_has_prefix(new_pad_type, "video/x-raw")) {
-        *LOGGER << SimpleGFX::loggingLevel::error << "It has type '" << new_pad_type << "' which is not raw video. Ignoring.";
+        *LOGGER << SimpleGFX::core::loggingLevel::error << "It has type '" << new_pad_type << "' which is not raw video. Ignoring.";
 
         /* Unreference the sink pad */
         gst_object_unref(sink_pad);
@@ -180,19 +182,19 @@ void libtrainsim::Video::videoDecoderGstreamer::pad_added_handler(GstElement* sr
     // get the video size and set it as the render size
     // return if there was an error
     if (!gst_structure_get_int(new_pad_struct, "width", &w) || !gst_structure_get_int(new_pad_struct, "height", &h)) {
-        *LOGGER << SimpleGFX::loggingLevel::error << "No width/height available";
+        *LOGGER << SimpleGFX::core::loggingLevel::error << "No width/height available";
         return;
     }
 
-    *LOGGER << SimpleGFX::loggingLevel::normal << "video size is: " << w << "x" << h;
+    *LOGGER << SimpleGFX::core::loggingLevel::normal << "video size is: " << w << "x" << h;
     renderSize = {w, h};
 
     /* Attempt the link */
     GstPadLinkReturn ret = gst_pad_link(new_pad, sink_pad);
     if (GST_PAD_LINK_FAILED(ret)) {
-        *LOGGER << SimpleGFX::loggingLevel::error << "Type is '" << new_pad_type << "' but link failed.";
+        *LOGGER << SimpleGFX::core::loggingLevel::error << "Type is '" << new_pad_type << "' but link failed.";
     } else {
-        *LOGGER << SimpleGFX::loggingLevel::normal << "Link succeeded (type '" << new_pad_type << "').";
+        *LOGGER << SimpleGFX::core::loggingLevel::normal << "Link succeeded (type '" << new_pad_type << "').";
     }
 
     // mark the pipeline as paused
@@ -216,14 +218,14 @@ void libtrainsim::Video::videoDecoderGstreamer::copyToBuffer(uint8_t buffer_inde
 bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstMessage* msg) {
 
     if (GST_MESSAGE_TYPE(msg) != GST_MESSAGE_TAG) {
-        *LOGGER << SimpleGFX::loggingLevel::debug << "got message: " << GST_MESSAGE_TYPE_NAME(msg);
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "got message: " << GST_MESSAGE_TYPE_NAME(msg);
     } else {
         if (logTags) {
-            *LOGGER << SimpleGFX::loggingLevel::debug << "got tag message";
+            *LOGGER << SimpleGFX::core::loggingLevel::debug << "got tag message";
             GstTagList* tags = NULL;
 
             gst_message_parse_tag(msg, &tags);
-            *LOGGER << SimpleGFX::loggingLevel::debug << "Got tags from element '" << GST_OBJECT_NAME(msg->src)
+            *LOGGER << SimpleGFX::core::loggingLevel::debug << "Got tags from element '" << GST_OBJECT_NAME(msg->src)
                     << "';content: " << gst_tag_list_to_string(tags);
             // handle_tags (tags);
             gst_tag_list_unref(tags);
@@ -234,10 +236,11 @@ bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstM
         GError* err        = nullptr;
         gchar*  debug_info = nullptr;
         gst_message_parse_error(msg, &err, &debug_info);
-        *LOGGER << SimpleGFX::loggingLevel::error << "Error received from element " << GST_OBJECT_NAME(msg->src) << ": " << err->message;
+        *LOGGER << SimpleGFX::core::loggingLevel::error << "Error received from element " << GST_OBJECT_NAME(msg->src) << ": "
+                << err->message;
 
         if (debug_info) {
-            *LOGGER << SimpleGFX::loggingLevel::debug << "Debugging information: " << debug_info;
+            *LOGGER << SimpleGFX::core::loggingLevel::debug << "Debugging information: " << debug_info;
         }
 
         reachedEOF = true;
@@ -250,7 +253,7 @@ bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstM
     } // End of GST_MESSAGE_ERROR
 
     if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_EOS) {
-        *LOGGER << SimpleGFX::loggingLevel::normal << "End-Of-Stream reached.";
+        *LOGGER << SimpleGFX::core::loggingLevel::normal << "End-Of-Stream reached.";
         reachedEOF = true;
         return false;
     } // End of GST_MESSAGE_EOS
@@ -258,7 +261,7 @@ bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstM
     if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_STATE_CHANGED) {
         GstState old_state, new_state, pending_state;
         gst_message_parse_state_changed(msg, &old_state, &new_state, &pending_state);
-        *LOGGER << SimpleGFX::loggingLevel::debug << "Pipeline state changed from " << gst_element_state_get_name(old_state) << " to "
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "Pipeline state changed from " << gst_element_state_get_name(old_state) << " to "
                 << gst_element_state_get_name(new_state);
     } // End of GST_MESSAGE_STATE_CHANGED
 
@@ -271,7 +274,7 @@ bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstM
         gboolean  stepIntermediate = false;
 
         gst_message_parse_step_start(msg, &stepActive, &stepFormat, &stepDistance, &stepRate, &stepFlush, &stepIntermediate);
-        *LOGGER << SimpleGFX::loggingLevel::debug << "Step start: active: " << stepActive << " format: " << stepFormat
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "Step start: active: " << stepActive << " format: " << stepFormat
                 << " distance: " << stepDistance << " rate: " << stepRate << " flush: " << stepFlush
                 << " intermediate: " << stepIntermediate;
 
@@ -293,7 +296,7 @@ bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstM
         gboolean  reachedEOS       = false;
 
         gst_message_parse_step_done(msg, &stepFormat, &stepDistance, &stepRate, &stepFlush, &stepIntermediate, &stepDuration, &reachedEOS);
-        *LOGGER << SimpleGFX::loggingLevel::debug << "Step done: format: " << stepFormat << " distance: " << stepDistance
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "Step done: format: " << stepFormat << " distance: " << stepDistance
                 << " rate: " << stepRate << " flush: " << stepFlush << " intermediate: " << stepIntermediate
                 << " duration: " << stepDuration << " eos: " << reachedEOS;
 
@@ -315,14 +318,14 @@ bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstM
         int64_t   position   = 0;
         gst_message_parse_segment_done(msg, &stepFormat, &position);
 
-        *LOGGER << SimpleGFX::loggingLevel::debug << "segment done: format: " << stepFormat << " position: " << position;
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "segment done: format: " << stepFormat << " position: " << position;
 
         currentFrameNumber = static_cast<uint64_t>(position);
         isStepping         = false;
     } // End of GST_MESSAGE_SEGMENT_DONE
 
     if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ASYNC_DONE) {
-        *LOGGER << SimpleGFX::loggingLevel::debug << "async done. Copying frame";
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "async done. Copying frame";
 
         const auto backBuffer = incrementFramebuffer(activeBuffer);
         // select the next buffer from the active buffer as back buffer
@@ -339,7 +342,7 @@ bool libtrainsim::Video::videoDecoderGstreamer::handleMessages(GstBus* bus, GstM
 }
 
 bool libtrainsim::Video::videoDecoderGstreamer::renderLoop() {
-    auto begin = SimpleGFX::chrono::now();
+    auto begin = SimpleGFX::core::now();
 
     do {
 
@@ -413,7 +416,7 @@ bool libtrainsim::Video::videoDecoderGstreamer::renderLoop() {
                 auto seek_flags = (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE | GST_SEEK_FLAG_TRICKMODE);
                 auto seek_event = gst_event_new_seek(10.0, GST_FORMAT_DEFAULT, seek_flags, GST_SEEK_TYPE_SET, nextF, GST_SEEK_TYPE_END, 0);
                 if (!gst_element_send_event(sink, seek_event)) {
-                    *LOGGER << SimpleGFX::loggingLevel::error << "could not send seek event";
+                    *LOGGER << SimpleGFX::core::loggingLevel::error << "could not send seek event";
                     reachedEOF = true;
                     return false;
                 }

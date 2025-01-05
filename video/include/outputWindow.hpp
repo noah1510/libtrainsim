@@ -14,21 +14,21 @@ namespace libtrainsim::Video {
     template <videoDecoderClass decoderClass, renderWidgetClass<decoderClass> widgetClass>
     class LIBTRAINSIM_EXPORT_MACRO [[maybe_unused]]
     outputWindow : public Gtk::Window,
-                   public SimpleGFX::tracked_eventHandle {
+                   public SimpleGFX::core::tracked_eventHandle {
       private:
         widgetClass* mainRenderer = nullptr;
 
         std::shared_ptr<libtrainsim::core::simulatorConfiguration> simSettings;
 
-        std::shared_ptr<SimpleGFX::logger> LOGGER;
+        std::shared_ptr<SimpleGFX::core::logger> LOGGER;
 
-        std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> mainAppLauncher;
-        
+        std::shared_ptr<SimpleGFX::ui::appLauncher> mainAppLauncher;
+
         Gtk::Overlay* render_overlay;
 
       protected:
         bool on_close_request() override {
-            *LOGGER << SimpleGFX::loggingLevel::normal << "closing video manager";
+            *LOGGER << SimpleGFX::core::loggingLevel::normal << "closing video manager";
 
             if (has_group()) {
                 auto group = get_group();
@@ -60,12 +60,12 @@ namespace libtrainsim::Video {
         template <typename... args>
             requires std::constructible_from<widgetClass,
                                              std::shared_ptr<libtrainsim::core::simulatorConfiguration>,
-                                             std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>,
+                                             std::shared_ptr<SimpleGFX::ui::appLauncher>,
                                              args...>
         [[maybe_unused]]
         outputWindow(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
-                              std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
-                              args... _args)
+                     std::shared_ptr<SimpleGFX::ui::appLauncher>                _mainAppLauncher,
+                     args... _args)
             : Gtk::Window{},
               simSettings{std::move(_simSettings)},
               LOGGER{simSettings->getLogger()},
@@ -74,25 +74,25 @@ namespace libtrainsim::Video {
             set_title(simSettings->getCurrentTrack().getName());
             set_default_size(1280, 720);
             set_cursor("none");
-            
+
             render_overlay = Gtk::make_managed<Gtk::Overlay>();
 
             render_overlay->set_hexpand(true);
             render_overlay->set_vexpand(true);
-    
-            Glib::ustring data = ".invis_bg {background-color: rgba(255, 255, 255, 0);}";
-            auto provider = Gtk::CssProvider::create();
+
+            Glib::ustring data     = ".invis_bg {background-color: rgba(255, 255, 255, 0);}";
+            auto          provider = Gtk::CssProvider::create();
             provider->load_from_string(data);
-            
+
             auto ctx = render_overlay->get_style_context();
             ctx->add_class("invis_bg");
             ctx->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
             mainRenderer = Gtk::make_managed<widgetClass>(simSettings, mainAppLauncher, _args...);
             render_overlay->set_child(*mainRenderer);
-            
+
             set_child(*render_overlay);
-            //fullscreen();
+            // fullscreen();
         }
 
         [[maybe_unused]] [[nodiscard]]
@@ -117,27 +117,27 @@ namespace libtrainsim::Video {
          */
         [[maybe_unused]] [[nodiscard]]
         std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes() {
-            try{
+            try {
                 return mainRenderer->getNewRendertimes();
-            }catch(...){
+            } catch (...) {
                 return {};
             }
         }
-        
+
         [[maybe_unused]] [[nodiscard]]
-        Gtk::Overlay& getOverlayContainer(){
+        Gtk::Overlay& getOverlayContainer() {
             return *render_overlay;
         }
 
-        void operator()(const SimpleGFX::inputEvent& event, bool& handled) override {
-            if (event.inputType != SimpleGFX::inputAction::press) {
+        void operator()(const SimpleGFX::core::inputEvent& event, bool& handled) override {
+            if (event.inputType != SimpleGFX::core::inputAction::press) {
                 return;
             }
 
             const auto actionCases = {"CLOSE", "MAXIMIZE"};
-            switch (SimpleGFX::TSwitch(event.name, actionCases)) {
+            switch (SimpleGFX::core::TSwitch(event.name, actionCases)) {
                 case (0):
-                    mainAppLauncher->callDeffered([this](){this->close();}, sec_getID());
+                    mainAppLauncher->callDeffered([this]() { this->close(); }, sec_getID());
                     handled = true;
                     return;
                 case (1):
@@ -153,8 +153,7 @@ namespace libtrainsim::Video {
                                 fullscreen();
                             }
                         },
-                        sec_getID()
-                    );
+                        sec_getID());
                     handled = true;
                     return;
                 default:

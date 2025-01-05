@@ -6,10 +6,13 @@
 #include "renderWidget/renderWidgetPicture.hpp"
 
 
-#define MAKE_WINDGET_CONSTRUCTOR(CLASSNAME, PARENT_CLASS)       \
-    template <typename... decoderArgs> [[maybe_unused]]         \
-    explicit CLASSNAME(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings, std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> _mainAppLauncher, decoderArgs... _args)     \
-        : PARENT_CLASS{std::move(_simSettings), std::move(_mainAppLauncher), _args...}{};
+#define MAKE_WINDGET_CONSTRUCTOR(CLASSNAME, PARENT_CLASS)                                                                                  \
+    template <typename... decoderArgs>                                                                                                     \
+    [[maybe_unused]]                                                                                                                       \
+    explicit CLASSNAME(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,                                            \
+                       std::shared_ptr<SimpleGFX::ui::appLauncher>                _mainAppLauncher,                                        \
+                       decoderArgs... _args)                                                                                               \
+        : PARENT_CLASS{std::move(_simSettings), std::move(_mainAppLauncher), _args...} {};
 
 #define MAKE_RENDER_WIDGET_CLASS(CLASSNAME, PARENT_CLASS, DECODE_CLASS)             \
     LIBTRAINSIM_EXPORT_MACRO class CLASSNAME : public PARENT_CLASS<DECODE_CLASS>{   \

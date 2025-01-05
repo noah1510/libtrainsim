@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core.hpp"
-#include "simplegl.hpp"
 
 namespace libtrainsim::extras {
     /**
@@ -12,7 +11,7 @@ namespace libtrainsim::extras {
      * @tparam VALUE_COUNT The number of samples this graph should have
      */
     template <size_t VALUE_COUNT>
-        requires SimpleGFX::Concepts::notZeroSize<VALUE_COUNT>
+        requires SimpleGFX::core::notZeroSize<VALUE_COUNT>
     class statusDisplayGraph : public Gtk::DrawingArea {
       private:
         /**

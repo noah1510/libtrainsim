@@ -11,7 +11,7 @@ namespace libtrainsim::Video {
     class LIBTRAINSIM_EXPORT_MACRO renderWidgetGL : public renderWidgetBase<decoderClass> {
       private:
         Gtk::GraphicsOffload graphics_offloader;
-        Gtk::GLArea mainGLArea;
+        Gtk::GLArea          mainGLArea;
 
         std::atomic<bool>         realized = false;
         std::atomic<unsigned int> texUnits = 0;
@@ -23,20 +23,21 @@ namespace libtrainsim::Video {
         /**
          * @brief the shader used to render the video into a texture
          */
-        std::shared_ptr<SimpleGFX::SimpleGL::shaderProgram> displayShader = nullptr;
+        std::shared_ptr<SimpleGFX::gl::shaderProgram> displayShader = nullptr;
 
         // all the textures that are displayed on the output texture
-        std::vector<std::shared_ptr<SimpleGFX::SimpleGL::sglTexture>> displayTextures;
+        std::vector<std::shared_ptr<SimpleGFX::gl::sglTexture>> displayTextures;
 
       public:
         template <typename... decoderArgs>
         explicit renderWidgetGL(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
-                                std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
+                                std::shared_ptr<SimpleGFX::ui::appLauncher>                _mainAppLauncher,
                                 decoderArgs... decoder_args)
             : libtrainsim::Video::renderWidgetBase<decoderClass>{std::move(_simSettings), std::move(_mainAppLauncher), decoder_args...},
-              graphics_offloader{}, mainGLArea{} {
+              graphics_offloader{},
+              mainGLArea{} {
 
-            SimpleGFX::SimpleGL::prepareGLArea(mainGLArea);
+            SimpleGFX::gl::prepareGLArea(mainGLArea);
 
             mainGLArea.signal_realize().connect(sigc::mem_fun(*this, &renderWidgetGL::on_realize_glarea));
             mainGLArea.signal_unrealize().connect(sigc::mem_fun(*this, &renderWidgetGL::on_unrealize_glarea), true);
@@ -49,7 +50,7 @@ namespace libtrainsim::Video {
         /**
          * @brief adds a texture to be rendered on top of the video
          */
-        void addTexture(std::shared_ptr<SimpleGFX::SimpleGL::sglTexture> newTexture) {
+        void addTexture(std::shared_ptr<SimpleGFX::gl::sglTexture> newTexture) {
             if (displayTextures.size() == texUnits) {
                 std::stringstream ss;
                 ss << "For now only ";
@@ -100,19 +101,19 @@ namespace libtrainsim::Video {
                 int major, minor;
                 ctx->get_version(major, minor);
                 bool useES = ctx->get_use_es();
-                *(this->LOGGER) << SimpleGFX::loggingLevel::detail << "Context created with version " << major << "." << minor
+                *(this->LOGGER) << SimpleGFX::core::loggingLevel::detail << "Context created with version " << major << "." << minor
                                 << (useES ? " ES" : " CORE");
 
-                SimpleGFX::SimpleGL::glErrorCheck();
+                SimpleGFX::gl::glErrorCheck();
             } catch (...) {
                 this->LOGGER->logCurrrentException(true);
                 std::throw_with_nested(std::runtime_error("cannot create GL context"));
             }
 
-            texUnits = SimpleGFX::SimpleGL::getMaxTextureUnits();
+            texUnits = SimpleGFX::gl::getMaxTextureUnits();
 
-            SimpleGFX::SimpleGL::sglTextureProperties bgProps{"", true, "background"};
-            auto                                      bgTexture = std::make_shared<SimpleGFX::SimpleGL::sglTexture>(bgProps);
+            SimpleGFX::gl::sglTextureProperties bgProps{"", true, "background"};
+            auto                                bgTexture = std::make_shared<SimpleGFX::gl::sglTexture>(bgProps);
 
             try {
                 loadBuffers();
@@ -195,10 +196,10 @@ namespace libtrainsim::Video {
 
         // generate the source of the display shader and compile it
         void generateDisplayShader(Glib::RefPtr<Gdk::GLContext> ctx) {
-            auto vert = SimpleGFX::SimpleGL::DefaultShaders::basicVertex::getInstance();
+            auto vert = SimpleGFX::gl::DefaultShaders::basicVertex::getInstance();
             auto frag = std::make_shared<displayFragShader>(texUnits.load());
 
-            displayShader = std::make_shared<SimpleGFX::SimpleGL::shaderProgram>();
+            displayShader = std::make_shared<SimpleGFX::gl::shaderProgram>();
             displayShader->addPart(vert);
             displayShader->addPart(frag);
             try {
@@ -228,7 +229,7 @@ namespace libtrainsim::Video {
             std::scoped_lock lock{GLDataMutex};
 
             try {
-                SimpleGFX::SimpleGL::glErrorCheck();
+                SimpleGFX::gl::glErrorCheck();
             } catch (...) {
                 this->LOGGER->logCurrrentException(true);
             }

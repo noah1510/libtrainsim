@@ -1,7 +1,7 @@
 [wrap-git]
-url = https://git.thm.de/singlegfx/core.git
-revision = main
-directory = simplegfx-core
+url = https://git.thm.de/bahn-simulator/simplegfx.git
+revision = gtk_port
+directory = simplegfx
 
 [provide]
 dependency_names = ['simplegfx']

@@ -20,11 +20,12 @@ namespace libtrainsim {
         class LIBTRAINSIM_EXPORT_MACRO videoDecoderBase : public sigc::trackable {
           private:
             bool renderLoopCaller();
+
           protected:
             /**
              * @brief the size of the video
              */
-            SimpleGFX::SimpleGL::dimensions renderSize{0, 0};
+            SimpleGFX::core::dimensions renderSize{0, 0};
 
             /**
              * @brief the path to the video file
@@ -83,7 +84,7 @@ namespace libtrainsim {
              * This also prevents the front buffer being overwritten while it is read.
              */
             std::atomic<bool> bufferExported = true;
-            
+
             std::atomic<bool> isExporting = false;
 
             /**
@@ -104,7 +105,7 @@ namespace libtrainsim {
             /**
              * @brief A pointer to the used loggin interface
              */
-            std::shared_ptr<SimpleGFX::logger> LOGGER = nullptr;
+            std::shared_ptr<SimpleGFX::core::logger> LOGGER = nullptr;
 
             void startRendering();
 
@@ -114,9 +115,9 @@ namespace libtrainsim {
              * @param filename the path to the file that should be played back by this object
              * @param threadCount the number of threads that should be used for video decode, 0 for autodetect
              */
-            explicit videoDecoderBase(std::filesystem::path              videoFile,
-                                      std::shared_ptr<SimpleGFX::logger> _logger,
-                                      uint64_t                           _seekCutoff = 200);
+            explicit videoDecoderBase(std::filesystem::path                    videoFile,
+                                      std::shared_ptr<SimpleGFX::core::logger> _logger,
+                                      uint64_t                                 _seekCutoff = 200);
 
             /**
              * @brief reads the next frame in the video file into av_frame.
@@ -219,7 +220,7 @@ namespace libtrainsim {
              * @brief get the dimensions of the video file
              */
             [[maybe_unused]] [[nodiscard]]
-            SimpleGFX::SimpleGL::dimensions getDimensions() const;
+            SimpleGFX::core::dimensions getDimensions() const;
 
             /**
              * @brief get the currently displayed frame number
@@ -237,7 +238,7 @@ namespace libtrainsim {
             std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes();
         };
 
-        template<class decoderClass>
+        template <class decoderClass>
         concept videoDecoderClass = std::is_base_of<::libtrainsim::Video::videoDecoderBase, decoderClass>::value;
     } // namespace Video
 } // namespace libtrainsim

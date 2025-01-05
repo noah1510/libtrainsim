@@ -21,14 +21,14 @@ namespace libtrainsim {
              * @brief The Logging interface used by this class.
              * This will be set in the constructor and usually is the same as simSettings->getLogger().
              */
-            std::shared_ptr<SimpleGFX::logger> LOGGER;
+            std::shared_ptr<SimpleGFX::core::logger> LOGGER;
 
             /**
              * @brief The appLauncher used by this class.
              * It is needed to queue api calls to happen in the main thread.
              * This allows gotoFrame to be called from any thread without crashing the program.
              */
-            std::shared_ptr<SimpleGFX::SimpleGL::appLauncher> mainAppLauncher;
+            std::shared_ptr<SimpleGFX::ui::appLauncher> mainAppLauncher;
 
             /**
              * Construct a new generic renderWidgetBase
@@ -39,7 +39,7 @@ namespace libtrainsim {
              */
             template <typename... decoderArgs>
             explicit renderWidgetBase(std::shared_ptr<libtrainsim::core::simulatorConfiguration> _simSettings,
-                                      std::shared_ptr<SimpleGFX::SimpleGL::appLauncher>          _mainAppLauncher,
+                                      std::shared_ptr<SimpleGFX::ui::appLauncher>                _mainAppLauncher,
                                       decoderArgs... decoder_args)
                 : Gtk::AspectFrame{},
                   simSettings{std::move(_simSettings)},
@@ -57,7 +57,7 @@ namespace libtrainsim {
              * @return a reference to the decoder used by this object.
              */
             [[nodiscard]]
-            decoderClass& getDecoder(){
+            decoderClass& getDecoder() {
                 return decode;
             }
 
@@ -66,21 +66,19 @@ namespace libtrainsim {
              *
              * @param frame_num the number of the frame that should be displayed next
              */
-            virtual void gotoFrame(uint64_t frame_num){
-                decode.requestFrame(frame_num);
-            }
+            virtual void gotoFrame(uint64_t frame_num) { decode.requestFrame(frame_num); }
 
             /**
              * A shorthand for getDecoder().getNewRendertimes()
              * @return the latest render time intervals
              */
             [[nodiscard]]
-            std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes(){
+            std::optional<std::vector<sakurajin::unit_system::time_si>> getNewRendertimes() {
                 return decode.getNewRendertimes();
             }
         };
 
-        template<class widgetClass, class decoderClass>
+        template <class widgetClass, class decoderClass>
         concept renderWidgetClass = std::is_base_of<::libtrainsim::Video::renderWidgetBase<decoderClass>, widgetClass>::value;
     } // namespace Video
 } // namespace libtrainsim

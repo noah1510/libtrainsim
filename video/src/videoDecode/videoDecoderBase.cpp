@@ -1,16 +1,16 @@
 #include "videoDecode/videoDecoderBase.hpp"
 
 using namespace sakurajin::unit_system;
-using namespace SimpleGFX::SimpleGL;
+using namespace SimpleGFX::gl;
 using namespace std::literals;
 
 uint8_t libtrainsim::Video::videoDecoderBase::incrementFramebuffer(uint8_t currentBuffer) const {
     return (currentBuffer + 1) % FRAME_BUFFER_COUNT;
 }
 
-libtrainsim::Video::videoDecoderBase::videoDecoderBase(std::filesystem::path              videoFile,
-                                                       std::shared_ptr<SimpleGFX::logger> _logger,
-                                                       uint64_t                           _seekCutoff)
+libtrainsim::Video::videoDecoderBase::videoDecoderBase(std::filesystem::path                    videoFile,
+                                                       std::shared_ptr<SimpleGFX::core::logger> _logger,
+                                                       uint64_t                                 _seekCutoff)
     : seekCutoff{_seekCutoff},
       LOGGER{std::move(_logger)} {
 
@@ -18,7 +18,7 @@ libtrainsim::Video::videoDecoderBase::videoDecoderBase(std::filesystem::path    
         throw std::invalid_argument("video file does not exist or is empty");
     }
 
-    uri = videoFile;
+    uri        = videoFile;
     reachedEOF = true;
 }
 
@@ -32,8 +32,8 @@ bool libtrainsim::Video::videoDecoderBase::renderLoopCaller() {
 
 bool libtrainsim::Video::videoDecoderBase::renderLoop() {
     do {
-        //if there was an error in the last frame exit the render loop
-        if(!renderRequestedFrame()){
+        // if there was an error in the last frame exit the render loop
+        if (!renderRequestedFrame()) {
             return false;
         }
     } while (!reachedEndOfFile());
@@ -42,7 +42,7 @@ bool libtrainsim::Video::videoDecoderBase::renderLoop() {
 }
 
 bool libtrainsim::Video::videoDecoderBase::renderRequestedFrame() {
-    auto begin = SimpleGFX::chrono::now();
+    auto begin = SimpleGFX::core::now();
 
     // create local copies of nextFrameToGet, currentFrameNumber and seekCutoff
     const uint64_t nextF       = nextFrameToGet;
@@ -103,7 +103,7 @@ bool libtrainsim::Video::videoDecoderBase::renderRequestedFrame() {
         // switch to the next framebuffer
         if (isExporting) {
             export_skipped = true;
-        }else{
+        } else {
             activeBuffer   = backBuffer;
             bufferExported = false;
             export_skipped = false;
@@ -114,7 +114,7 @@ bool libtrainsim::Video::videoDecoderBase::renderRequestedFrame() {
 
         // append the new rendertime
         renderTimeMutex.lock();
-        auto dt = SimpleGFX::chrono::now() - begin;
+        auto dt = SimpleGFX::core::now() - begin;
         renderTimes.emplace_back(unit_cast(dt));
         renderTimeMutex.unlock();
 
@@ -136,7 +136,7 @@ libtrainsim::Video::videoDecoderBase::~videoDecoderBase() {
     }
 
     if (renderThread.valid()) {
-        *LOGGER << SimpleGFX::loggingLevel::debug << "waiting for render to finish";
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "waiting for render to finish";
         renderThread.wait();
         renderThread.get();
     }
@@ -152,18 +152,18 @@ std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderBase::getUsableTex
     if (bufferExported && texture != nullptr) {
         return texture;
     }
-    
+
     // copy the decoded frame into the given texture
     copyToBuffer(exportBufferID, texture);
 
     // mark the buffer as exported
     bufferExported = true;
 
-    //if the pixbuf was not given return the usablePixbuf otherwise return the given pixbuf
+    // if the pixbuf was not given return the usablePixbuf otherwise return the given pixbuf
     return texture;
 }
 
-std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderBase::getUsableTexture(){
+std::shared_ptr<Gdk::Texture> libtrainsim::Video::videoDecoderBase::getUsableTexture() {
     return getUsableTexture(nullptr);
 }
 
@@ -183,7 +183,7 @@ bool libtrainsim::Video::videoDecoderBase::reachedEndOfFile() const {
     return reachedEOF;
 }
 
-dimensions libtrainsim::Video::videoDecoderBase::getDimensions() const {
+SimpleGFX::core::dimensions libtrainsim::Video::videoDecoderBase::getDimensions() const {
     return renderSize;
 }
 

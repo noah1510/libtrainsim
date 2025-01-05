@@ -1,7 +1,7 @@
 #include "videoDecode/videoDecoderLibav.hpp"
 
 using namespace sakurajin::unit_system;
-using namespace SimpleGFX::SimpleGL;
+using namespace SimpleGFX::gl;
 using namespace std::literals;
 
 // create a full error message from an av error id
@@ -31,11 +31,11 @@ static inline AVPixelFormat correctForDeprecatedPixelFormat(AVPixelFormat pix_fm
 }
 
 
-libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path              _videoFile,
-                                                         std::shared_ptr<SimpleGFX::logger> _logger,
-                                                         uint64_t                           _start_frame,
-                                                         uint64_t                           _seekCutoff,
-                                                         uint64_t                           threadCount)
+libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path                    _videoFile,
+                                                         std::shared_ptr<SimpleGFX::core::logger> _logger,
+                                                         uint64_t                                 _start_frame,
+                                                         uint64_t                                 _seekCutoff,
+                                                         uint64_t                                 threadCount)
     : videoDecoderBase{std::move(_videoFile), std::move(_logger), _seekCutoff} {
 
     // Open the file using libavformat
@@ -48,7 +48,7 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
         throw std::invalid_argument("Couldn't open video file");
     }
 
-    *LOGGER << SimpleGFX::loggingLevel::normal << "opened video file: " << uri;
+    *LOGGER << SimpleGFX::core::loggingLevel::normal << "opened video file: " << uri;
 
     // Find the first valid video stream inside the file
     video_stream_index                 = -1;
@@ -69,17 +69,17 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
 
         int decoder_index = 0;
         while (const auto hw_decoder = avcodec_get_hw_config(av_codec, decoder_index)) {
-            *LOGGER << SimpleGFX::loggingLevel::normal << "Found hw decoder at index " << decoder_index << ": "
+            *LOGGER << SimpleGFX::core::loggingLevel::normal << "Found hw decoder at index " << decoder_index << ": "
                     << av_hwdevice_get_type_name(hw_decoder->device_type);
             available_decoders.emplace_back(decoder_index);
             decoder_index++;
         }
 
         video_stream_index = static_cast<int>(i);
-        renderSize         = dimensions{av_codec_params->width, av_codec_params->height};
+        renderSize         = SimpleGFX::core::dimensions{av_codec_params->width, av_codec_params->height};
         auto framerate_tmp = av_format_ctx->streams[i]->avg_frame_rate;
         framerate          = static_cast<double>(framerate_tmp.num) / static_cast<double>(framerate_tmp.den);
-        *LOGGER << SimpleGFX::loggingLevel::normal << "video average framerate:" << framerate << " fps";
+        *LOGGER << SimpleGFX::core::loggingLevel::normal << "video average framerate:" << framerate << " fps";
 
 
         break;
@@ -113,18 +113,18 @@ libtrainsim::Video::videoDecoderLibav::videoDecoderLibav(std::filesystem::path  
     threadCount                = std::clamp<uint64_t>(threadCount, 1, 16);
     av_codec_ctx->thread_count = static_cast<int>(threadCount);
     av_codec_ctx->thread_type  = FF_THREAD_SLICE;
-    *LOGGER << SimpleGFX::loggingLevel::normal << "video decode on " << threadCount << " threads.";
+    *LOGGER << SimpleGFX::core::loggingLevel::normal << "video decode on " << threadCount << " threads.";
 
     if (!available_decoders.empty()) {
         for (const auto& decoder_index : available_decoders) {
             const auto  hw_decoder   = avcodec_get_hw_config(av_codec, decoder_index);
             std::string decoder_name = av_hwdevice_get_type_name(hw_decoder->device_type);
-            *LOGGER << SimpleGFX::loggingLevel::normal << "Creating hw decode context (" << decoder_index << "): " << decoder_name;
+            *LOGGER << SimpleGFX::core::loggingLevel::normal << "Creating hw decode context (" << decoder_index << "): " << decoder_name;
 
             if (av_hwdevice_ctx_create(&(av_codec_ctx->hw_device_ctx), hw_decoder->device_type, nullptr, nullptr, 0) < 0) {
                 av_codec_ctx->hw_device_ctx = nullptr;
                 has_hw_decoding             = false;
-                *LOGGER << SimpleGFX::loggingLevel::error << "Can't initialize AVHWDeviceContext (" << decoder_index
+                *LOGGER << SimpleGFX::core::loggingLevel::error << "Can't initialize AVHWDeviceContext (" << decoder_index
                         << "): " << decoder_name;
                 continue;
             }
@@ -173,7 +173,7 @@ libtrainsim::Video::videoDecoderLibav::~videoDecoderLibav() {
     }
 
     if (renderThread.valid()) {
-        *LOGGER << SimpleGFX::loggingLevel::debug << "waiting for render to finish";
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "waiting for render to finish";
         renderThread.wait();
         renderThread.get();
     }
@@ -202,7 +202,7 @@ void libtrainsim::Video::videoDecoderLibav::readNextFrame(uint8_t buffer_index) 
 
         response = avcodec_send_packet(av_codec_ctx, av_packet);
         if (response < 0) {
-            *LOGGER << SimpleGFX::loggingLevel::error << "Failed to decode packet: " << makeAVError(response);
+            *LOGGER << SimpleGFX::core::loggingLevel::error << "Failed to decode packet: " << makeAVError(response);
             av_packet_unref(av_packet);
             continue;
         }
@@ -262,7 +262,7 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(uint8_t buffer_index, s
         cpu_av_frame->height = av_frame->height;
 
         if (av_hwframe_transfer_data(cpu_av_frame, av_frame, 0) < 0) {
-            *LOGGER << SimpleGFX::loggingLevel::error << "Could not transfer_data from hw frame" << std::endl;
+            *LOGGER << SimpleGFX::core::loggingLevel::error << "Could not transfer_data from hw frame" << std::endl;
             isExporting = false;
             return;
         }
@@ -347,7 +347,7 @@ void libtrainsim::Video::videoDecoderLibav::copyToBuffer(uint8_t buffer_index, s
     int      dest_linesize[4] = {w * 4, 0, 0, 0};
     auto     hnew             = sws_scale(sws_scaler_ctx, cpu_av_frame->data, cpu_av_frame->linesize, 0, h, dest, dest_linesize);
     if (hnew != cpu_av_frame->height) {
-        *LOGGER << SimpleGFX::loggingLevel::error << "Got a wrong size after scaling." << std::endl;
+        *LOGGER << SimpleGFX::core::loggingLevel::error << "Got a wrong size after scaling." << std::endl;
         isExporting = false;
         return;
     }

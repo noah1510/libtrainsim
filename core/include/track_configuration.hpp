@@ -175,7 +175,7 @@ namespace libtrainsim::core {
          */
         std::vector<Track_data_point> data;
 
-        std::shared_ptr<SimpleGFX::logger> logger;
+        std::shared_ptr<SimpleGFX::core::logger> LOGGER;
 
         /**
          * @brief this is the binary search to find the frame of a given location, between the lower and upper bound with the a given
@@ -207,7 +207,7 @@ namespace libtrainsim::core {
          * @param URI The location of the File
          * @param lazyLoad true if you only want to load the data on the first
          */
-        Track(std::shared_ptr<SimpleGFX::logger> logger, const std::filesystem::path& URI, bool lazyLoad = false);
+        Track(std::shared_ptr<SimpleGFX::core::logger> logger, const std::filesystem::path& URI, bool lazyLoad = false);
 
         /**
          * @brief Create a track from json data and a parent path.
@@ -217,7 +217,10 @@ namespace libtrainsim::core {
          * @param parentPath The path this config is loaded from (needed to locate the video)
          * @param lazyLoad true if you only want to load the data on the first
          */
-        Track(std::shared_ptr<SimpleGFX::logger> logger, const nlohmann::json& data_json, const std::filesystem::path& parentPath, bool lazyLoad = false);
+        Track(std::shared_ptr<SimpleGFX::core::logger> logger,
+              const nlohmann::json&                    data_json,
+              const std::filesystem::path&             parentPath,
+              bool                                     lazyLoad = false);
 
         /**
          * @brief this function ensures that the data is fully loaded.

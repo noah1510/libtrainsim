@@ -10,11 +10,11 @@ libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::
     } catch (...) {
         std::throw_with_nested(std::runtime_error("Error initializing the serial control"));
     }
-    
-    last_sifa_push = SimpleGFX::chrono::now();
+
+    last_sifa_push = SimpleGFX::core::now();
 
 #ifdef HAS_VIDEO_SUPPORT
-    keyboardPoller = std::make_shared<SimpleGFX::SimpleGL::eventPollerGtkKeyboard>();
+    keyboardPoller = std::make_shared<SimpleGFX::ui::eventPollerGtkKeyboard>();
 
     keyboardPoller->addKey(GDK_KEY_Escape, "CLOSE");
 
@@ -29,7 +29,7 @@ libtrainsim::control::input_handler::input_handler(std::shared_ptr<libtrainsim::
     keyboardPoller->addKey(GDK_KEY_W, "ACCELERATE");
     keyboardPoller->addKey(GDK_KEY_S, "BREAK");
     keyboardPoller->addKey(GDK_KEY_P, "EMERGENCY_BREAK");
-    
+
     keyboardPoller->addKey(GDK_KEY_space, "SIFA");
 
     conf->getInputManager()->registerPoller(*keyboardPoller);
@@ -42,7 +42,7 @@ libtrainsim::control::input_handler::~input_handler() {
 
 void libtrainsim::control::input_handler::resetFlags() {
     std::scoped_lock lock{dataMutex};
-    //serial.reset();
+    // serial.reset();
 
     currentInputAxis     = 0.0;
     shouldClose          = false;
@@ -60,14 +60,15 @@ void libtrainsim::control::input_handler::startSimulation() {
         serial->connect();
     }
 
-    *conf->getLogger() << SimpleGFX::loggingLevel::normal << "starting simulation. Serial connection status: " << serial->IsConnected();
+    *conf->getLogger() << SimpleGFX::core::loggingLevel::normal
+                       << "starting simulation. Serial connection status: " << serial->IsConnected();
 
     running = true;
 }
 
 
 #ifdef HAS_VIDEO_SUPPORT
-std::shared_ptr<SimpleGFX::SimpleGL::eventPollerGtkKeyboard> libtrainsim::control::input_handler::getKeyboardPoller() {
+std::shared_ptr<SimpleGFX::ui::eventPollerGtkKeyboard> libtrainsim::control::input_handler::getKeyboardPoller() {
     return keyboardPoller;
 }
 #endif
@@ -88,16 +89,16 @@ bool libtrainsim::control::input_handler::closingFlag() noexcept {
 
 bool libtrainsim::control::input_handler::emergencyFlag(bool keepBreakActive) noexcept {
     if (shouldEmergencyBreak) {
-        if (currentInputAxis.load() <= 0.0){
+        if (currentInputAxis.load() <= 0.0) {
             shouldEmergencyBreak = keepBreakActive;
         }
         return true;
-    }else{
-        if (sifa_pressed){
-            last_sifa_push = SimpleGFX::chrono::now();
+    } else {
+        if (sifa_pressed) {
+            last_sifa_push = SimpleGFX::core::now();
         }
 
-        if (SimpleGFX::chrono::now() - last_sifa_push.load() > 3s){
+        if (SimpleGFX::core::now() - last_sifa_push.load() > 3s) {
             shouldEmergencyBreak = true;
             return true;
         }
@@ -105,7 +106,7 @@ bool libtrainsim::control::input_handler::emergencyFlag(bool keepBreakActive) no
     return false;
 }
 
-void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent& event, bool& handled) {
+void libtrainsim::control::input_handler::operator()(const SimpleGFX::core::inputEvent& event, bool& handled) {
     std::scoped_lock lock{dataMutex};
     auto             eventName       = event.name;
     bool             serialConnected = serial && serial->IsConnected();
@@ -115,7 +116,7 @@ void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent
         static double brakeVal = 0;
 
         const auto analogCases = {"ACCELERATE_ANALOG", "BREAK_ANALOG"};
-        switch (SimpleGFX::TSwitch(eventName, analogCases)) {
+        switch (SimpleGFX::core::TSwitch(eventName, analogCases)) {
             case (0):
                 accelVal         = event.amount / 255;
                 currentInputAxis = accelVal - brakeVal;
@@ -130,9 +131,9 @@ void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent
                 break;
         }
     }
-    
-    const auto actionCases = {"TERMINATE", "CLOSE", "EMERGENCY_BREAK", "ACCELERATE", "BREAK", "SIFA"};
-    const auto selectedCase = SimpleGFX::TSwitch(eventName, actionCases);
+
+    const auto actionCases  = {"TERMINATE", "CLOSE", "EMERGENCY_BREAK", "ACCELERATE", "BREAK", "SIFA"};
+    const auto selectedCase = SimpleGFX::core::TSwitch(eventName, actionCases);
     switch (selectedCase) {
         case (0):
             shouldTeminate = true;
@@ -162,17 +163,17 @@ void libtrainsim::control::input_handler::operator()(const SimpleGFX::inputEvent
                 }
 
                 currentInputAxis = axis;
-                handled = true;
+                handled          = true;
             };
             return;
-        case(5):
-            if (event.inputType == SimpleGFX::inputAction::release){
+        case (5):
+            if (event.inputType == SimpleGFX::core::inputAction::release) {
                 sifa_pressed = false;
-            }else{
-                sifa_pressed = true;
-                last_sifa_push = SimpleGFX::chrono::now();
+            } else {
+                sifa_pressed   = true;
+                last_sifa_push = SimpleGFX::core::now();
             }
-            
+
             return;
         default:
             break;

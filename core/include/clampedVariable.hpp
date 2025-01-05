@@ -22,9 +22,7 @@ namespace libtrainsim {
              *
              * @param _val A default value can be passed to the contructor.
              */
-            clampedVariable(auto _val) noexcept{
-                set(static_cast<T>(_val));
-            }
+            clampedVariable(auto _val) noexcept { set(static_cast<T>(_val)); }
 
             /**
              * @brief Just assign other axis to it and the value will be automatically clamped.
@@ -38,9 +36,7 @@ namespace libtrainsim {
              *
              * @param newVal the value the axis should have now.
              */
-            void operator=(auto newVal) noexcept{
-                set(static_cast<T>(newVal));
-            }
+            void operator=(auto newVal) noexcept { set(static_cast<T>(newVal)); }
 
             /**
              * @brief Just assign other axis to it and the value will be automatically clamped.
@@ -63,58 +59,40 @@ namespace libtrainsim {
              */
             T get() const noexcept;
 
-            bool isRoughly(auto val) const noexcept{
-                return SimpleGFX::numbers::isRoughly<T>(value, static_cast<T>(val));
-            }
+            bool isRoughly(auto val) const noexcept { return SimpleGFX::core::isRoughly<T>(value, static_cast<T>(val)); }
             bool isRoughly(const clampedVariable<T, lower, higher>& other) const noexcept;
 
-            void operator+=(auto val) noexcept {
-                set(get() + static_cast<T>(val));
-            }
-            void operator-=(auto val) noexcept {
-                set(get() - static_cast<T>(val));
-            }
+            void operator+=(auto val) noexcept { set(get() + static_cast<T>(val)); }
+            void operator-=(auto val) noexcept { set(get() - static_cast<T>(val)); }
 
             void operator+=(const clampedVariable& other) noexcept;
             void operator-=(const clampedVariable& other) noexcept;
 
 
-            auto operator+(auto val) const noexcept -> clampedVariable {
-                return clampedVariable(this->value + static_cast<T>(val));
-            }
-            auto operator-(auto val) const noexcept -> clampedVariable{
-                return clampedVariable(this->value - static_cast<T>(val));
-            }
+            auto operator+(auto val) const noexcept -> clampedVariable { return clampedVariable(this->value + static_cast<T>(val)); }
+            auto operator-(auto val) const noexcept -> clampedVariable { return clampedVariable(this->value - static_cast<T>(val)); }
             auto operator+(const clampedVariable& other) const noexcept -> clampedVariable;
             auto operator-(const clampedVariable& other) const noexcept -> clampedVariable;
 
 
-            void operator*=(auto val) noexcept{
-                set(get() * static_cast<T>(val));
-            }
-            void operator/=(auto val) noexcept{
-                set(get() / static_cast<T>(val));
-            }
+            void operator*=(auto val) noexcept { set(get() * static_cast<T>(val)); }
+            void operator/=(auto val) noexcept { set(get() / static_cast<T>(val)); }
             void operator*=(const clampedVariable& other) noexcept;
             void operator/=(const clampedVariable& other) noexcept;
 
 
-            auto operator*(auto val) const noexcept -> clampedVariable{
-                return clampedVariable(this->value * static_cast<T>(val));
-            }
-            auto operator/(auto val) const noexcept -> clampedVariable{
-                return clampedVariable(this->value / static_cast<T>(val));
-            }
+            auto operator*(auto val) const noexcept -> clampedVariable { return clampedVariable(this->value * static_cast<T>(val)); }
+            auto operator/(auto val) const noexcept -> clampedVariable { return clampedVariable(this->value / static_cast<T>(val)); }
             auto operator*(const clampedVariable& other) const noexcept -> clampedVariable;
             auto operator/(const clampedVariable& other) const noexcept -> clampedVariable;
 
-            auto operator<=>(auto rhs) const {
-                return value <=> static_cast<T>(rhs);
-            }
+            bool operator==(auto rhs) const { return value == static_cast<T>(rhs); }
 
-            auto operator<=>(const clampedVariable& rhs) const {
-                return value <=> rhs.value;
-            }
+            bool operator==(const clampedVariable& rhs) const { return value == rhs.value; }
+
+            auto operator<=>(auto rhs) const { return value <=> static_cast<T>(rhs); }
+
+            auto operator<=>(const clampedVariable& rhs) const { return value <=> rhs.value; }
         };
     } // namespace core
 } // namespace libtrainsim

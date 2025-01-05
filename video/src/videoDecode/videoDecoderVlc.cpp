@@ -1,14 +1,14 @@
 #include "videoDecode/videoDecoderVlc.hpp"
 
 using namespace sakurajin::unit_system;
-using namespace SimpleGFX::SimpleGL;
+using namespace SimpleGFX::gl;
 using namespace std::literals;
 
-libtrainsim::Video::videoDecoderVlc::videoDecoderVlc(std::filesystem::path              _videoFile,
-                                                     std::shared_ptr<SimpleGFX::logger> _logger,
-                                                     uint64_t                           _start_frame,
-                                                     uint64_t                           _seekCutoff,
-                                                     uint64_t                           threadCount)
+libtrainsim::Video::videoDecoderVlc::videoDecoderVlc(std::filesystem::path                    _videoFile,
+                                                     std::shared_ptr<SimpleGFX::core::logger> _logger,
+                                                     uint64_t                                 _start_frame,
+                                                     uint64_t                                 _seekCutoff,
+                                                     uint64_t                                 threadCount)
     : videoDecoderBase{std::move(_videoFile), std::move(_logger), _seekCutoff} {
 
     try {
@@ -18,7 +18,7 @@ libtrainsim::Video::videoDecoderVlc::videoDecoderVlc(std::filesystem::path      
         std::throw_with_nested(std::runtime_error("Failed to create video decoder"));
     }
 
-    *LOGGER << SimpleGFX::loggingLevel::debug << "Video has a framerate of " << ((double)fps_num / (double)fps_den) << " fps";
+    *LOGGER << SimpleGFX::core::loggingLevel::debug << "Video has a framerate of " << ((double)fps_num / (double)fps_den) << " fps";
 
     auto [w, h] = renderSize.getCasted<int>();
     player->setVideoFormat("RV24", w, h, w * 3);
@@ -43,7 +43,7 @@ libtrainsim::Video::videoDecoderVlc::~videoDecoderVlc() {
     }
 
     if (renderThread.valid()) {
-        *LOGGER << SimpleGFX::loggingLevel::debug << "waiting for render to finish";
+        *LOGGER << SimpleGFX::core::loggingLevel::debug << "waiting for render to finish";
         renderThread.wait();
         renderThread.get();
     }

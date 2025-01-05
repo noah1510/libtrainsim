@@ -30,7 +30,7 @@ namespace libtrainsim {
          * it is not possible to retrieve the currently pressed keys. If libtrainsim::video is not available the serialcontrol
          * part still works, its just that this can no longer detect window events and the closing flag is always false.
          */
-        class LIBTRAINSIM_EXPORT_MACRO input_handler : public SimpleGFX::tracked_eventHandle {
+        class LIBTRAINSIM_EXPORT_MACRO input_handler : public SimpleGFX::core::tracked_eventHandle {
           private:
             /**
              * @brief a mutex to control the data access across threads
@@ -63,9 +63,9 @@ namespace libtrainsim {
              * @brief a bool to set if the simulator is running
              */
             std::atomic<bool> running = false;
-            
-            std::atomic<decltype(SimpleGFX::chrono::now())> last_sifa_push;
-            
+
+            std::atomic<decltype(SimpleGFX::core::now())> last_sifa_push;
+
             std::atomic<bool> sifa_pressed = false;
 
             /**
@@ -75,7 +75,7 @@ namespace libtrainsim {
             std::unique_ptr<serialcontrol> serial;
 
 #ifdef HAS_VIDEO_SUPPORT
-            std::shared_ptr<SimpleGFX::SimpleGL::eventPollerGtkKeyboard> keyboardPoller = nullptr;
+            std::shared_ptr<SimpleGFX::ui::eventPollerGtkKeyboard> keyboardPoller = nullptr;
 #endif
 
           public:
@@ -123,10 +123,10 @@ namespace libtrainsim {
              */
             void startSimulation();
 
-            void operator()(const SimpleGFX::inputEvent& event, bool& handled) override;
+            void operator()(const SimpleGFX::core::inputEvent& event, bool& handled) override;
 
 #ifdef HAS_VIDEO_SUPPORT
-            std::shared_ptr<SimpleGFX::SimpleGL::eventPollerGtkKeyboard> getKeyboardPoller();
+            std::shared_ptr<SimpleGFX::ui::eventPollerGtkKeyboard> getKeyboardPoller();
 #endif
         };
     } // namespace control
